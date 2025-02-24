@@ -5,8 +5,8 @@ import sqlite3
 import time
 
 # Configurazione bot Telegram e URL
-TELEGRAM_BOT_TOKEN = "6611531315:AAFjmQMJTnLvyqTY11zHu7MXVHi07llu-Rw"
-TELEGRAM_CHAT_ID = "134014405"
+TELEGRAM_BOT_TOKEN = st.secrets["TELEGRAM_BOT_TOKEN"]
+TELEGRAM_CHAT_ID = st.secrets["TELEGRAM_CHAT_ID"]
 BASE_URL = "https://www.halleyweb.com/c065001/mc/"
 ALBO_URL = BASE_URL + "mc_p_ricerca.php?noHeaderFooter=1&multiente=c065001"
 DB_NAME = "pubblicazioni.db"
