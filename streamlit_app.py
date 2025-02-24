@@ -16,12 +16,6 @@ df = get_data()
 column_mapping = {col: col.replace("_", " ").title() for col in df.columns}
 df.rename(columns=column_mapping, inplace=True)
 
-# Nascondi la chiave primaria
-if "Numero Pubblicazione" in df.columns:
-    df_display = df.drop(columns=["Numero Pubblicazione"])
-else:
-    df_display = df
-
 # Sidebar con filtri
 st.sidebar.header("Filtri")
 search_text = st.sidebar.text_input("Cerca nelle pubblicazioni")
