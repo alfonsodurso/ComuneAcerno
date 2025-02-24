@@ -2,54 +2,54 @@ import streamlit as st
 import sqlite3
 import pandas as pd
 
-# Funzione per ottenere le pubblicazioni dal database
-def get_pubblicazioni(filtro_testo="", tipo_atto="", data_da=None, data_a=None):
-    conn = sqlite3.connect("pubblicazioni.db")
-    query = "SELECT * FROM pubblicazioni WHERE 1=1"
-    params = []
-    
-    if filtro_testo:
-        query += " AND (oggetto_atto LIKE ? OR mittente LIKE ? OR numero_pubblicazione LIKE ? )"
-        params.extend([f"%{filtro_testo}%"] * 3)
-    
-    if tipo_atto:
-        query += " AND tipo_atto = ?"
-        params.append(tipo_atto)
-    
-    if data_da:
-        query += " AND data_inizio_pubblicazione >= ?"
-        params.append(data_da)
-    
-    if data_a:
-        query += " AND data_fine_pubblicazione <= ?"
-        params.append(data_a)
-    
-    df = pd.read_sql(query, conn, params=params)
-    conn.close()
+# Funzione per ottenere i dati dal database
+def get_data():
+    with sqlite3.connect("pubblicazioni.db") as conn:
+        query = "SELECT * FROM pubblicazioni"
+        df = pd.read_sql(query, conn)
     return df
 
-# Layout della pagina
+# Carica i dati
+df = get_data()
+
+# Rinomina le colonne
+column_mapping = {col: col.replace("_", " ").title() for col in df.columns}
+df.rename(columns=column_mapping, inplace=True)
+
+# Nascondi la chiave primaria
+if "Numero Pubblicazione" in df.columns:
+    df_display = df.drop(columns=["Numero Pubblicazione"])
+else:
+    df_display = df
+
+# Sidebar con filtri
+st.sidebar.header("Filtri")
+search_text = st.sidebar.text_input("Cerca nelle pubblicazioni")
+tipo_atto = st.sidebar.selectbox("Filtra per Tipo Atto", ["Tutti"] + sorted(df["Tipo Atto"].dropna().unique().tolist()))
+data_da = st.sidebar.date_input("Data Inizio", None)
+data_a = st.sidebar.date_input("Data Fine", None)
+
+# Applica filtri
+if search_text:
+    df_display = df_display[df_display.apply(lambda row: row.astype(str).str.contains(search_text, case=False, na=False).any(), axis=1)]
+if tipo_atto != "Tutti":
+    df_display = df_display[df_display["Tipo Atto"] == tipo_atto]
+if data_da:
+    df_display = df_display[pd.to_datetime(df_display["Data Inizio Pubblicazione"], errors="coerce") >= pd.to_datetime(data_da)]
+if data_a:
+    df_display = df_display[pd.to_datetime(df_display["Data Fine Pubblicazione"], errors="coerce") <= pd.to_datetime(data_a)]
+
+# Mostra tabella con risultati filtrati
 st.title("Elenco Pubblicazioni")
+st.dataframe(df_display)
 
-# Sezione filtri
-filtro_testo = st.text_input("Ricerca testuale")
-tipo_atto = st.selectbox("Tipologia di atto", ["", "Determina", "Delibera", "Avviso"], index=0)
-col1, col2 = st.columns(2)
-with col1:
-    data_da = st.date_input("Data da", None)
-with col2:
-    data_a = st.date_input("Data a", None)
-
-# Mostra la tabella con i risultati
-pubblicazioni = get_pubblicazioni(filtro_testo, tipo_atto, data_da, data_a)
-st.dataframe(pubblicazioni)
-
-# Sezione ricerca per numero pubblicazione
-st.header("Dettaglio Pubblicazione")
-num_pub = st.text_input("Inserisci numero pubblicazione")
-if num_pub:
-    dettaglio = get_pubblicazioni(filtro_testo=num_pub)
+# Sezione per la ricerca dettagliata
+st.header("Dettagli Pubblicazione")
+numero_pubblicazione = st.text_input("Inserisci Numero Pubblicazione")
+if numero_pubblicazione:
+    dettaglio = df[df["Numero Pubblicazione"] == numero_pubblicazione]
     if not dettaglio.empty:
-        st.write(dettaglio)
+        for col, val in dettaglio.iloc[0].items():
+            st.write(f"**{col}**: {val}")
     else:
-        st.warning("Nessuna pubblicazione trovata.")
+        st.write("Nessuna pubblicazione trovata.")
