@@ -2,50 +2,54 @@ import streamlit as st
 import sqlite3
 import pandas as pd
 
-# Funzione per connettersi al database
-def get_data(query, params=()):
-    with sqlite3.connect("pubblicazioni.db") as conn:
-        df = pd.read_sql_query(query, conn, params=params)
+# Funzione per ottenere le pubblicazioni dal database
+def get_pubblicazioni(filtro_testo="", tipo_atto="", data_da=None, data_a=None):
+    conn = sqlite3.connect("pubblicazioni.db")
+    query = "SELECT * FROM pubblicazioni WHERE 1=1"
+    params = []
+    
+    if filtro_testo:
+        query += " AND (oggetto_atto LIKE ? OR mittente LIKE ? OR numero_pubblicazione LIKE ? )"
+        params.extend([f"%{filtro_testo}%"] * 3)
+    
+    if tipo_atto:
+        query += " AND tipo_atto = ?"
+        params.append(tipo_atto)
+    
+    if data_da:
+        query += " AND data_inizio_pubblicazione >= ?"
+        params.append(data_da)
+    
+    if data_a:
+        query += " AND data_fine_pubblicazione <= ?"
+        params.append(data_a)
+    
+    df = pd.read_sql(query, conn, params=params)
+    conn.close()
     return df
 
-# Layout dell'interfaccia
-st.title("📜 Albo Pretorio - Ricerca e Filtri")
+# Layout della pagina
+st.title("Elenco Pubblicazioni")
 
-# Opzioni di ricerca e filtro
+# Sezione filtri
+filtro_testo = st.text_input("Ricerca testuale")
+tipo_atto = st.selectbox("Tipologia di atto", ["", "Determina", "Delibera", "Avviso"], index=0)
 col1, col2 = st.columns(2)
-
 with col1:
-    search_term = st.text_input("🔍 Cerca per parola chiave (oggetto, mittente, tipo atto):")
-
+    data_da = st.date_input("Data da", None)
 with col2:
-    filtro_tipo_atto = st.selectbox("📌 Filtra per Tipo Atto", ["Tutti"] + get_data("SELECT DISTINCT tipo_atto FROM pubblicazioni")['tipo_atto'].tolist())
+    data_a = st.date_input("Data a", None)
 
-# Query dinamica
-query = "SELECT * FROM pubblicazioni WHERE 1=1"
-params = []
+# Mostra la tabella con i risultati
+pubblicazioni = get_pubblicazioni(filtro_testo, tipo_atto, data_da, data_a)
+st.dataframe(pubblicazioni)
 
-if search_term:
-    query += " AND (oggetto_atto LIKE ? OR mittente LIKE ? OR tipo_atto LIKE ?)"
-    params.extend([f"%{search_term}%"] * 3)
-
-if filtro_tipo_atto != "Tutti":
-    query += " AND tipo_atto = ?"
-    params.append(filtro_tipo_atto)
-
-# Ottenere dati filtrati
-df = get_data(query, params)
-
-# Mostrare la tabella
-st.dataframe(df)
-
-# Mostrare dettagli quando si seleziona una riga
-if not df.empty:
-    selected_index = st.selectbox("📄 Seleziona una pubblicazione per dettagli:", df.index.tolist())
-    selected_data = df.iloc[selected_index]
-    st.write(selected_data)
-    
-    # Link documento principale e allegati
-    st.markdown(f"**📎 Documento:** [Link]({selected_data['documento']})")
-    allegati_links = selected_data['allegati'].split(',') if selected_data['allegati'] else []
-    for i, link in enumerate(allegati_links):
-        st.markdown(f"**📂 Allegato {i+1}:** [Link]({link})")
+# Sezione ricerca per numero pubblicazione
+st.header("Dettaglio Pubblicazione")
+num_pub = st.text_input("Inserisci numero pubblicazione")
+if num_pub:
+    dettaglio = get_pubblicazioni(filtro_testo=num_pub)
+    if not dettaglio.empty:
+        st.write(dettaglio)
+    else:
+        st.warning("Nessuna pubblicazione trovata.")
