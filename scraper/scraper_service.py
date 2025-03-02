@@ -4,6 +4,10 @@ from db.db_manager import DatabaseManager
 from scraper.parser import AlboParser
 from scraper.telegram_notifier import TelegramNotifier
 
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+
 def job_monitor():
     db_manager = DatabaseManager()
     parser = AlboParser()
