@@ -10,20 +10,26 @@ def get_pubblicazioni():
     return df
 
 def filtra_pubblicazioni(df, ricerca, tipo_atto, data_da, data_a):
+    # Filtra per testo in tutte le colonne
     if ricerca:
         df = df[df.apply(lambda row: row.astype(str).str.contains(ricerca, case=False, na=False).any(), axis=1)]
+    # Filtra per "Tipo Atto" (colonna rinominata)
     if tipo_atto and tipo_atto != "Tutti":
-        df = df[df["tipo_atto"] == tipo_atto]
+        df = df[df["Tipo Atto"] == tipo_atto]
+    # Filtra per date utilizzando i nomi rinominati
     if data_da:
-        df = df[pd.to_datetime(df["data_inizio_pubblicazione"]) >= pd.to_datetime(data_da)]
+        df = df[pd.to_datetime(df["Data Inizio Pubblicazione"]) >= pd.to_datetime(data_da)]
     if data_a:
-        df = df[pd.to_datetime(df["data_fine_pubblicazione"]) <= pd.to_datetime(data_a)]
+        df = df[pd.to_datetime(df["Data Fine Pubblicazione"]) <= pd.to_datetime(data_a)]
     return df
 
 st.set_page_config(page_title="Albo Pretorio", layout="wide")
 st.title("📜 Elenco Pubblicazioni")
 
+# Carica i dati dal database
 df = get_pubblicazioni()
+
+# Rinomina le colonne per una migliore leggibilità
 df.columns = [col.replace('_', ' ').title() for col in df.columns]
 
 with st.expander("Filtri di Ricerca"):
@@ -35,6 +41,7 @@ with st.expander("Filtri di Ricerca"):
     data_da = col3_1.date_input("📅 Data inizio", None)
     data_a = col3_2.date_input("📅 Data fine", None)
 
+# Applica i filtri usando i nomi rinominati
 df_filtrato = filtra_pubblicazioni(df, ricerca, tipo_atto, data_da, data_a)
 st.dataframe(df_filtrato, use_container_width=True)
 
