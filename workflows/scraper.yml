@@ -1,0 +1,36 @@
+name: Run Scraper
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'   # Esegue ogni 30 minuti
+  workflow_dispatch:         # Consente l'esecuzione manuale
+
+jobs:
+  scraper_job:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          persist-credentials: false  # Utilizzeremo il GITHUB_TOKEN per commettere
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Run Scraper Service Once
+        run: |
+          python scraper/scraper_service.py --once
+      - name: Commit changes if DB updated
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add .
+          # Se ci sono modifiche, commetti e push
+          git diff-index --quiet HEAD || (git commit -m "Update DB from scraper" && git push)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
