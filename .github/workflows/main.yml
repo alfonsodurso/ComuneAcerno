@@ -2,8 +2,8 @@ name: Run Scraper
 
 on:
   schedule:
-    - cron: '*/30 * * * *'   # Esegue ogni 30 minuti
-  workflow_dispatch:         # Consente l'esecuzione manuale
+    - cron: '*/30 * * * *'   # Esegue lo scraper ogni 30 minuti
+  workflow_dispatch:         # Permette l'esecuzione manuale
 
 jobs:
   scraper_job:
@@ -13,18 +13,23 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
-          persist-credentials: false  # Utilizzeremo il GITHUB_TOKEN per commettere
+          persist-credentials: false
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.9'
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+
       - name: Run Scraper Service Once
+        working-directory: ${{ alfonsodurso/ComuneAcerno }}
         run: |
           python scraper/scraper_service.py --once
+
       - name: Commit changes if DB updated
         run: |
           git config --local user.email "action@github.com"
