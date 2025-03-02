@@ -5,6 +5,9 @@ on:
     - cron: '*/30 * * * *'   # Esegue il workflow ogni 30 minuti
   workflow_dispatch:         # Permette di avviarlo manualmente
 
+permissions:
+  contents: write   # Concede permessi di scrittura ai contenuti del repository
+
 jobs:
   scraper_job:
     runs-on: ubuntu-latest
