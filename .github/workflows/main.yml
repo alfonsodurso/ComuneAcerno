@@ -1,4 +1,4 @@
-name: Run Scraper
+  name: Run Scraper
 
 on:
   schedule:
@@ -34,8 +34,8 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add .
+          git add pubblicazioni.db
           # Se ci sono modifiche, commetti e push
-          git diff-index --quiet HEAD || (git commit -m "Update DB from scraper" && git push)
+          git diff-index --quiet HEAD || (git commit -m "Update DB from scraper" && git push origin main)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
