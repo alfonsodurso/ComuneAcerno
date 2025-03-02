@@ -1,0 +1,46 @@
+  name: Run Scraper
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'   # Esegue lo scraper ogni 30 minuti
+  workflow_dispatch:         # Permette l'esecuzione manuale
+
+jobs:
+  scraper_job:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Set environment variables
+        run: |
+          echo "TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}" >> $GITHUB_ENV
+          echo "TELEGRAM_CHAT_ID=${{ secrets.TELEGRAM_CHAT_ID }}" >> $GITHUB_ENV
+
+      - name: Run Scraper Service Once
+        working-directory: ${{github.workspace}}
+        run: |
+          python scraper/scraper_service.py --once
+
+      - name: Commit changes if DB updated
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add pubblicazioni.db
+          git diff-index --quiet HEAD || (git commit -m "Update DB from scraper" && git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/alfonsodurso/ComuneAcerno.git main)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
