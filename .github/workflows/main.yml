@@ -1,9 +1,9 @@
-  name: Run Scraper
+name: Run Scraper
 
 on:
   schedule:
-    - cron: '*/30 * * * *'   # Esegue lo scraper ogni 30 minuti
-  workflow_dispatch:         # Permette l'esecuzione manuale
+    - cron: '*/30 * * * *'   # Esegue il workflow ogni 30 minuti
+  workflow_dispatch:         # Permette di avviarlo manualmente
 
 jobs:
   scraper_job:
@@ -31,7 +31,7 @@ jobs:
           echo "TELEGRAM_CHAT_ID=${{ secrets.TELEGRAM_CHAT_ID }}" >> $GITHUB_ENV
 
       - name: Run Scraper Service Once
-        working-directory: ${{github.workspace}}
+        working-directory: ${{ github.workspace }}
         run: |
           python scraper/scraper_service.py --once
 
@@ -43,4 +43,3 @@ jobs:
           git diff-index --quiet HEAD || (git commit -m "Update DB from scraper" && git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/alfonsodurso/ComuneAcerno.git main)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
