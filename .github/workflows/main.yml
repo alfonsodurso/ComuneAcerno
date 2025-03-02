@@ -2,7 +2,7 @@ name: Run Scraper
 
 on:
   schedule:
-    - cron: '*/30 * * * *'   # Esegue il workflow ogni 30 minuti
+    - cron: '*/60 * * * *'   # Esegue il workflow ogni 30 minuti
   workflow_dispatch:         # Permette di avviarlo manualmente
 
 permissions:
