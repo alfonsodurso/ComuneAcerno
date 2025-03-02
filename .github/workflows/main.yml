@@ -26,7 +26,7 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run Scraper Service Once
-        working-directory: ${{ alfonsodurso/ComuneAcerno }}
+        working-directory: ${{github.workspace}}
         run: |
           python scraper/scraper_service.py --once
 
