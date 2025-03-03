@@ -7,8 +7,8 @@ def page_sfoglia(df):
     st.markdown("Consulta le pubblicazioni una alla volta, dalla più recente alla meno recente.")
 
     # Imposta default per le date (opzionale)
-    default_start = datetime.date(1900, 1, 1)
-    default_end = datetime.date(2100, 1, 1)
+    # default_start = datetime.date(2025, 1, 1)
+    # default_end = datetime.date(2025, 1, 1)
     
     col1, col2 = st.columns(2)
     ricerca = col1.text_input("🔍 Ricerca")
@@ -37,7 +37,7 @@ def page_sfoglia(df):
     current_pub = filtered.iloc[st.session_state.sfoglia_index]
     st.markdown(f"### Pubblicazione {st.session_state.sfoglia_index + 1} di {len(filtered)}")
     with st.container():
-        st.markdown("<div style='background-color: #f9f9f9; border: 1px solid #ddd; padding: 1em; border-radius: 0.5em;'>", unsafe_allow_html=True)
+        # st.markdown("<div style='background-color: #f9f9f9; border: 1px solid #ddd; padding: 1em; border-radius: 0.5em;'>", unsafe_allow_html=True)
         for col in filtered.columns:
             st.markdown(f"**{col}:** {current_pub[col]}")
         st.markdown("</div>", unsafe_allow_html=True)
