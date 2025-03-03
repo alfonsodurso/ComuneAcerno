@@ -35,7 +35,7 @@ def page_sfoglia(df):
 
     # **Bottoni sulla stessa riga**
     col_nav1, col_nav2, _ = st.columns([1, 1, 2])
-    if col_nav1.button("◀️"):
+    if col_nav1.button("◀️ Indietro"):
         st.session_state.sfoglia_index -= 1
-    if col_nav2.button("▶️"):
+    if col_nav2.button("▶️ Avanti"):
         st.session_state.sfoglia_index += 1
