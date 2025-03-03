@@ -1,17 +1,11 @@
 import sys
 import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-# Aggiunge la root del repository al PYTHONPATH
-repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-sys.path.insert(0, repo_root)
-
-print("Current working directory:", os.getcwd())  # Debugging
-print("Updated sys.path:", sys.path)  # Debugging
-
-from db.db_manager import DatabaseManager  # Ora dovrebbe funzionare
+from apscheduler.schedulers.blocking import BlockingScheduler
+from db.db_manager import DatabaseManager
 from scraper.parser import AlboParser
 from scraper.telegram_notifier import TelegramNotifier
-
 
 def job_monitor():
     db_manager = DatabaseManager()
@@ -20,10 +14,17 @@ def job_monitor():
 
     print("Esecuzione del job di monitoraggio...")
     pubblicazioni = parser.estrai_pubblicazioni()
-    for pub in pubblicazioni:
-        if not db_manager.pubblicazione_esiste(pub["numero_pubblicazione"]):
-            db_manager.salva_pubblicazione(pub)
-            notifier.invia_messaggio(pub)
+    # Seleziona solo le pubblicazioni non ancora presenti nel DB
+    new_pubs = [pub for pub in pubblicazioni if not db_manager.pubblicazione_esiste(pub["numero_pubblicazione"])]
+    # Ordina in ordine crescente in base al numero pubblicazione
+    try:
+        new_pubs = sorted(new_pubs, key=lambda x: int(x["numero_pubblicazione"]))
+    except ValueError:
+        new_pubs = sorted(new_pubs, key=lambda x: x["numero_pubblicazione"])
+    
+    for pub in new_pubs:
+        db_manager.salva_pubblicazione(pub)
+        notifier.invia_messaggio(pub)
 
 if __name__ == "__main__":
     if "--once" in sys.argv:
