@@ -6,8 +6,8 @@ def page_elenco(df):
     st.header("ELENCO")
     st.markdown("Vista tabellare di tutte le pubblicazioni, ordinate dalla più recente alla meno recente.")
     
-    default_start = datetime.date(1900, 1, 1)
-    default_end = datetime.date(2100, 1, 1)
+    # default_start = datetime.date(1900, 1, 1)
+    # default_end = datetime.date(2100, 1, 1)
     
     col1, col2 = st.columns(2)
     ricerca = col1.text_input("🔍 Ricerca", key="elenco_ricerca")
