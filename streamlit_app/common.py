@@ -27,5 +27,9 @@ def filter_data(df, ricerca, tipologia, data_da, data_a):
     if data_da:
         filtered = filtered[filtered["Data Inizio Pubblicazione"] >= pd.to_datetime(data_da)]
     if data_a:
-        filtered = filtered[filtered["Data Fine Pubblicazione"] <= pd.to_datetime(data_a)]
+        filtered = filtered[
+            (filtered["Data Fine Pubblicazione"].isnull()) |
+            (filtered["Data Fine Pubblicazione"] <= pd.to_datetime(data_a))
+        ]
+
     return filtered
