@@ -1,16 +1,19 @@
 import streamlit as st
+
+st.set_page_config(page_title="Albo Pretorio", layout="wide", initial_sidebar_state="expanded")
+
 from common import load_data
 from sfoglia import page_sfoglia
 from elenco import page_elenco
 from analisi import page_analisi
 
-st.set_page_config(page_title="Albo Pretorio", layout="wide", initial_sidebar_state="expanded")
 st.sidebar.title("Navigazione")
 pagina = st.sidebar.radio("Seleziona pagina", ("SFOGLIA", "ELENCO", "ANALISI"))
 
 # Carica i dati dal database
 df = load_data()
 
+# Mostra la pagina selezionata
 if pagina == "SFOGLIA":
     page_sfoglia(df)
 elif pagina == "ELENCO":
