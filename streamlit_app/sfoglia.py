@@ -16,4 +16,26 @@ def page_sfoglia(df):
 
     filtered = filter_data(df, ricerca, tipologia_selezionata, data_da, data_a)
 
-    if filtered.em
+    if filtered.empty:
+        st.info("Nessuna pubblicazione trovata con questi filtri.")
+        return
+
+    filtered.columns = [col.replace('_', ' ').title() for col in filtered.columns]
+
+    if "sfoglia_index" not in st.session_state:
+        st.session_state.sfoglia_index = 0
+    st.session_state.sfoglia_index = max(0, min(st.session_state.sfoglia_index, len(filtered) - 1))
+
+    current_pub = filtered.iloc[st.session_state.sfoglia_index]
+    st.subheader(f"📄 Pubblicazione {st.session_state.sfoglia_index + 1} di {len(filtered)}")
+
+    # **Mostra i dettagli della pubblicazione senza separatori Markdown**
+    for col in filtered.columns:
+        st.write(f"**{col}:** {current_pub[col]}")
+
+    # **Bottoni sulla stessa riga**
+    col_nav1, col_nav2, _ = st.columns([1, 1, 2])
+    if col_nav1.button("◀️"):
+        st.session_state.sfoglia_index -= 1
+    if col_nav2.button("▶️"):
+        st.session_state.sfoglia_index += 1
