@@ -64,7 +64,7 @@ def page_analisi(df):
         # 🍩 Donut per Tipologie
         if "tipo_atto" in df.columns:
             tipologia_counts = df["tipo_atto"].value_counts().reset_index()
-            tipologia_counts.columns = ["Tipo Atto", "Numero di Pubblicazioni"]
+            tipologia_counts.columns = ["Tipologia", "Numero"]
             fig_pie_tipo = px.pie(
                 tipologia_counts, 
                 names="Tipo Atto", 
@@ -80,4 +80,10 @@ def page_analisi(df):
         # 🍩 Donut per Mittenti
         if "mittente" in df.columns:
             mittente_counts = df["mittente"].value_counts().reset_index()
-            mittente_counts.columns = ["Mittente", "Numero di Pubblicazioni
+            mittente_counts.columns = ["Mittente", "Numero"]
+            fig4 = px.pie(mittente_counts, names="Mittente", values="Numero di Pubblicazioni",
+                          title="Mittenti",
+                          hole=0.4, color_discrete_sequence=COLOR_PALETTE)
+            col2.plotly_chart(fig4, use_container_width=True, config=PLOTLY_CONFIG)  # ✅ Toolbar personalizzata
+        else:
+            col2.warning("⚠️ Dati sui mittenti non disponibili.")
