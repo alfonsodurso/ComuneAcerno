@@ -23,7 +23,7 @@ def page_elenco(df):
         st.info("Nessuna pubblicazione trovata.")
     else:
         # **Mantieni solo le colonne richieste**
-        columns_to_keep = ["numero_pubblicazione", "mittente", "tipo_atto", "data_inizio_pubblicazione", "oggetto_atto"]
+        columns_to_keep = ["numero_pubblicazione", "mittente", "tipo_atto", "data_inizio_pubblicazione", "oggetto_atto", "documento", "allegati"]
         df_reduced = filtered[columns_to_keep].copy()  # **IMPORTANTE: Usa `.copy()` per evitare problemi**
 
         # **Rinomina le colonne per una visualizzazione più leggibile**
