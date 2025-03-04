@@ -23,20 +23,22 @@ def page_analisi(df):
     tab1, tab2 = st.tabs(["📆 Andamento Temporale", "📋 Tipologie & Mittenti"])
 
     with tab1:
-        st.subheader("📆 Pubblicazioni mensili")
+        st.subheader("📆 Pubblicazioni mensili e andamento cumulato")
+
+        col1, col2 = st.columns(2)
+        
         fig1 = px.bar(pub_per_mese, x="mese", y="Pubblicazioni Mese",
                       title="Distribuzione mensile",
                       color_discrete_sequence=[COLOR_PALETTE[0]])  
-        st.plotly_chart(fig1, use_container_width=True, config=PLOTLY_CONFIG)  # ✅ Toolbar personalizzata
+        col1.plotly_chart(fig1, use_container_width=True, config=PLOTLY_CONFIG)  # ✅ Toolbar personalizzata
 
-        st.subheader("📈 Andamento cumulato")
         fig2 = px.line(pub_per_mese, x="mese", y="Pubblicazioni Cumulative",
                        title="Numero totale di pubblicazioni",
                        markers=True, color_discrete_sequence=[COLOR_PALETTE[2]])  
-        st.plotly_chart(fig2, use_container_width=True, config=PLOTLY_CONFIG)  # ✅ Toolbar personalizzata
+        col2.plotly_chart(fig2, use_container_width=True, config=PLOTLY_CONFIG)  # ✅ Toolbar personalizzata
 
     with tab2:
-        st.subheader("📋 Distribuzione delle Pubblicazioni per Tipologia e Mittente")
+        st.subheader("📋 Distribuzione per tipologia e mittente")
 
         col1, col2 = st.columns(2)
 
