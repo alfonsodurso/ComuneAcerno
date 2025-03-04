@@ -18,12 +18,11 @@ def page_elenco(df):
             st.experimental_rerun()
 
     filtered = filter_data(df, ricerca, tipologia_selezionata, data_da, data_a)
-    filtered = filtered.sort_values(by=filtered.columns[0], ascending=False)
-
+    
     if filtered.empty:
         st.info("Nessuna pubblicazione trovata.")
     else:
-        filtered = filter_data(df, ricerca, tipologia_selezionata, data_da, data_a)
+        filtered = filtered.sort_values(by=filtered.columns[0], ascending=False)
   
         filtered.columns = [col.replace('_', ' ').title() for col in filtered.columns]
         st.dataframe(filtered, use_container_width=True)
