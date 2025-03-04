@@ -26,17 +26,6 @@ def page_elenco(df):
         columns_to_keep = ["numero_pubblicazione", "mittente", "tipo_atto", "data_inizio_pubblicazione", "oggetto_atto"]
         df_reduced = filtered[columns_to_keep].copy()  # **IMPORTANTE: Usa `.copy()` per evitare problemi**
 
-        # **Verifica se "documento" e "allegati" esistono prima di modificarli**
-        if "documento" in filtered.columns:
-            df_reduced["Documento"] = filtered["documento"].apply(lambda x: f"[⬇️]( {x} )" if x else "N/A")
-        else:
-            df_reduced["Documento"] = "N/A"
-
-        if "allegati" in filtered.columns:
-            df_reduced["Allegati"] = filtered["allegati"].apply(lambda x: f"[📎]( {x} )" if x else "N/A")
-        else:
-            df_reduced["Allegati"] = "N/A"
-
         # **Rinomina le colonne per una visualizzazione più leggibile**
         df_reduced.columns = [col.replace('_', ' ').title() for col in df_reduced.columns]
 
