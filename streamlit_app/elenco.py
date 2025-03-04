@@ -22,18 +22,7 @@ def page_elenco(df):
     if filtered.empty:
         st.info("Nessuna pubblicazione trovata.")
     else:
-        # **Mantieni solo le colonne richieste, controllando se esistono**
-        columns_to_keep = ["numero_pubblicazione", "mittente", "tipo_atto", "data_inizio_pubblicazione", "oggetto_atto"]
-        
-        # Aggiungi documento e allegati solo se esistono
-        if "documento" in filtered.columns:
-            columns_to_keep.append("documento")
-        if "allegati" in filtered.columns:
-            columns_to_keep.append("allegati")
-        
-        df_reduced = filtered[columns_to_keep].copy()  # **IMPORTANTE: Usa `.copy()` per evitare problemi**
-
-        # **Rinomina le colonne per una visualizzazione più leggibile**
-        df_reduced.columns = [col.replace('_', ' ').title() for col in df_reduced.columns]
-
-        st.dataframe(df_reduced, use_container_width=True)
+        filtered = filter_data(df, ricerca, tipologia_selezionata, data_da, data_a)
+  
+        filtered.columns = [col.replace('_', ' ').title() for col in filtered.columns]
+        st.dataframe(filtered, use_container_width=True)
