@@ -1,3 +1,6 @@
+import streamlit as st
+from common import filter_data
+
 def page_elenco(df):
     st.header("📋 ELENCO")
 
