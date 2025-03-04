@@ -2,7 +2,7 @@ import streamlit as st
 from common import filter_data
 
 def page_elenco(df):
-    st.header("ELENCO")
+    st.header("📋 ELENCO")
 
     with st.expander("🔍 Filtri di Ricerca"):
         col1, col2 = st.columns(2)
@@ -14,10 +14,20 @@ def page_elenco(df):
         data_da = col_date1.date_input("Data inizio", None, key="elenco_data_da")
         data_a = col_date2.date_input("Data fine", None, key="elenco_data_a")
 
+        if st.button("❌ Cancella Filtri"):
+            st.experimental_rerun()
+
     filtered = filter_data(df, ricerca, tipologia_selezionata, data_da, data_a)
 
     if filtered.empty:
         st.info("Nessuna pubblicazione trovata.")
     else:
-        filtered.columns = [col.replace('_', ' ').title() for col in filtered.columns]
-        st.dataframe(filtered, use_container_width=True)
+        # **Mantieni solo le colonne richieste**
+        columns_to_keep = ["numero_pubblicazione", "mittente", "tipo_atto", "data_inizio_pubblicazione", "oggetto_atto"]
+        df_reduced = filtered[columns_to_keep]
+
+        # **Aggiungi icone per il download**
+        df_reduced["Documento"] = filtered["documento"].apply(lambda x: f"[⬇️]( {x} )" if x else "N/A")
+        df_reduced["Allegati"] = filtered["allegati"].apply(lambda x: f"[📎]( {x} )" if x else "N/A")
+
+        st.dataframe(df_reduced, use_container_width=True)
