@@ -6,7 +6,7 @@ import plotly.express as px
 COLOR_PALETTE = ["#A7C7E7", "#A8E6CF", "#FFAAA5", "#FFD3B6", "#D4A5A5"]
 
 # ⚙️ Configurazione toolbar (Solo Fullscreen e Download)
-PLOTLY_CONFIG = {"displaylogo": False, "modeBarButtonsToRemove": ["pan2d", "select2d", "lasso2d", "resetScale2d", "zoomIn2d", "zoomOut2d", "autoScale2d"]}
+# PLOTLY_CONFIG = {"displaylogo": False, "modeBarButtonsToRemove": ["pan2d", "select2d", "lasso2d", "resetScale2d", "zoomIn2d", "zoomOut2d", "autoScale2d"]}
 
 def page_analisi(df):
     st.header("📊 ANALISI")
