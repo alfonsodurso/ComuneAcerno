@@ -1,6 +1,3 @@
-import streamlit as st
-from common import filter_data
-
 def page_elenco(df):
     st.header("📋 ELENCO")
 
@@ -22,8 +19,15 @@ def page_elenco(df):
     if filtered.empty:
         st.info("Nessuna pubblicazione trovata.")
     else:
-        # **Mantieni solo le colonne richieste**
-        columns_to_keep = ["numero_pubblicazione", "mittente", "tipo_atto", "data_inizio_pubblicazione", "oggetto_atto", "documento", "allegati"]
+        # **Mantieni solo le colonne richieste, controllando se esistono**
+        columns_to_keep = ["numero_pubblicazione", "mittente", "tipo_atto", "data_inizio_pubblicazione", "oggetto_atto"]
+        
+        # Aggiungi documento e allegati solo se esistono
+        if "documento" in filtered.columns:
+            columns_to_keep.append("documento")
+        if "allegati" in filtered.columns:
+            columns_to_keep.append("allegati")
+        
         df_reduced = filtered[columns_to_keep].copy()  # **IMPORTANTE: Usa `.copy()` per evitare problemi**
 
         # **Rinomina le colonne per una visualizzazione più leggibile**
