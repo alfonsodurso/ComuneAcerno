@@ -22,7 +22,8 @@ def page_sfoglia(df):
     if filtered.empty:
         st.info("Nessuna pubblicazione trovata con questi filtri.")
         return
-
+        
+    filtered = filtered.sort_values(by=filtered.columns[0], ascending=False)
     filtered.columns = [col.replace('_', ' ').title() for col in filtered.columns]
 
     if "sfoglia_index" not in st.session_state:
