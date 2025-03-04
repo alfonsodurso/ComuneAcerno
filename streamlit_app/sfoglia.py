@@ -34,15 +34,8 @@ def page_sfoglia(df):
 
     # **Mostra i dettagli della pubblicazione**
     for col in filtered.columns:
-        if col not in ["Documento", "Allegati"]:
-            st.write(f"**{col}:** {current_pub[col]}")
+        st.write(f"**{col}:** {current_pub[col]}")
 
-    # **Icone per documento principale e allegati**
-    col_doc, col_alla = st.columns(2)
-    if "documento" in current_pub and current_pub["documento"]:
-        col_doc.markdown(f"[📄 Documento Principale]( {current_pub['documento']} )", unsafe_allow_html=True)
-    if "allegati" in current_pub and current_pub["allegati"]:
-        col_alla.markdown(f"[📎 Allegati]( {current_pub['allegati']} )", unsafe_allow_html=True)
 
     # **Bottoni Avanti / Indietro sulla stessa riga, anche su mobile**
     col_nav1, col_nav2, _ = st.columns([1, 1, 3])  # Due colonne strette per i bottoni, una larga per spazio
