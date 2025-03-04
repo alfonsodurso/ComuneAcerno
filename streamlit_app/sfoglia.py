@@ -17,9 +17,7 @@ def page_sfoglia(df):
         if st.button("❌ Cancella Filtri"):
             st.experimental_rerun()
 
-    # **Ordina in ordine decrescente di `numero_pubblicazione`**
     filtered = filter_data(df, ricerca, tipologia_selezionata, data_da, data_a)
-    filtered = filtered.sort_values("numero_pubblicazione", ascending=False)
 
     if filtered.empty:
         st.info("Nessuna pubblicazione trovata con questi filtri.")
@@ -46,9 +44,11 @@ def page_sfoglia(df):
     if "allegati" in current_pub and current_pub["allegati"]:
         col_alla.markdown(f"[📎 Allegati]( {current_pub['allegati']} )", unsafe_allow_html=True)
 
-    # **Bottoni sulla stessa riga**
-    col_nav1, col_nav2, _ = st.columns([1, 1, 2])
-    if col_nav1.button("◀️"):
-        st.session_state.sfoglia_index -= 1
-    if col_nav2.button("▶️"):
-        st.session_state.sfoglia_index += 1
+    # **Bottoni Avanti / Indietro sulla stessa riga, anche su mobile**
+    col_nav1, col_nav2, _ = st.columns([1, 1, 3])  # Due colonne strette per i bottoni, una larga per spazio
+    with col_nav1:
+        if st.button("◀️", use_container_width=True):
+            st.session_state.sfoglia_index -= 1
+    with col_nav2:
+        if st.button("▶️", use_container_width=True):
+            st.session_state.sfoglia_index += 1
