@@ -1,22 +1,6 @@
 import streamlit as st
 from common import filter_data
 
-def reset_sfoglia_filters():
-    """Resetta i filtri della sezione SFOGLIA"""
-    st.session_state["sfoglia_ricerca"] = ""
-    st.session_state["sfoglia_tipo_atto"] = "Tutti"
-    st.session_state["sfoglia_data_da"] = None
-    st.session_state["sfoglia_data_a"] = None
-    st.rerun()  # ✅ Forza il refresh della pagina per aggiornare i filtri
-
-def apply_sfoglia_filters():
-    """Applica i filtri e aggiorna la pagina"""
-    st.session_state["sfoglia_ricerca"] = st.session_state["temp_sfoglia_ricerca"]
-    st.session_state["sfoglia_tipo_atto"] = st.session_state["temp_sfoglia_tipo_atto"]
-    st.session_state["sfoglia_data_da"] = st.session_state["temp_sfoglia_data_da"]
-    st.session_state["sfoglia_data_a"] = st.session_state["temp_sfoglia_data_a"]
-    st.rerun()
-
 def page_sfoglia(df):
     st.header("📄 SFOGLIA")
 
@@ -43,10 +27,6 @@ def page_sfoglia(df):
         col_date1, col_date2 = st.columns(2)
         st.session_state["temp_sfoglia_data_da"] = col_date1.date_input("Data inizio", st.session_state["sfoglia_data_da"], key="temp_sfoglia_data_da")
         st.session_state["temp_sfoglia_data_a"] = col_date2.date_input("Data fine", st.session_state["sfoglia_data_a"], key="temp_sfoglia_data_a")
-
-        col3, col4 = st.columns(2)
-        col3.button("✅ Applica", on_click=apply_sfoglia_filters)  # ✅ Usa funzione per aggiornare session_state
-        col4.button("❌ Cancella", on_click=reset_sfoglia_filters)  # ✅ Reset con callback
 
     filtered = filter_data(df, st.session_state["sfoglia_ricerca"], st.session_state["sfoglia_tipo_atto"], st.session_state["sfoglia_data_da"], st.session_state["sfoglia_data_a"])
     filtered = filtered.sort_values("numero_pubblicazione", ascending=False)
