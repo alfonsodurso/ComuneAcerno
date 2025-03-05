@@ -9,7 +9,7 @@ COLOR_PALETTE = ["#A7C7E7", "#A8E6CF", "#FFAAA5", "#FFD3B6", "#D4A5A5"]
 PLOTLY_CONFIG = {
     "displaylogo": False,
     "modeBarButtonsToRemove": [
-        "pan2d", "select2d", "lasso2d", "resetScale2d",
+        "pan2d", "select2d", "lasso2d", "resetScale2d", "zoom",
         "zoomIn2d", "zoomOut2d", "autoScale2d", "toggleSpikelines"
     ]
 }
