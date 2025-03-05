@@ -37,15 +37,15 @@ def page_analisi(df):
 
         col1, col2 = st.columns(2)
         
-        fig1 = px.bar(pub_per_mese, x="Mese", y="Numero",
+        fig1 = px.bar(pub_per_mese, x="mese", y="Pubblicazioni Mese",
                       title="Distribuzione mensile delle pubblicazioni",
                       color_discrete_sequence=[COLOR_PALETTE[0]])  
-        col1.plotly_chart(fig1, use_container_width=True, config=PLOTLY_CONFIG)  # ✅ Toolbar personalizzata
+        col1.plotly_chart(fig1, use_container_width=True, config=PLOTLY_CONFIG)
 
-        fig2 = px.line(pub_per_mese, x="Mese", y="Pubblicazioni",
+        fig2 = px.line(pub_per_mese, x="mese", y="Pubblicazioni Cumulative",
                        title="Andamento cumulato delle pubblicazioni",
                        markers=True, color_discrete_sequence=[COLOR_PALETTE[2]])  
-        col2.plotly_chart(fig2, use_container_width=True, config=PLOTLY_CONFIG)  # ✅ Toolbar personalizzata
+        col2.plotly_chart(fig2, use_container_width=True, config=PLOTLY_CONFIG)
 
     with tab2:
         st.subheader("📋 Distribuzione per tipologia e mittente")
@@ -59,7 +59,7 @@ def page_analisi(df):
             fig3 = px.pie(tipologia_counts, names="Tipo Atto", values="Numero di Pubblicazioni",
                           title="Tipologie di Atto",
                           hole=0.4, color_discrete_sequence=COLOR_PALETTE)
-            col1.plotly_chart(fig3, use_container_width=True, config=PLOTLY_CONFIG)  # ✅ Toolbar personalizzata
+            col1.plotly_chart(fig3, use_container_width=True, config=PLOTLY_CONFIG)
         else:
             col1.warning("⚠️ Dati sulle tipologie non disponibili.")
 
@@ -70,6 +70,6 @@ def page_analisi(df):
             fig4 = px.pie(mittente_counts, names="Mittente", values="Numero di Pubblicazioni",
                           title="Mittenti",
                           hole=0.4, color_discrete_sequence=COLOR_PALETTE)
-            col2.plotly_chart(fig4, use_container_width=True, config=PLOTLY_CONFIG)  # ✅ Toolbar personalizzata
+            col2.plotly_chart(fig4, use_container_width=True, config=PLOTLY_CONFIG)
         else:
             col2.warning("⚠️ Dati sui mittenti non disponibili.")
