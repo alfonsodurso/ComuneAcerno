@@ -21,12 +21,19 @@ def page_elenco(df):
     if filtered.empty:
         st.info("Nessuna pubblicazione trovata.")
     else:
-        # **Mantieni solo le colonne principali**
-        columns_to_keep = ["numero_pubblicazione", "mittente", "tipo_atto", "data_inizio_pubblicazione", "oggetto_atto", "documento", "allegati"]
-        df_reduced = filtered[columns_to_keep].copy()
+        # **Colonne disponibili nel DataFrame**
+        available_columns = set(filtered.columns)
 
-        # **Mostra URL intere senza icone**
-        df_reduced["Documento"] = df_reduced["documento"].astype(str)  # Convertiamo NaN in stringhe per evitare errori
-        df_reduced["Allegati"] = df_reduced["allegati"].astype(str)
+        # **Colonne principali da mantenere (controlliamo che esistano)**
+        columns_to_keep = ["numero_pubblicazione", "mittente", "tipo_atto", "data_inizio_pubblicazione", "oggetto_atto", "documento", "allegati"]
+        valid_columns = [col for col in columns_to_keep if col in available_columns]  # ✅ Selezioniamo solo le colonne presenti
+
+        df_reduced = filtered[valid_columns].copy()
+
+        # **Se "documento" e "allegati" esistono, convertiamo NaN in stringhe per evitare errori**
+        if "documento" in df_reduced:
+            df_reduced["documento"] = df_reduced["documento"].fillna("").astype(str)
+        if "allegati" in df_reduced:
+            df_reduced["allegati"] = df_reduced["allegati"].fillna("").astype(str)
 
         st.dataframe(df_reduced, use_container_width=True)
