@@ -14,7 +14,6 @@ PLOTLY_CONFIG = {
     ]
 }
 
-
 def page_analisi(df):
     st.header("📊 ANALISI")
 
@@ -30,7 +29,6 @@ def page_analisi(df):
     tab1, tab2 = st.tabs(["📆 Andamento Temporale", "📋 Tipologie & Mittenti"])
 
     with tab1:
-        st.subheader("📆 Distribuzione e andamento")
 
         col1, col2 = st.columns(2)
         
@@ -45,7 +43,6 @@ def page_analisi(df):
         col2.plotly_chart(fig2, use_container_width=True, config=PLOTLY_CONFIG)
 
     with tab2:
-        st.subheader("📋 Distribuzione per tipologia e mittente")
 
         col1, col2 = st.columns(2)
 
