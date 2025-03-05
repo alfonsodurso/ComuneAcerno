@@ -16,6 +16,7 @@ def page_elenco(df):
 
     # **Filtriamo i dati automaticamente**
     filtered = filter_data(df, ricerca, tipo_atto, data_da, data_a)
+    filtered = filtered.sort_values("numero_pubblicazione", ascending=False)
 
     if filtered.empty:
         st.info("Nessuna pubblicazione trovata.")
