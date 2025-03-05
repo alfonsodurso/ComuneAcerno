@@ -25,7 +25,7 @@ def page_elenco(df):
         available_columns = set(filtered.columns)
 
         # **Colonne principali da mantenere (controlliamo che esistano)**
-        columns_to_keep = ["numero_pubblicazione", "mittente", "tipo_atto", "data_inizio_pubblicazione", "oggetto_atto", "documento", "allegati"]
+        columns_to_keep = ["numero_pubblicazione", "mittente", "tipo_atto", "data_inizio_pubblicazione", "oggetto_atto", "documento_principale", "allegati"]
         valid_columns = [col for col in columns_to_keep if col in available_columns]  # ✅ Selezioniamo solo le colonne presenti
 
         df_reduced = filtered[valid_columns].copy()
