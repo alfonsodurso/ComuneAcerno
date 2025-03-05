@@ -26,7 +26,7 @@ def page_analisi(df):
     pub_per_mese = df_time.groupby("mese").size().reset_index(name="Pubblicazioni Mese")
     pub_per_mese["Pubblicazioni Cumulative"] = pub_per_mese["Pubblicazioni Mese"].cumsum()
 
-    tab1, tab2 = st.tabs(["📆 Andamento Temporale", "📋 Tipologie & Mittenti"])
+    tab1, tab2 = st.tabs(["📆 Andamento temporale", "📋 Tipologie & Mittenti"])
 
     with tab1:
 
