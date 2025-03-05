@@ -39,13 +39,13 @@ def page_sfoglia(df):
             st.session_state["sfoglia_data_a"] = None
             st.rerun()
 
-    filtered = filter_data(df, ricerca, tipologia_selezionata, data_da, data_a)
+    filtered = filter_data(df, ricerca, tipo_atto, data_da, data_a)
+    filtered = filtered.sort_values("numero_pubblicazione", ascending=False)
 
     if filtered.empty:
         st.info("Nessuna pubblicazione trovata con questi filtri.")
         return
-        
-    filtered = filtered.sort_values(by=filtered.columns[0], ascending=False)
+
     filtered.columns = [col.replace('_', ' ').title() for col in filtered.columns]
 
     if "sfoglia_index" not in st.session_state:
@@ -55,13 +55,17 @@ def page_sfoglia(df):
     current_pub = filtered.iloc[st.session_state.sfoglia_index]
     st.subheader(f"Pubblicazione {st.session_state.sfoglia_index + 1} di {len(filtered)}")
 
-    # **Mostra i dettagli della pubblicazione**
     for col in filtered.columns:
-        st.write(f"**{col}:** {current_pub[col]}")
+        if col not in ["Documento", "Allegati"]:
+            st.write(f"**{col}:** {current_pub[col]}")
 
+    col_doc, col_alla = st.columns(2)
+    if "documento" in current_pub and current_pub["documento"]:
+        col_doc.markdown(f"[📄 Documento Principale]( {current_pub['documento']} )", unsafe_allow_html=True)
+    if "allegati" in current_pub and current_pub["allegati"]:
+        col_alla.markdown(f"[📎 Allegati]( {current_pub['allegati']} )", unsafe_allow_html=True)
 
-    # **Bottoni Avanti / Indietro sulla stessa riga, anche su mobile**
-    col_nav1, col_nav2, _ = st.columns([1, 1, 3])  # Due colonne strette per i bottoni, una larga per spazio
+    col_nav1, col_nav2, _ = st.columns([1, 1, 3])
     with col_nav1:
         if st.button("◀️", use_container_width=True):
             st.session_state.sfoglia_index -= 1
