@@ -25,4 +25,8 @@ def page_elenco(df):
         columns_to_keep = ["numero_pubblicazione", "mittente", "tipo_atto", "data_inizio_pubblicazione", "oggetto_atto", "documento", "allegati"]
         df_reduced = filtered[columns_to_keep].copy()
 
+        # **Mostra URL intere senza icone**
+        df_reduced["Documento"] = df_reduced["documento"].astype(str)  # Convertiamo NaN in stringhe per evitare errori
+        df_reduced["Allegati"] = df_reduced["allegati"].astype(str)
+
         st.dataframe(df_reduced, use_container_width=True)
