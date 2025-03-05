@@ -22,13 +22,7 @@ def page_elenco(df):
         st.info("Nessuna pubblicazione trovata.")
     else:
         # **Mantieni solo le colonne principali**
-        columns_to_keep = ["numero_pubblicazione", "mittente", "tipo_atto", "data_inizio_pubblicazione", "oggetto_atto"]
+        columns_to_keep = ["numero_pubblicazione", "mittente", "tipo_atto", "data_inizio_pubblicazione", "oggetto_atto", "documento", "allegati"]
         df_reduced = filtered[columns_to_keep].copy()
-
-        # **Aggiunta di icone per scaricare documenti e allegati**
-        if "documento" in filtered.columns:
-            df_reduced["Documento"] = filtered["documento"].apply(lambda x: f"[⬇️]( {x} )" if x else "N/A")
-        if "allegati" in filtered.columns:
-            df_reduced["Allegati"] = filtered["allegati"].apply(lambda x: f"[📎]( {x} )" if x else "N/A")
 
         st.dataframe(df_reduced, use_container_width=True)
