@@ -10,7 +10,7 @@ PLOTLY_CONFIG = {
     "displaylogo": False,
     "modeBarButtonsToRemove": [
         "pan2d", "select2d", "lasso2d", "zoom",
-        "zoomIn2d", "zoomOut2d", "toggleSpikelines"
+        "zoomIn2d", "zoomOut2d", "toggleSpikelines", "autoScale2d"
     ]
 }
 
