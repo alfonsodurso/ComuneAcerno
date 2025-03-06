@@ -3,10 +3,10 @@ import pandas as pd
 import plotly.express as px
 import seaborn as sns  # Per generare colori dinamici
 
-# 🎨 Palette colori Pantone Soft (iniziale)
+# 🎨 Palette colori Pantone Soft
 COLOR_PALETTE = ["#A7C7E7", "#A8E6CF", "#FFAAA5", "#FFD3B6", "#D4A5A5"]
 
-# Configurazione toolbar (Zoom con due dita, Pan disattivato)
+# ⚙️ Configurazione toolbar (Zoom con due dita, Pan disattivato)
 PLOTLY_CONFIG = {
     "displaylogo": False,
     "scrollZoom": True,  # 🔹 Zoom con due dita su mobile
@@ -48,47 +48,45 @@ def page_analisi(df):
     tab1, tab2 = st.tabs(["📆 Andamento Temporale", "📋 Tipologie & Mittenti"])
 
     with tab1:
-        st.subheader("📆 Distribuzione e andamento")
-
         col1, col2 = st.columns(2)
 
         # **Grafico Distribuzione Mensile**
-        fig1 = px.bar(pub_per_mese, x="mese", y="Pubblicazioni Mese",
+        fig1 = px.bar(pub_per_mese, x="Pubblicazioni Mese", y="mese",
                       title="Distribuzione mensile delle pubblicazioni",
                       color_discrete_sequence=[COLOR_PALETTE[0]])
+        fig1.update_layout(showlegend=False)  # 🔹 Nasconde la legenda
         col1.plotly_chart(fig1, use_container_width=True, config=PLOTLY_CONFIG)
 
         # **Grafico Andamento Cumulato Giornaliero**
-        fig2 = px.line(df_time, x="data", y="Pubblicazioni Cumulative",
+        fig2 = px.line(df_time, x="Pubblicazioni Cumulative", y="data",
                        title="Andamento cumulato delle pubblicazioni",
                        markers=True, color_discrete_sequence=[COLOR_PALETTE[2]])
+        fig2.update_layout(showlegend=False)  # 🔹 Nasconde la legenda
         col2.plotly_chart(fig2, use_container_width=True, config=PLOTLY_CONFIG)
 
     with tab2:
-        st.subheader("📋 Distribuzione per Tipologia e Mittente")
-
         col1, col2 = st.columns(2)
 
         # **Generiamo colori dinamici**
         num_colors = max(len(df["tipo_atto"].unique()), len(df["mittente"].unique()))
         dynamic_palette = sns.color_palette("pastel", num_colors).as_hex()
 
-        # **Grafico Tipologie (Barre orizzontali invece di donut)**
+        # **Grafico Tipologie (Assi invertiti, nessuna legenda)**
         if "tipo_atto" in df.columns:
             tipologia_counts = df["tipo_atto"].value_counts().reset_index()
             tipologia_counts.columns = ["Tipo Atto", "Numero di Pubblicazioni"]
-            fig3 = px.bar(tipologia_counts, x="Numero di Pubblicazioni", y="Tipo Atto",
-                          title="Tipologie di Atto", orientation="h",
+            fig3 = px.bar(tipologia_counts, x="Tipo Atto", y="Numero di Pubblicazioni",
+                          title="Tipologie di Atto",
                           color="Tipo Atto", color_discrete_sequence=dynamic_palette)
-            fig3.update_layout(showlegend=False)  # Nasconde la legenda
+            fig3.update_layout(showlegend=False)  # 🔹 Nasconde la legenda
             col1.plotly_chart(fig3, use_container_width=True, config=PLOTLY_CONFIG)
 
-        # **Grafico Mittenti**
+        # **Grafico Mittenti (Assi invertiti, nessuna legenda)**
         if "mittente" in df.columns:
             mittente_counts = df["mittente"].value_counts().reset_index()
             mittente_counts.columns = ["Mittente", "Numero di Pubblicazioni"]
-            fig4 = px.bar(mittente_counts, x="Numero di Pubblicazioni", y="Mittente",
-                          title="Mittenti", orientation="h",
+            fig4 = px.bar(mittente_counts, x="Mittente", y="Numero di Pubblicazioni",
+                          title="Mittenti",
                           color="Mittente", color_discrete_sequence=dynamic_palette)
-            fig4.update_layout(showlegend=False)  # Nasconde la legenda
+            fig4.update_layout(showlegend=False)  # 🔹 Nasconde la legenda
             col2.plotly_chart(fig4, use_container_width=True, config=PLOTLY_CONFIG)
