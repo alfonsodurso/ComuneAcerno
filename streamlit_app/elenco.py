@@ -39,11 +39,12 @@ def page_elenco(df):
             df_reduced["allegati"] = df_reduced["allegati"].fillna("").astype(str)
 
         def style_min_width(val):
+            """Funzione per impostare una larghezza minima in base al tipo di valore"""
             if isinstance(val, (int, float)):  # Se il valore è numerico
-                return "width: 80px;"
+                return "width: 100px;"  # Imposta larghezza minima per colonne numeriche
             elif isinstance(val, pd.Timestamp):  # Se il valore è una data
-                return "width: 120px;"
-            return ""
+                return "width: 120px;"  # Imposta larghezza minima per colonne di data
+            return ""  # Altrimenti lascia invariato
 
         # Mostra la tabella con scorrimento orizzontale
         st.dataframe(
