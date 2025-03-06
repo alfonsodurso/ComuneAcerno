@@ -68,7 +68,7 @@ def page_analisi(df):
             tipologia_counts.columns = ["Tipo Atto", "Numero di Pubblicazioni"]
             palette_tipologie = sns.color_palette("pastel", len(tipologia_counts)).as_hex()
             fig3 = px.bar(tipologia_counts, x="Tipo Atto", y="Numero di Pubblicazioni",
-                          title="Tipologie di Atto",
+                          title="Tipologie",
                           color="Tipo Atto", color_discrete_sequence=palette_tipologie)
             fig3.update_layout(showlegend=False)
             col1.plotly_chart(fig3, use_container_width=True, config=PLOTLY_CONFIG)
