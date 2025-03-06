@@ -1,11 +1,12 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import seaborn as sns  # Per generare colori dinamici
 
-# 🎨 Palette colori Pantone Soft
+# 🎨 Palette colori Pantone Soft (iniziale)
 COLOR_PALETTE = ["#A7C7E7", "#A8E6CF", "#FFAAA5", "#FFD3B6", "#D4A5A5"]
 
-# ⚙️ Configurazione toolbar (Zoom con due dita, Pan disattivato)
+# Configurazione toolbar (Zoom con due dita, Pan disattivato)
 PLOTLY_CONFIG = {
     "displaylogo": False,
     "scrollZoom": True,  # 🔹 Zoom con due dita su mobile
@@ -68,26 +69,24 @@ def page_analisi(df):
 
         col1, col2 = st.columns(2)
 
-        # 🍩 **Donut per Tipologie**
+        # **Generiamo colori dinamici**
+        num_colors = max(len(df["tipo_atto"].unique()), len(df["mittente"].unique()))
+        dynamic_palette = sns.color_palette("pastel", num_colors).as_hex()
+
+        # **Grafico Tipologie (Barre orizzontali invece di donut)**
         if "tipo_atto" in df.columns:
             tipologia_counts = df["tipo_atto"].value_counts().reset_index()
             tipologia_counts.columns = ["Tipo Atto", "Numero di Pubblicazioni"]
-            fig3 = px.pie(tipologia_counts, names="Tipo Atto", values="Numero di Pubblicazioni",
-                          title="Tipologie di Atto", hole=0.4, height=350,
-                          color_discrete_sequence=COLOR_PALETTE)
-            fig3.update_layout(legend=dict(orientation="h", y=-0.2, font=dict(size=10)))  # 🔹 Legenda in basso
+            fig3 = px.bar(tipologia_counts, x="Numero di Pubblicazioni", y="Tipo Atto",
+                          title="Tipologie di Atto", orientation="h",
+                          color="Tipo Atto", color_discrete_sequence=dynamic_palette)
             col1.plotly_chart(fig3, use_container_width=True, config=PLOTLY_CONFIG)
-        else:
-            col1.warning("⚠️ Dati sulle tipologie non disponibili.")
 
-        # 🍩 **Donut per Mittenti**
+        # **Grafico Mittenti**
         if "mittente" in df.columns:
             mittente_counts = df["mittente"].value_counts().reset_index()
             mittente_counts.columns = ["Mittente", "Numero di Pubblicazioni"]
-            fig4 = px.pie(mittente_counts, names="Mittente", values="Numero di Pubblicazioni",
-                          title="Mittenti", hole=0.4, height=350,
-                          color_discrete_sequence=COLOR_PALETTE)
-            fig4.update_layout(legend=dict(orientation="h", y=-0.2, font=dict(size=10)))  # 🔹 Legenda in basso
+            fig4 = px.bar(mittente_counts, x="Numero di Pubblicazioni", y="Mittente",
+                          title="Mittenti", orientation="h",
+                          color="Mittente", color_discrete_sequence=dynamic_palette)
             col2.plotly_chart(fig4, use_container_width=True, config=PLOTLY_CONFIG)
-        else:
-            col2.warning("⚠️ Dati sui mittenti non disponibili.")
