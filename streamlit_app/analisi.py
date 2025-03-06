@@ -6,7 +6,7 @@ import seaborn as sns
 # ⚙️ Configurazione toolbar (Zoom con due dita, Pan disattivato)
 PLOTLY_CONFIG = {
     "displaylogo": False,
-    "scrollZoom": False,  # 🔹 Zoom con due dita su mobile
+    "scrollZoom": True,  # 🔹 Zoom con due dita su mobile
     "modeBarButtonsToRemove": [
         "pan2d", "select2d", "lasso2d", "zoom",
         "resetScale2d", "toggleSpikelines"
@@ -70,7 +70,7 @@ def page_analisi(df):
             fig3 = px.bar(tipologia_counts, x="Tipo Atto", y="Numero di Pubblicazioni",
                           title="Tipologie",
                           color="Tipo Atto", color_discrete_sequence=palette_tipologie)
-            fig3.update_layout(showlegend=False)
+            fig3.update_layout(dragmode=False, showlegend=False)
             col1.plotly_chart(fig3, use_container_width=True, config=PLOTLY_CONFIG)
         else:
             col1.warning("Dati sulle tipologie non disponibili.")
@@ -83,7 +83,7 @@ def page_analisi(df):
             fig4 = px.bar(mittente_counts, x="Mittente", y="Numero di Pubblicazioni",
                           title="Mittenti",
                           color="Mittente", color_discrete_sequence=palette_mittenti)
-            fig4.update_layout(showlegend=False)
+            fig4.update_layout(dragmode=False, showlegend=False)
             col2.plotly_chart(fig4, use_container_width=True, config=PLOTLY_CONFIG)
         else:
             col2.warning("Dati sui mittenti non disponibili.")
