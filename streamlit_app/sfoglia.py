@@ -22,7 +22,7 @@ def page_sfoglia(df):
         st.info("Nessuna pubblicazione trovata con questi filtri.")
         return
 
-    # Creiamo una copia per visualizzare le colonne in formato 'title'
+    # Creiamo una copia per visualizzare le colonne in formato "Title"
     filtered_display = filtered.copy()
     filtered_display.columns = [col.replace('_', ' ').title() for col in filtered_display.columns]
 
@@ -35,22 +35,23 @@ def page_sfoglia(df):
 
     # Mostriamo tutte le colonne tranne "documento" e "allegati"
     for col in filtered_display.columns:
-        col_original = col.lower().replace(' ', '_')  # Recuperiamo il nome originale
+        col_original = col.lower().replace(' ', '_')
         if col_original not in ["documento", "allegati"]:
             st.write(f"**{col}:** {current_pub[col_original]}")
 
     col_doc, col_alla = st.columns(2)
-    # Gestione del Documento Principale: se è una lista, crea un'icona per ciascun link; altrimenti, usa il singolo link
+
+    # Documento Principale: mostriamo solo l'icona di un foglio di carta
     documento = current_pub.get("documento")
     if documento and documento != "N/A":
         if isinstance(documento, list):
             doc_links = documento
         else:
             doc_links = [documento]
-        doc_icons = " ".join([f"[📄]({link})" for link in doc_links])
-        col_doc.markdown(f"**Documento Principale:** {doc_icons}", unsafe_allow_html=True)
+        doc_icons = " ".join([f"<a href='{link}' target='_blank'>📄</a>" for link in doc_links])
+        col_doc.markdown(f"<div style='text-align: center;'><strong>Documento Principale:</strong> {doc_icons}</div>", unsafe_allow_html=True)
 
-    # Gestione degli Allegati: se è una lista, crea un'icona per ciascun link; se è una stringa separata da virgole, spezzala
+    # Allegati: mostriamo un'icona (📎) per ogni link
     allegati = current_pub.get("allegati")
     if allegati and allegati != "N/A":
         if isinstance(allegati, list):
@@ -58,8 +59,8 @@ def page_sfoglia(df):
         else:
             allegati_links = [link.strip() for link in allegati.split(",") if link.strip()]
         if allegati_links:
-            att_icons = " ".join([f"[📎]({link})" for link in allegati_links])
-            col_alla.markdown(f"**Allegati:** {att_icons}", unsafe_allow_html=True)
+            att_icons = " ".join([f"<a href='{link}' target='_blank'>📎</a>" for link in allegati_links])
+            col_alla.markdown(f"<div style='text-align: center;'><strong>Allegati:</strong> {att_icons}</div>", unsafe_allow_html=True)
 
     col_nav1, col_nav2, _ = st.columns([1, 1, 3])
     with col_nav1:
