@@ -31,6 +31,10 @@ def page_analisi(df):
     min_date, max_date = df_time["data"].min(), df_time["data"].max()
     all_dates = pd.DataFrame(pd.date_range(min_date, max_date), columns=["data"])
 
+    # **Convertiamo entrambi in datetime64 per evitare errori**
+    all_dates["data"] = all_dates["data"].dt.date
+    df_time["data"] = pd.to_datetime(df_time["data"]).dt.date
+
     # **Unione per ottenere una serie temporale completa**
     df_time = all_dates.merge(df_time, on="data", how="left").fillna(0)
 
