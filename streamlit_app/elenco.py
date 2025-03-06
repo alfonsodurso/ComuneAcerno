@@ -40,6 +40,5 @@ def page_elenco(df):
 
         # Mostra la tabella con scorrimento orizzontale e larghezze minime per specifiche colonne
         st.dataframe(
-            apply_widths(df_reduced.style),
             use_container_width=True,
         )
