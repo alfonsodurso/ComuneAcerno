@@ -1,5 +1,6 @@
-mport streamlit as st
-from common import filter_data
+import pandas as pd
+import streamlit as st
+from common import filter_data  # Assicurati che questa importazione funzioni correttamente
 
 def page_elenco(df):
     st.header("📋 ELENCO")
@@ -8,6 +9,7 @@ def page_elenco(df):
         col1, col2 = st.columns(2)
         ricerca = col1.text_input("Ricerca")
         tipologie = ["Tutti"] + sorted(df["tipo_atto"].dropna().unique().tolist()) if "tipo_atto" in df.columns else ["Tutti"]
+
         tipo_atto = col2.selectbox("Tipologia di Atto", tipologie)
 
         col_date1, col_date2 = st.columns(2)
