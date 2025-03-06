@@ -6,7 +6,7 @@ import seaborn as sns
 # ⚙️ Configurazione toolbar (Zoom con due dita, Pan disattivato)
 PLOTLY_CONFIG = {
     "displaylogo": False,
-    "scrollZoom": True,  # 🔹 Zoom con due dita su mobile
+    "scrollZoom": False,  # 🔹 Zoom con due dita su mobile
     "modeBarButtonsToRemove": [
         "pan2d", "select2d", "lasso2d", "zoom",
         "resetScale2d", "toggleSpikelines"
