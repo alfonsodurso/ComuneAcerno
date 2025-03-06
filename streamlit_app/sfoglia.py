@@ -1,4 +1,7 @@
 import streamlit as st
+import pandas as pd
+import ast  # Per convertire stringhe JSON in liste Python
+
 from common import filter_data
 
 def page_sfoglia(df):
@@ -18,7 +21,6 @@ def page_sfoglia(df):
     filtered = filter_data(df, ricerca, tipo_atto, data_da, data_a)
     filtered = filtered.sort_values("numero_pubblicazione", ascending=False)
 
-    # Se non ci sono pubblicazioni da mostrare
     if filtered.empty:
         st.info("Nessuna pubblicazione trovata.")
         return
@@ -33,24 +35,31 @@ def page_sfoglia(df):
 
     # Visualizzazione della pubblicazione
     st.write(f"**Pubblicazione {current_index + 1} di {len(filtered)}**\n")
-    st.write(f"**Numero Pubblicazione:** {current_pub['numero_pubblicazione']}")
-    st.write(f"**Mittente:** {current_pub['mittente']}")
-    st.write(f"**Tipo Atto:** {current_pub['tipo_atto']}")
-    st.write(f"**Registro Generale:** {current_pub['registro_generale']}")
-    st.write(f"**Data Registro Generale:** {current_pub['data_registro_generale']}")
-    st.write(f"**Oggetto Atto:** {current_pub['oggetto_atto']}")
-    st.write(f"**Data Inizio Pubblicazione:** {current_pub['data_inizio_pubblicazione']}")
-    st.write(f"**Data Fine Pubblicazione:** {current_pub['data_fine_pubblicazione']}")
+    st.write(f"**Numero Pubblicazione:** {current_pub.get('numero_pubblicazione', 'N/A')}")
+    st.write(f"**Mittente:** {current_pub.get('mittente', 'N/A')}")
+    st.write(f"**Tipo Atto:** {current_pub.get('tipo_atto', 'N/A')}")
+    st.write(f"**Registro Generale:** {current_pub.get('registro_generale', 'N/A')}")
+    st.write(f"**Data Registro Generale:** {current_pub.get('data_registro_generale', 'N/A')}")
+    st.write(f"**Oggetto Atto:** {current_pub.get('oggetto_atto', 'N/A')}")
+    st.write(f"**Data Inizio Pubblicazione:** {current_pub.get('data_inizio_pubblicazione', 'N/A')}")
+    st.write(f"**Data Fine Pubblicazione:** {current_pub.get('data_fine_pubblicazione', 'N/A')}")
 
     # Documento Principale
-    if "documento" in current_pub and pd.notna(current_pub["documento"]):
-        st.write(f"📄 **Documento Principale:** [🔗 Link]({current_pub['documento']})")
+    documento = current_pub.get("documento")
+    if pd.notna(documento) and documento:
+        st.write(f"📄 **Documento Principale:** [🔗 Link]({documento})")
 
     # **Mostra gli allegati, se presenti**
-    if "allegati" in current_pub and pd.notna(current_pub["allegati"]) and current_pub["allegati"]:
-        allegati_list = eval(current_pub["allegati"]) if isinstance(current_pub["allegati"], str) else current_pub["allegati"]
+    allegati = current_pub.get("allegati")
+    if isinstance(allegati, str):  # Se gli allegati sono salvati come stringa (lista JSON)
+        try:
+            allegati = ast.literal_eval(allegati)  # Converte stringa in lista
+        except (ValueError, SyntaxError):
+            allegati = []
+
+    if isinstance(allegati, list) and allegati:
         st.write("📎 **Allegati:**")
-        for i, allegato in enumerate(allegati_list, start=1):
+        for i, allegato in enumerate(allegati, start=1):
             st.write(f"🔗 [Allegato {i}]({allegato})")
 
     # **Navigazione tra le pubblicazioni**
