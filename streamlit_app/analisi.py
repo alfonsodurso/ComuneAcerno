@@ -69,7 +69,7 @@ def page_analisi(df):
             palette_tipologie = sns.color_palette("pastel", len(tipologia_counts)).as_hex()
             fig3 = px.bar(tipologia_counts, x="Numero di Pubblicazioni", y="Tipo Atto",
                           title="Tipologie di Atto",
-                          orientation="h",  # 🔹 Numero su Y
+                          orientation="v",  # 🔹 Numero su Y
                           color="Tipo Atto", color_discrete_sequence=palette_tipologie)
             fig3.update_layout(showlegend=False)
             col1.plotly_chart(fig3, use_container_width=True, config=PLOTLY_CONFIG)
@@ -83,7 +83,7 @@ def page_analisi(df):
             palette_mittenti = sns.color_palette("pastel", len(mittente_counts)).as_hex()
             fig4 = px.bar(mittente_counts, x="Numero di Pubblicazioni", y="Mittente",
                           title="Mittenti",
-                          orientation="h",  # 🔹 Numero su Y
+                          orientation="v",  # 🔹 Numero su Y
                           color="Mittente", color_discrete_sequence=palette_mittenti)
             fig4.update_layout(showlegend=False)
             col2.plotly_chart(fig4, use_container_width=True, config=PLOTLY_CONFIG)
