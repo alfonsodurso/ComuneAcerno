@@ -56,7 +56,7 @@ def page_analisi(df):
         
         # Grafico 1: Andamento giornaliero delle pubblicazioni (Line Chart spezzata per ogni giorno)
         fig1 = px.line(daily_counts_df, x="data", y="Pubblicazioni Giorno",
-                       title="Andamento giornaliero delle pubblicazioni",
+                       title="Andamento giornaliero",
                        markers=True, color_discrete_sequence=palette_giornaliera)
         fig1.update_layout(dragmode=False, showlegend=False)
         col1.plotly_chart(fig1, use_container_width=True, config=PLOTLY_CONFIG)
