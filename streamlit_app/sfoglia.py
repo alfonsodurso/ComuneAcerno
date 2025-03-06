@@ -59,4 +59,13 @@ def page_sfoglia(df):
             allegati_links = [link.strip() for link in allegati.split(",") if link.strip()]
         if allegati_links:
             att_links_md = " ".join([f"[{link}]({link})" for link in allegati_links])
-           
+            st.markdown(f"**Allegati:** {att_links_md}", unsafe_allow_html=True)
+
+    # Navigazione tra le pubblicazioni
+    col_nav1, col_nav2, _ = st.columns([1, 1, 3])
+    with col_nav1:
+        if st.button("◀️", use_container_width=True):
+            st.session_state.sfoglia_index -= 1
+    with col_nav2:
+        if st.button("▶️", use_container_width=True):
+            st.session_state.sfoglia_index += 1
