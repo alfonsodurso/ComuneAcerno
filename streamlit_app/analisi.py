@@ -24,6 +24,8 @@ def page_analisi(df):
     # Distribuzione Mensile: raggruppa per mese (formato "YYYY-MM")
     df_time["mese"] = df_time["data_inizio_pubblicazione"].dt.to_period("M").astype(str)
     pub_per_mese = df_time.groupby("mese").size().reset_index(name="Pubblicazioni Mese")
+    # Conversione della colonna 'mese' in datetime per avere un asse temporale corretto
+    pub_per_mese["mese_dt"] = pd.to_datetime(pub_per_mese["mese"], format="%Y-%m")
     palette_mese = sns.color_palette("pastel", len(pub_per_mese)).as_hex()
 
     # Distribuzione Giornaliera per l'Andamento Cumulato:
@@ -45,8 +47,8 @@ def page_analisi(df):
     with tab1:
         col1, col2 = st.columns(2)
         
-        # Grafico 1: Andamento mensile (Line Chart non cumulativo)
-        fig1 = px.line(pub_per_mese, x="mese", y="Pubblicazioni Mese",
+        # Grafico 1: Andamento mensile (Line Chart non cumulativo) con linea spezzata
+        fig1 = px.line(pub_per_mese, x="mese_dt", y="Pubblicazioni Mese",
                        title="Andamento mensile",
                        markers=True, color_discrete_sequence=palette_mese)
         fig1.update_layout(dragmode=False, showlegend=False)
