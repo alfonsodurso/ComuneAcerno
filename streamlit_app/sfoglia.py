@@ -33,19 +33,33 @@ def page_sfoglia(df):
     current_pub = filtered.iloc[st.session_state.sfoglia_index]
     st.subheader(f"Pubblicazione {st.session_state.sfoglia_index + 1} di {len(filtered)}")
 
+    # Mostriamo tutte le colonne tranne "documento" e "allegati"
     for col in filtered_display.columns:
-        col_original = col.lower().replace(' ', '_')  # Recuperiamo il nome originale della colonna
+        col_original = col.lower().replace(' ', '_')  # Recuperiamo il nome originale
         if col_original not in ["documento", "allegati"]:
             st.write(f"**{col}:** {current_pub[col_original]}")
 
     col_doc, col_alla = st.columns(2)
+    # Gestione del Documento Principale: se è una lista, crea un'icona per ciascun link; altrimenti, usa il singolo link
     documento = current_pub.get("documento")
-    allegati = current_pub.get("allegati")
+    if documento and documento != "N/A":
+        if isinstance(documento, list):
+            doc_links = documento
+        else:
+            doc_links = [documento]
+        doc_icons = " ".join([f"[📄]({link})" for link in doc_links])
+        col_doc.markdown(f"**Documento Principale:** {doc_icons}", unsafe_allow_html=True)
 
-    if documento:
-        col_doc.markdown(f"[📄 Documento Principale]({documento})", unsafe_allow_html=True)
-    if allegati:
-        col_alla.markdown(f"[📎 Allegati]({allegati})", unsafe_allow_html=True)
+    # Gestione degli Allegati: se è una lista, crea un'icona per ciascun link; se è una stringa separata da virgole, spezzala
+    allegati = current_pub.get("allegati")
+    if allegati and allegati != "N/A":
+        if isinstance(allegati, list):
+            allegati_links = allegati
+        else:
+            allegati_links = [link.strip() for link in allegati.split(",") if link.strip()]
+        if allegati_links:
+            att_icons = " ".join([f"[📎]({link})" for link in allegati_links])
+            col_alla.markdown(f"**Allegati:** {att_icons}", unsafe_allow_html=True)
 
     col_nav1, col_nav2, _ = st.columns([1, 1, 3])
     with col_nav1:
