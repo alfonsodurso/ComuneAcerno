@@ -2,10 +2,10 @@ import requests
 from config import TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, TIMEOUT
 
 def escape_markdown(text):
-    """Evita errori di formattazione in Markdown di Telegram."""
     if not isinstance(text, str):
         text = str(text)
-    for ch in ['_', '*', '[', ']', '(', ')', '~', '`', '>', '#', '+', '-', '=', '|', '{', '}', '.', '!']:
+    # Escaping per Markdown
+    for ch in ['_', '*', '[', ']', '(', ')', '~', '`', '>', '#', '+', '-', '=', '|', '{', '}']:
         text = text.replace(ch, f"\\{ch}")
     return text
 
@@ -16,42 +16,46 @@ class TelegramNotifier:
         self.session = requests.Session()
 
     def invia_messaggio(self, pubblicazione):
-        """Invia un messaggio Telegram con i dettagli della pubblicazione."""
-
+        """Genera e invia il messaggio Telegram formattato."""
+        
+        # Definizione delle chiavi da escludere nel messaggio principale
         skip_keys = {
             "Tipo Atto",
             "Registro Generale",
             "Data Registro Generale",
-            "Data Fine Pubblicazione"
+            "Data Fine Pubblicazione",
+            "Allegati"  # 🔹 Evita la ripetizione della lista iniziale degli allegati
         }
 
-        # **Inizio Messaggio**
-        lines = ["📢 *Nuova pubblicazione*\n"]
+        lines = ["📢 *Nuova pubblicazione*\n"]  # Intestazione del messaggio
 
-        # **Dati della pubblicazione**
+        # Generazione del corpo del messaggio
         for key in sorted(pubblicazione.keys()):
             key_title = key.replace('_', ' ').title()
             if key_title in skip_keys:
-                continue
+                continue  # Escludi le chiavi non necessarie
             value = escape_markdown(pubblicazione[key])
             lines.append(f"📌 *{key_title}:* {value}")
 
-        # **Documento principale**
-        documento = pubblicazione.get("documento", "").strip()
+        # Aggiunta del link al documento principale
+        documento = pubblicazione.get("documento")
         if documento:
             lines.append(f"\n📄 *Documento:* [Link al documento]({documento})")
 
-        # **Allegati**
+        # Aggiunta degli allegati con formato corretto
         allegati = pubblicazione.get("allegati", [])
         if allegati:
-            allegati_links = "\n".join([f"🔗 [Link]({a})" for a in allegati])
-            lines.append(f"\n📎 *Allegati:*\n{allegati_links}")
+            lines.append("\n📎 *Allegati:*")
+            for a in allegati:
+                lines.append(f"🔗 [Link]({a})")
 
-        # **Nota Finale**
+        # Nota finale per il download
         lines.append("\n⚠️ *Nota:* se il download non parte automaticamente, apri il link con il tuo browser.")
 
-        # **Invio del messaggio**
+        # Unione del messaggio in formato Markdown
         testo = "\n".join(lines)
+        
+        # Invio del messaggio Telegram
         url = f"https://api.telegram.org/bot{self.token}/sendMessage"
         payload = {
             "chat_id": self.chat_id,
