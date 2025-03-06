@@ -8,9 +8,8 @@ PLOTLY_CONFIG = {
     "displaylogo": False,
     "scrollZoom": True,  # 🔹 Zoom con due dita su mobile
     "modeBarButtonsToRemove": [
-        "pan2d", "select2d", "lasso2d",
-        "resetScale2d", "toggleSpikelines", 
-        "zoom"
+        "pan2d", "select2d", "lasso2d", "autoScale2d",
+        "resetScale2d", "toggleSpikelines"
     ],
     "displayModeBar": True
 }
@@ -47,15 +46,15 @@ def page_analisi(df):
         col1, col2 = st.columns(2)
         
         # Grafico 1: Distribuzione Mensile (Bar Chart)
-        fig1 = px.bar(pub_per_mese, x="Pubblicazioni Mese", y="mese",
-                      title="Distribuzione mensile",
+        fig1 = px.bar(pub_per_mese, x="mese", y="Pubblicazioni Mese",
+                      title="Distribuzione mensile delle pubblicazioni",
                       color_discrete_sequence=palette_mese)
         fig1.update_layout(dragmode=False, showlegend=False)
         col1.plotly_chart(fig1, use_container_width=True, config=PLOTLY_CONFIG)
         
         # Grafico 2: Andamento Cumulato (Line Chart)
         fig2 = px.line(cumulative_df, x="data", y="Pubblicazioni Cumulative",
-                       title="Andamento cumulato",
+                       title="Andamento cumulato delle pubblicazioni",
                        markers=True, color_discrete_sequence=palette_cumul)
         fig2.update_layout(dragmode=False, showlegend=False)
         col2.plotly_chart(fig2, use_container_width=True, config=PLOTLY_CONFIG)
@@ -63,27 +62,29 @@ def page_analisi(df):
     with tab2:
         col1, col2 = st.columns(2)
 
-        # Grafico per Tipologie
+        # Grafico per Tipologie (Assi invertiti: numero pubblicazioni su Y)
         if "tipo_atto" in df.columns:
             tipologia_counts = df["tipo_atto"].value_counts().reset_index()
-            tipologia_counts.columns = ["Tipologia", "Numero"]
+            tipologia_counts.columns = ["Tipo Atto", "Numero di Pubblicazioni"]
             palette_tipologie = sns.color_palette("pastel", len(tipologia_counts)).as_hex()
-            fig3 = px.bar(tipologia_counts, y="Tipo Atto", x="Numero di Pubblicazioni",
-                          color="Tipo Atto", color_discrete_sequence=palette_tipologie,
-                          title="Tipologie")
+            fig3 = px.bar(tipologia_counts, x="Numero di Pubblicazioni", y="Tipo Atto",
+                          title="Tipologie di Atto",
+                          orientation="h",  # 🔹 Numero su Y
+                          color="Tipo Atto", color_discrete_sequence=palette_tipologie)
             fig3.update_layout(showlegend=False)
             col1.plotly_chart(fig3, use_container_width=True, config=PLOTLY_CONFIG)
         else:
             col1.warning("Dati sulle tipologie non disponibili.")
 
-        # Grafico per Mittenti
+        # Grafico per Mittenti (Assi invertiti: numero pubblicazioni su Y)
         if "mittente" in df.columns:
             mittente_counts = df["mittente"].value_counts().reset_index()
-            mittente_counts.columns = ["Mittente", "Numero"]
+            mittente_counts.columns = ["Mittente", "Numero di Pubblicazioni"]
             palette_mittenti = sns.color_palette("pastel", len(mittente_counts)).as_hex()
-            fig4 = px.bar(mittente_counts, y="Mittente", x="Numero di Pubblicazioni",
-                          color="Mittente", color_discrete_sequence=palette_mittenti,
-                          title="Mittenti")
+            fig4 = px.bar(mittente_counts, x="Numero di Pubblicazioni", y="Mittente",
+                          title="Mittenti",
+                          orientation="h",  # 🔹 Numero su Y
+                          color="Mittente", color_discrete_sequence=palette_mittenti)
             fig4.update_layout(showlegend=False)
             col2.plotly_chart(fig4, use_container_width=True, config=PLOTLY_CONFIG)
         else:
