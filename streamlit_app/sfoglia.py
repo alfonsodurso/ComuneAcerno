@@ -22,7 +22,9 @@ def page_sfoglia(df):
         st.info("Nessuna pubblicazione trovata con questi filtri.")
         return
 
-    filtered.columns = [col.replace('_', ' ').title() for col in filtered.columns]
+    # Manteniamo i nomi delle colonne originali per evitare problemi di accesso ai dati
+    filtered_display = filtered.copy()
+    filtered_display.columns = [col.replace('_', ' ').title() for col in filtered_display.columns]
 
     if "sfoglia_index" not in st.session_state:
         st.session_state.sfoglia_index = 0
@@ -31,20 +33,24 @@ def page_sfoglia(df):
     current_pub = filtered.iloc[st.session_state.sfoglia_index]
     st.subheader(f"Pubblicazione {st.session_state.sfoglia_index + 1} di {len(filtered)}")
 
-    for col in filtered.columns:
-        if col not in ["Documento", "Allegati"]:
-            st.write(f"**{col}:** {current_pub[col]}")
+    for col in filtered_display.columns:
+        col_original = col.lower().replace(' ', '_')  # Recuperiamo il nome originale
+        if col_original not in ["documento", "allegati"]:
+            st.write(f"**{col}:** {current_pub[col_original]}")
 
     col_doc, col_alla = st.columns(2)
-    if "documento" in current_pub and current_pub["documento"]:
-        col_doc.markdown(f"[📄 Documento Principale]( {current_pub['documento']} )", unsafe_allow_html=True)
-    if "allegati" in current_pub and current_pub["allegati"]:
-        col_alla.markdown(f"[📎 Allegati]( {current_pub['allegati']} )", unsafe_allow_html=True)
+    documento = current_pub.get("documento")
+    allegati = current_pub.get("allegati")
+
+    if documento:
+        col_doc.markdown(f"[\ud83d\udcdd Documento Principale]( {documento} )", unsafe_allow_html=True)
+    if allegati:
+        col_alla.markdown(f"[\ud83d\udcce Allegati]( {allegati} )", unsafe_allow_html=True)
 
     col_nav1, col_nav2, _ = st.columns([1, 1, 3])
     with col_nav1:
-        if st.button("◀️", use_container_width=True):
+        if st.button("\u25c0\ufe0f", use_container_width=True):
             st.session_state.sfoglia_index -= 1
     with col_nav2:
-        if st.button("▶️", use_container_width=True):
+        if st.button("\u25b6\ufe0f", use_container_width=True):
             st.session_state.sfoglia_index += 1
