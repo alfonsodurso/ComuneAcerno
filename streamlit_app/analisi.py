@@ -79,8 +79,8 @@ def page_analisi(df):
             tipologia_counts.columns = ["Tipo Atto", "Numero di Pubblicazioni"]
             fig3 = px.bar(tipologia_counts, x="Numero di Pubblicazioni", y="Tipo Atto",
                           title="Tipologie di Atto", orientation="h",
-                          color="Tipo Atto", color_discrete_sequence=dynamic_palette,
-                          showlegend=False)
+                          color="Tipo Atto", color_discrete_sequence=dynamic_palette)
+            fig3.update_layout(showlegend=False)  # Nasconde la legenda
             col1.plotly_chart(fig3, use_container_width=True, config=PLOTLY_CONFIG)
 
         # **Grafico Mittenti**
@@ -89,6 +89,6 @@ def page_analisi(df):
             mittente_counts.columns = ["Mittente", "Numero di Pubblicazioni"]
             fig4 = px.bar(mittente_counts, x="Numero di Pubblicazioni", y="Mittente",
                           title="Mittenti", orientation="h",
-                          color="Mittente", color_discrete_sequence=dynamic_palette,
-                          showlegend=False)
+                          color="Mittente", color_discrete_sequence=dynamic_palette)
+            fig4.update_layout(showlegend=False)  # Nasconde la legenda
             col2.plotly_chart(fig4, use_container_width=True, config=PLOTLY_CONFIG)
