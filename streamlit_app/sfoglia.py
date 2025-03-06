@@ -22,7 +22,7 @@ def page_sfoglia(df):
         st.info("Nessuna pubblicazione trovata con questi filtri.")
         return
 
-    # Creiamo una copia per visualizzare le colonne in formato "Title"
+    # Copia per visualizzare le colonne in formato "Title"
     filtered_display = filtered.copy()
     filtered_display.columns = [col.replace('_', ' ').title() for col in filtered_display.columns]
 
@@ -33,7 +33,7 @@ def page_sfoglia(df):
     current_pub = filtered.iloc[st.session_state.sfoglia_index]
     st.subheader(f"Pubblicazione {st.session_state.sfoglia_index + 1} di {len(filtered)}")
 
-    # Mostriamo tutte le colonne tranne "documento" e "allegati"
+    # Visualizziamo tutte le colonne tranne "documento" e "allegati"
     for col in filtered_display.columns:
         col_original = col.lower().replace(' ', '_')
         if col_original not in ["documento", "allegati"]:
@@ -41,17 +41,17 @@ def page_sfoglia(df):
 
     col_doc, col_alla = st.columns(2)
 
-    # Documento Principale: mostriamo solo l'icona di un foglio di carta
+    # Documento Principale: mostra solo l'icona (📄) come link, centrata nel suo riquadro
     documento = current_pub.get("documento")
     if documento and documento != "N/A":
         if isinstance(documento, list):
             doc_links = documento
         else:
             doc_links = [documento]
-        doc_icons = " ".join([f"<a href='{link}' target='_blank'>📄</a>" for link in doc_links])
-        col_doc.markdown(f"<div style='text-align: center;'><strong>Documento Principale:</strong> {doc_icons}</div>", unsafe_allow_html=True)
+        doc_icons_html = "".join([f"<a href='{link}' target='_blank' style='text-decoration: none; margin: 0 5px;'>📄</a>" for link in doc_links])
+        col_doc.markdown(f"<p style='text-align: center;'><strong>Documento Principale:</strong> {doc_icons_html}</p>", unsafe_allow_html=True)
 
-    # Allegati: mostriamo un'icona (📎) per ogni link
+    # Allegati: mostra un'icona (📎) per ogni link, centrata nel suo riquadro
     allegati = current_pub.get("allegati")
     if allegati and allegati != "N/A":
         if isinstance(allegati, list):
@@ -59,8 +59,8 @@ def page_sfoglia(df):
         else:
             allegati_links = [link.strip() for link in allegati.split(",") if link.strip()]
         if allegati_links:
-            att_icons = " ".join([f"<a href='{link}' target='_blank'>📎</a>" for link in allegati_links])
-            col_alla.markdown(f"<div style='text-align: center;'><strong>Allegati:</strong> {att_icons}</div>", unsafe_allow_html=True)
+            att_icons_html = "".join([f"<a href='{link}' target='_blank' style='text-decoration: none; margin: 0 5px;'>📎</a>" for link in allegati_links])
+            col_alla.markdown(f"<p style='text-align: center;'><strong>Allegati:</strong> {att_icons_html}</p>", unsafe_allow_html=True)
 
     col_nav1, col_nav2, _ = st.columns([1, 1, 3])
     with col_nav1:
