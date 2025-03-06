@@ -24,35 +24,44 @@ class TelegramNotifier:
             "Registro Generale",
             "Data Registro Generale",
             "Data Fine Pubblicazione",
-            "Allegati"  # 🔹 Evita la ripetizione della lista iniziale degli allegati
+            "Allegati"  # Escludiamo la lista iniziale degli allegati
         }
 
-        lines = ["📢 *Nuova pubblicazione*\n"]  # Intestazione del messaggio
+        lines = ["📢 *Nuova pubblicazione*\n"]
 
-        # Generazione del corpo del messaggio
+        # Corpo del messaggio (escludendo alcune chiavi)
         for key in sorted(pubblicazione.keys()):
             key_title = key.replace('_', ' ').title()
             if key_title in skip_keys:
-                continue  # Escludi le chiavi non necessarie
+                continue
             value = escape_markdown(pubblicazione[key])
-            lines.append(f"📌 *{key_title}:* {value}")
+            lines.append(f"*{key_title}:* {value}")
 
-        # Aggiunta del link al documento principale
+        # Aggiunta del link al documento principale (si assume sia un solo link)
         documento = pubblicazione.get("documento")
-        if documento:
-            lines.append(f"\n📄 *Documento:* [Link al documento]({documento})")
+        if documento and documento != "N/A":
+            if isinstance(documento, list):
+                doc_link = documento[0] if documento else ""
+            else:
+                doc_link = documento
+            lines.append(f"\n*Documento:* [{doc_link}]({doc_link})")
 
-        # Aggiunta degli allegati con formato corretto
-        allegati = pubblicazione.get("allegati", [])
-        if allegati:
-            lines.append("\n📎 *Allegati:*")
-            for a in allegati:
-                lines.append(f"🔗 [Link]({a})")
+        # Aggiunta degli allegati: ogni link su una riga separata
+        allegati = pubblicazione.get("allegati")
+        if allegati and allegati != "N/A":
+            if isinstance(allegati, list):
+                allegati_links = allegati
+            else:
+                allegati_links = [link.strip() for link in allegati.split(",") if link.strip()]
+            if allegati_links:
+                lines.append("\n*Allegati:*")
+                for a in allegati_links:
+                    lines.append(f"[{a}]({a})")
 
         # Nota finale per il download
         lines.append("\n⚠️ *Nota:* se il download non parte automaticamente, apri il link con il tuo browser.")
 
-        # Unione del messaggio in formato Markdown
+        # Composizione del messaggio in formato Markdown
         testo = "\n".join(lines)
         
         # Invio del messaggio Telegram
