@@ -38,16 +38,16 @@ def page_elenco(df):
         if "allegati" in df_reduced:
             df_reduced["allegati"] = df_reduced["allegati"].fillna("").astype(str)
 
-        def style_min_width(val):
-            """Funzione per impostare una larghezza minima in base al tipo di valore"""
-            if isinstance(val, (int, float)):  # Se il valore è numerico
-                return "width: 100px;"  # Imposta larghezza minima per colonne numeriche
-            elif isinstance(val, pd.Timestamp):  # Se il valore è una data
-                return "width: 120px;"  # Imposta larghezza minima per colonne di data
+        def style_min_width(val, col_name):
+            """Funzione per impostare una larghezza minima per colonne specifiche"""
+            if col_name == "numero_pubblicazione":
+                return "width: 100px;"  # Larghezza minima per numero_pubblicazione
+            elif col_name == "data_inizio_pubblicazione":
+                return "width: 120px;"  # Larghezza minima per data_inizio_pubblicazione
             return ""  # Altrimenti lascia invariato
 
         # Mostra la tabella con scorrimento orizzontale
         st.dataframe(
-            df_reduced.style.applymap(style_min_width),
+            df_reduced.style.applymap(lambda val, col: style_min_width(val, col), subset=["numero_pubblicazione", "data_inizio_pubblicazione"]),
             use_container_width=True,
         )
