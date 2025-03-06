@@ -2,7 +2,7 @@ import streamlit as st
 from common import filter_data
 
 def page_sfoglia(df):
-    st.header("📄 SFOGLIA")
+    st.header("📖 SFOGLIA PUBBLICAZIONI")
 
     with st.expander("🔍 Filtri di Ricerca"):
         col1, col2 = st.columns(2)
@@ -14,37 +14,50 @@ def page_sfoglia(df):
         data_da = col_date1.date_input("Data inizio", None)
         data_a = col_date2.date_input("Data fine", None)
 
-    # **Filtriamo i dati automaticamente**
+    # **Filtriamo i dati**
     filtered = filter_data(df, ricerca, tipo_atto, data_da, data_a)
     filtered = filtered.sort_values("numero_pubblicazione", ascending=False)
 
+    # Se non ci sono pubblicazioni da mostrare
     if filtered.empty:
-        st.info("Nessuna pubblicazione trovata con questi filtri.")
+        st.info("Nessuna pubblicazione trovata.")
         return
 
-    filtered.columns = [col.replace('_', ' ').title() for col in filtered.columns]
+    # Creiamo uno stato per la navigazione
+    if "index_sfoglia" not in st.session_state:
+        st.session_state.index_sfoglia = 0
 
-    if "sfoglia_index" not in st.session_state:
-        st.session_state.sfoglia_index = 0
-    st.session_state.sfoglia_index = max(0, min(st.session_state.sfoglia_index, len(filtered) - 1))
+    # Recuperiamo la pubblicazione corrente
+    current_index = st.session_state.index_sfoglia
+    current_pub = filtered.iloc[current_index]
 
-    current_pub = filtered.iloc[st.session_state.sfoglia_index]
-    st.subheader(f"Pubblicazione {st.session_state.sfoglia_index + 1} di {len(filtered)}")
+    # Visualizzazione della pubblicazione
+    st.write(f"**Pubblicazione {current_index + 1} di {len(filtered)}**\n")
+    st.write(f"**Numero Pubblicazione:** {current_pub['numero_pubblicazione']}")
+    st.write(f"**Mittente:** {current_pub['mittente']}")
+    st.write(f"**Tipo Atto:** {current_pub['tipo_atto']}")
+    st.write(f"**Registro Generale:** {current_pub['registro_generale']}")
+    st.write(f"**Data Registro Generale:** {current_pub['data_registro_generale']}")
+    st.write(f"**Oggetto Atto:** {current_pub['oggetto_atto']}")
+    st.write(f"**Data Inizio Pubblicazione:** {current_pub['data_inizio_pubblicazione']}")
+    st.write(f"**Data Fine Pubblicazione:** {current_pub['data_fine_pubblicazione']}")
 
-    for col in filtered.columns:
-        if col not in ["Documento", "Allegati"]:
-            st.write(f"**{col}:** {current_pub[col]}")
+    # Documento Principale
+    if "documento" in current_pub and pd.notna(current_pub["documento"]):
+        st.write(f"📄 **Documento Principale:** [🔗 Link]({current_pub['documento']})")
 
-    col_doc, col_alla = st.columns(2)
-    if "documento" in current_pub and current_pub["documento"]:
-        col_doc.markdown(f"[📄 Documento Principale]( {current_pub['documento']} )", unsafe_allow_html=True)
-    if "allegati" in current_pub and current_pub["allegati"]:
-        col_alla.markdown(f"[📎 Allegati]( {current_pub['allegati']} )", unsafe_allow_html=True)
+    # **Mostra gli allegati, se presenti**
+    if "allegati" in current_pub and pd.notna(current_pub["allegati"]) and current_pub["allegati"]:
+        allegati_list = eval(current_pub["allegati"]) if isinstance(current_pub["allegati"], str) else current_pub["allegati"]
+        st.write("📎 **Allegati:**")
+        for i, allegato in enumerate(allegati_list, start=1):
+            st.write(f"🔗 [Allegato {i}]({allegato})")
 
-    col_nav1, col_nav2, _ = st.columns([1, 1, 3])
-    with col_nav1:
-        if st.button("◀️", use_container_width=True):
-            st.session_state.sfoglia_index -= 1
-    with col_nav2:
-        if st.button("▶️", use_container_width=True):
-            st.session_state.sfoglia_index += 1
+    # **Navigazione tra le pubblicazioni**
+    col_nav1, col_nav2 = st.columns([1, 1])
+    if col_nav1.button("⬅️ Indietro") and current_index > 0:
+        st.session_state.index_sfoglia -= 1
+        st.experimental_rerun()
+    if col_nav2.button("➡️ Avanti") and current_index < len(filtered) - 1:
+        st.session_state.index_sfoglia += 1
+        st.experimental_rerun()
