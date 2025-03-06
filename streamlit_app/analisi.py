@@ -68,10 +68,9 @@ def page_analisi(df):
             tipologia_counts = df["tipo_atto"].value_counts().reset_index()
             tipologia_counts.columns = ["Tipologia", "Numero"]
             palette_tipologie = sns.color_palette("pastel", len(tipologia_counts)).as_hex()
-            fig3 = px.bar(tipologia_counts, x="Tipo Atto", y="Numero di Pubblicazioni",
-                          orientation="v",  # 🔹 Assi invertiti
+            fig3 = px.bar(tipologia_counts, y="Tipo Atto", x="Numero di Pubblicazioni",
                           color="Tipo Atto", color_discrete_sequence=palette_tipologie,
-                          title="Tipologie di Atto")
+                          title="Tipologie")
             fig3.update_layout(showlegend=False)
             col1.plotly_chart(fig3, use_container_width=True, config=PLOTLY_CONFIG)
         else:
@@ -82,8 +81,7 @@ def page_analisi(df):
             mittente_counts = df["mittente"].value_counts().reset_index()
             mittente_counts.columns = ["Mittente", "Numero"]
             palette_mittenti = sns.color_palette("pastel", len(mittente_counts)).as_hex()
-            fig4 = px.bar(mittente_counts, x="Mittente", y="Numero di Pubblicazioni",
-                          orientation="v",  # 🔹 Assi invertiti
+            fig4 = px.bar(mittente_counts, y="Mittente", x="Numero di Pubblicazioni",
                           color="Mittente", color_discrete_sequence=palette_mittenti,
                           title="Mittenti")
             fig4.update_layout(showlegend=False)
