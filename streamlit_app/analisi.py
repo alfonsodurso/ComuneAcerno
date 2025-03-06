@@ -8,7 +8,7 @@ PLOTLY_CONFIG = {
     "displaylogo": False,
     "scrollZoom": True,  # 🔹 Zoom con due dita su mobile
     "modeBarButtonsToRemove": [
-        "pan2d", "select2d", "lasso2d", "autoScale2d",
+        "pan2d", "select2d", "lasso2d", "zoom",
         "resetScale2d", "toggleSpikelines"
     ],
     "displayModeBar": True
