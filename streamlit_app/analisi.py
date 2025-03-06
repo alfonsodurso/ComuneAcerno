@@ -21,18 +21,25 @@ def page_analisi(df):
     df["data_inizio_pubblicazione"] = pd.to_datetime(df["data_inizio_pubblicazione"], errors="coerce")
     df_time = df.dropna(subset=["data_inizio_pubblicazione"]).copy()
 
-    # Distribuzione Mensile: raggruppa per mese (formato "YYYY-MM")
-    df_time["mese"] = df_time["data_inizio_pubblicazione"].dt.to_period("M").astype(str)
-    pub_per_mese = df_time.groupby("mese").size().reset_index(name="Pubblicazioni Mese")
-    # Conversione della colonna 'mese' in datetime per avere un asse temporale corretto
-    pub_per_mese["mese_dt"] = pd.to_datetime(pub_per_mese["mese"], format="%Y-%m")
-    palette_mese = sns.color_palette("pastel", len(pub_per_mese)).as_hex()
-
-    # Distribuzione Giornaliera per l'Andamento Cumulato:
+    # Raggruppamento per giorno
     df_time["data"] = df_time["data_inizio_pubblicazione"].dt.date
     daily_counts = df_time.groupby("data").size().rename("Pubblicazioni Giorno")
     full_date_range = pd.date_range(daily_counts.index.min(), daily_counts.index.max(), freq="D")
     daily_counts = daily_counts.reindex(full_date_range, fill_value=0)
+    daily_counts_df = pd.DataFrame({
+        "data": daily_counts.index.date,
+        "Pubblicazioni Giorno": daily_counts.values
+    })
+
+    palette_giornaliera = sns.color_palette("pastel", 1).as_hex()
+
+    # Distribuzione Mensile: raggruppa per mese (formato "YYYY-MM")
+    df_time["mese"] = df_time["data_inizio_pubblicazione"].dt.to_period("M").astype(str)
+    pub_per_mese = df_time.groupby("mese").size().reset_index(name="Pubblicazioni Mese")
+    pub_per_mese["mese_dt"] = pd.to_datetime(pub_per_mese["mese"], format="%Y-%m")
+    palette_mese = sns.color_palette("pastel", len(pub_per_mese)).as_hex()
+
+    # Distribuzione Giornaliera per l'Andamento Cumulato:
     daily_cumsum = daily_counts.cumsum()
     cumulative_df = pd.DataFrame({
         "data": daily_counts.index.date,
@@ -47,10 +54,10 @@ def page_analisi(df):
     with tab1:
         col1, col2 = st.columns(2)
         
-        # Grafico 1: Andamento mensile (Line Chart non cumulativo) con linea spezzata
-        fig1 = px.line(pub_per_mese, x="mese_dt", y="Pubblicazioni Mese",
-                       title="Andamento mensile",
-                       markers=True, color_discrete_sequence=palette_mese)
+        # Grafico 1: Andamento giornaliero delle pubblicazioni (Line Chart spezzata per ogni giorno)
+        fig1 = px.line(daily_counts_df, x="data", y="Pubblicazioni Giorno",
+                       title="Andamento giornaliero delle pubblicazioni",
+                       markers=True, color_discrete_sequence=palette_giornaliera)
         fig1.update_layout(dragmode=False, showlegend=False)
         col1.plotly_chart(fig1, use_container_width=True, config=PLOTLY_CONFIG)
         
