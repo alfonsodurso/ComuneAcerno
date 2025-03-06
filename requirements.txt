@@ -5,3 +5,4 @@ apscheduler
 streamlit
 pandas
 plotly
+seaborn
