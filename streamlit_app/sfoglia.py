@@ -29,6 +29,9 @@ def page_sfoglia(df):
     if "index_sfoglia" not in st.session_state:
         st.session_state.index_sfoglia = 0
 
+    # Assicuriamoci che l'indice non superi i limiti
+    st.session_state.index_sfoglia = max(0, min(st.session_state.index_sfoglia, len(filtered) - 1))
+
     # Recuperiamo la pubblicazione corrente
     current_index = st.session_state.index_sfoglia
     current_pub = filtered.iloc[current_index]
@@ -51,22 +54,30 @@ def page_sfoglia(df):
 
     # **Mostra gli allegati, se presenti**
     allegati = current_pub.get("allegati")
-    if isinstance(allegati, str):  # Se gli allegati sono salvati come stringa (lista JSON)
-        try:
-            allegati = ast.literal_eval(allegati)  # Converte stringa in lista
-        except (ValueError, SyntaxError):
-            allegati = []
 
-    if isinstance(allegati, list) and allegati:
-        st.write("📎 **Allegati:**")
-        for i, allegato in enumerate(allegati, start=1):
-            st.write(f"🔗 [Allegato {i}]({allegato})")
+    if allegati and pd.notna(allegati):
+        try:
+            if isinstance(allegati, str):  # Se è una stringa (JSON salvato come testo)
+                allegati_list = ast.literal_eval(allegati)
+            else:
+                allegati_list = allegati  # Se è già una lista
+        except (ValueError, SyntaxError):
+            allegati_list = []
+
+        if isinstance(allegati_list, list) and allegati_list:
+            st.write("📎 **Allegati:**")
+            for i, allegato in enumerate(allegati_list, start=1):
+                st.write(f"🔗 [Allegato {i}]({allegato})")
 
     # **Navigazione tra le pubblicazioni**
     col_nav1, col_nav2 = st.columns([1, 1])
-    if col_nav1.button("⬅️ Indietro") and current_index > 0:
-        st.session_state.index_sfoglia -= 1
-        st.experimental_rerun()
-    if col_nav2.button("➡️ Avanti") and current_index < len(filtered) - 1:
-        st.session_state.index_sfoglia += 1
-        st.experimental_rerun()
+    
+    if col_nav1.button("⬅️ Indietro"):
+        if st.session_state.index_sfoglia > 0:
+            st.session_state.index_sfoglia -= 1
+            st.experimental_rerun()
+
+    if col_nav2.button("➡️ Avanti"):
+        if st.session_state.index_sfoglia < len(filtered) - 1:
+            st.session_state.index_sfoglia += 1
+            st.experimental_rerun()
