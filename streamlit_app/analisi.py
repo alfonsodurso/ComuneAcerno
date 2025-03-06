@@ -47,14 +47,14 @@ def page_analisi(df):
         
         # Grafico 1: Distribuzione Mensile (Bar Chart)
         fig1 = px.bar(pub_per_mese, x="mese", y="Pubblicazioni Mese",
-                      title="Distribuzione mensile delle pubblicazioni",
+                      title="Distribuzione mensile",
                       color_discrete_sequence=palette_mese)
         fig1.update_layout(dragmode=False, showlegend=False)
         col1.plotly_chart(fig1, use_container_width=True, config=PLOTLY_CONFIG)
         
         # Grafico 2: Andamento Cumulato (Line Chart)
         fig2 = px.line(cumulative_df, x="data", y="Pubblicazioni Cumulative",
-                       title="Andamento cumulato delle pubblicazioni",
+                       title="Andamento cumulato",
                        markers=True, color_discrete_sequence=palette_cumul)
         fig2.update_layout(dragmode=False, showlegend=False)
         col2.plotly_chart(fig2, use_container_width=True, config=PLOTLY_CONFIG)
