@@ -24,7 +24,7 @@ def page_analisi(df):
     # Distribuzione Mensile: raggruppa per mese (formato "YYYY-MM")
     df_time["mese"] = df_time["data_inizio_pubblicazione"].dt.to_period("M").astype(str)
     pub_per_mese = df_time.groupby("mese").size().reset_index(name="Pubblicazioni Mese")
-    palette_mese = sns.color_palette("pastel", len(pub_per_mese)).as_hex()
+    palette_mese = sns.color_palette("pastel", 1).as_hex()
 
     # Distribuzione Giornaliera per l'Andamento Cumulato:
     df_time["data"] = df_time["data_inizio_pubblicazione"].dt.date
@@ -45,10 +45,10 @@ def page_analisi(df):
     with tab1:
         col1, col2 = st.columns(2)
         
-        # Grafico 1: Distribuzione Mensile (Bar Chart)
-        fig1 = px.bar(pub_per_mese, x="mese", y="Pubblicazioni Mese",
-                      title="Distribuzione mensile",
-                      color_discrete_sequence=palette_mese)
+        # Grafico 1: Andamento Mensile (Line Chart)
+        fig1 = px.line(pub_per_mese, x="mese", y="Pubblicazioni Mese",
+                       title="Andamento mensile",
+                       markers=True, color_discrete_sequence=palette_mese)
         fig1.update_layout(dragmode=False, showlegend=False)
         col1.plotly_chart(fig1, use_container_width=True, config=PLOTLY_CONFIG)
         
@@ -87,4 +87,3 @@ def page_analisi(df):
             col2.plotly_chart(fig4, use_container_width=True, config=PLOTLY_CONFIG)
         else:
             col2.warning("Dati sui mittenti non disponibili.")
-
