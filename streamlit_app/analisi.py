@@ -5,13 +5,12 @@ import plotly.express as px
 # 🎨 Palette colori Pantone Soft
 COLOR_PALETTE = ["#A7C7E7", "#A8E6CF", "#FFAAA5", "#FFD3B6", "#D4A5A5"]
 
-# ⚙️ Configurazione toolbar (Pan attivo e rimosso lo zoom)
+# ⚙️ Configurazione toolbar (Pan disattivato, Zoom con due dita)
 PLOTLY_CONFIG = {
     "displaylogo": False,
-    "scrollZoom": False,  # 🔹 Disabilita zoom con scroll
+    "scrollZoom": True,  # 🔹 Zoom con due dita su mobile
     "modeBarButtonsToRemove": [
-        "zoom2d", "zoomIn2d", "zoomOut2d", "autoScale2d", "resetScale2d",
-        "select2d", "lasso2d", "toggleSpikelines"
+        "pan2d", "select2d", "lasso2d", "autoScale2d", "resetScale2d", "toggleSpikelines"
     ],
     "displayModeBar": True
 }
@@ -23,7 +22,11 @@ def page_analisi(df):
     df["data_inizio_pubblicazione"] = pd.to_datetime(df["data_inizio_pubblicazione"], errors="coerce")
     df_time = df.dropna(subset=["data_inizio_pubblicazione"]).copy()
 
-    # **Filtro temporale**
+    # **Distribuzione Mensile**
+    df_time["mese"] = df_time["data_inizio_pubblicazione"].dt.to_period("M").astype(str)
+    pub_per_mese = df_time.groupby("mese").size().reset_index(name="Pubblicazioni Mese")
+
+    # **Distribuzione Giornaliera per l'Andamento Cumulato**
     df_time["data"] = df_time["data_inizio_pubblicazione"].dt.date
     df_time = df_time.groupby("data").size().reset_index(name="Pubblicazioni Giorno")
 
@@ -31,7 +34,7 @@ def page_analisi(df):
     min_date, max_date = df_time["data"].min(), df_time["data"].max()
     all_dates = pd.DataFrame(pd.date_range(min_date, max_date), columns=["data"])
 
-    # **Convertiamo entrambi in datetime64 per evitare errori**
+    # **Convertiamo entrambe in datetime64 per evitare errori**
     all_dates["data"] = all_dates["data"].dt.date
     df_time["data"] = pd.to_datetime(df_time["data"]).dt.date
 
@@ -48,16 +51,14 @@ def page_analisi(df):
 
         col1, col2 = st.columns(2)
 
-        # **Grafico Pubblicazioni Giorno**
-        fig1 = px.bar(df_time, x="data", y="Pubblicazioni Giorno",
-                      title="Distribuzione giornaliera delle pubblicazioni",
+        # **Grafico Distribuzione Mensile**
+        fig1 = px.bar(pub_per_mese, x="mese", y="Pubblicazioni Mese",
+                      title="Distribuzione mensile delle pubblicazioni",
                       color_discrete_sequence=[COLOR_PALETTE[0]])
-        fig1.update_layout(dragmode="pan")  # 🔹 Imposta il pan di default
         col1.plotly_chart(fig1, use_container_width=True, config=PLOTLY_CONFIG)
 
-        # **Grafico Andamento Cumulato**
+        # **Grafico Andamento Cumulato Giornaliero**
         fig2 = px.line(df_time, x="data", y="Pubblicazioni Cumulative",
                        title="Andamento cumulato delle pubblicazioni",
                        markers=True, color_discrete_sequence=[COLOR_PALETTE[2]])
-        fig2.update_layout(dragmode="pan")  # 🔹 Imposta il pan di default
         col2.plotly_chart(fig2, use_container_width=True, config=PLOTLY_CONFIG)
