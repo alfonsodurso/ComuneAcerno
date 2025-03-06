@@ -38,14 +38,6 @@ def page_elenco(df):
         if "allegati" in df_reduced:
             df_reduced["allegati"] = df_reduced["allegati"].fillna("").astype(str)
 
-        def apply_widths(styler):
-            """Applica larghezze minime alle colonne numero_pubblicazione e data_inizio_pubblicazione"""
-            styler.set_table_styles([
-                {"selector": "th:nth-child(1), td:nth-child(1)", "props": [("min-width", "100px")]},  # numero_pubblicazione
-                {"selector": "th:nth-child(4), td:nth-child(4)", "props": [("min-width", "120px")]},  # data_inizio_pubblicazione
-            ], axis=1)
-            return styler
-
         # Mostra la tabella con scorrimento orizzontale e larghezze minime per specifiche colonne
         st.dataframe(
             apply_widths(df_reduced.style),
