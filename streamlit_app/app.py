@@ -8,7 +8,7 @@ from analisi import page_analisi
 st.set_page_config(page_title="Albo Pretorio", layout="wide", initial_sidebar_state="collapsed")
 
 # Barra di navigazione
-menu = st.sidebar.radio("Seleziona una pagina:", ["📖 SFOGLIA", "📋 ELENCO", "📊 ANALISI", "⏳ RITARDI"])
+menu = st.sidebar.radio("Seleziona una pagina:", ["📖 SFOGLIA", "📋 ELENCO", "📊 ANALISI"])
 
 df = load_data()
 
