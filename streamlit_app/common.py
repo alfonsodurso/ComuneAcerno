@@ -6,10 +6,6 @@ def load_data():
     query = "SELECT * FROM pubblicazioni"
     df = pd.read_sql(query, conn)
     conn.close()
-
-    # Convert dates to datetime
-    df["data_registro_generale"] = pd.to_datetime(df["data_registro_generale"], errors="coerce")
-    df["data_inizio_pubblicazione"] = pd.to_datetime(df["data_inizio_pubblicazione"], errors="coerce")
     
     return df
 
