@@ -28,19 +28,17 @@ def calculate_working_days(start_date, end_date):
     return working_days
 
 def analyze_publication_delays(df):
-
+    # Assuming this function calculates the 'ritardo_pubblicazione' column
+    df = df.dropna(subset=["data_registro_generale", "data_inizio_pubblicazione"]).copy()
     df["data_registro_generale"] = pd.to_datetime(df["data_registro_generale"], errors="coerce")
     df["data_inizio_pubblicazione"] = pd.to_datetime(df["data_inizio_pubblicazione"], errors="coerce")
-
-    """Calcola il ritardo di pubblicazione in giorni lavorativi."""
-    df = df.dropna(subset=["data_registro_generale", "data_inizio_pubblicazione"]).copy()
-    
-    df["ritardo_pubblicazione"] = df.apply(lambda row: 
-        calculate_working_days(row["data_registro_generale"], row["data_inizio_pubblicazione"]) - 1, axis=1)
-    
-    df["ritardo_pubblicazione"] = df["ritardo_pubblicazione"].apply(lambda x: max(x, 0))  # Evita valori negativi
-
+    df["ritardo_pubblicazione"] = df.apply(
+        lambda row: calculate_working_days(row["data_registro_generale"], row["data_inizio_pubblicazione"]) - 1,
+        axis=1
+    )
+    df["ritardo_pubblicazione"] = df["ritardo_pubblicazione"].apply(lambda x: max(x, 0))
     return df
+
 
 def analyze_mittenti_performance(df):
     """Analizza il ritardo medio di pubblicazione per ogni mittente."""
@@ -141,6 +139,12 @@ def page_analisi(df):
         st.write("Tabella con la distribuzione dei ritardi:")
         st.dataframe(publication_delays, use_container_width=True)
         
+        # Compute publication delays first to ensure the column exists.
+        df = analyze_publication_delays(df)
+
+        # Now you can analyze the performance per mittente.
+        mittente_performance = analyze_mittenti_performance(df)
+
 
         # Performance dei mittenti
         mittente_performance = analyze_mittenti_performance(df)
