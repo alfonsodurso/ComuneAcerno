@@ -130,17 +130,22 @@ def page_analisi(df):
             col2.warning("Dati sui mittenti non disponibili.")
     
     with tab3:
-        
-        # Calcola i ritardi di pubblicazione e aggiorna il DataFrame
-        df = analyze_publication_delays(df)
-    
-        # Analizza la performance dei mittenti
-        mittente_performance = analyze_mittenti_performance(df)
-        
-        # Arrotonda i giorni di ritardo medi e converti in intero (senza decimali)
-        mittente_performance["Ritardo medio"] = mittente_performance["Ritardo medio"].round(0).astype(int)
-        
-        st.write("Tabella con i ritardi medi di pubblicazione per mittente:")
-        st.dataframe(mittente_performance, use_container_width=True)
+        # Check if the necessary columns exist
+        if "data_registro_generale" in df.columns and "data_inizio_pubblicazione" in df.columns:
+            df = analyze_publication_delays(df)
+            
+            # Confirm that the column has been created
+            if "ritardo_pubblicazione" in df.columns:
+                mittente_performance = analyze_mittenti_performance(df)
+                # Round the average delay values
+                mittente_performance["Ritardo medio"] = mittente_performance["Ritardo medio"].round(0).astype(int)
+                
+                st.write("Tabella con i ritardi medi di pubblicazione per mittente:")
+                st.dataframe(mittente_performance, use_container_width=True)
+            else:
+                st.error("La colonna 'ritardo_pubblicazione' non è stata creata correttamente.")
+        else:
+            st.error("Le colonne richieste per il calcolo del ritardo non sono presenti nel DataFrame.")
+
 
 
