@@ -4,7 +4,6 @@ import plotly.express as px
 import seaborn as sns
 from datetime import datetime, timedelta
 
-# ⚙️ Configurazione toolbar (Zoom con due dita, Pan disattivato)
 PLOTLY_CONFIG = {
     "displaylogo": False,
     "scrollZoom": True,  # 🔹 Zoom con due dita su mobile
@@ -38,6 +37,7 @@ def analyze_publication_delays(df):
     )
     df["ritardo_pubblicazione"] = df["ritardo_pubblicazione"].apply(lambda x: max(x, 0))
     return df
+
 
 def analyze_mittenti_performance(df):
     """Analizza il ritardo medio di pubblicazione per ogni mittente."""
@@ -129,23 +129,42 @@ def page_analisi(df):
         else:
             col2.warning("Dati sui mittenti non disponibili.")
     
-    with tab3:
-        # Check if the necessary columns exist
-        if "data_registro_generale" in df.columns and "data_inizio_pubblicazione" in df.columns:
+     with tab3:
+        
+            col1, col2 = st.columns(2)
+        
+            # Calcola i ritardi di pubblicazione e aggiorna il DataFrame
             df = analyze_publication_delays(df)
+        
+            # Raggruppa per ritardo e conta le pubblicazioni per ogni giorno di ritardo
+            delay_distribution = df["ritardo_pubblicazione"].value_counts().reset_index()
+            delay_distribution.columns = ["Giorni di Ritardo", "Numero di Pubblicazioni"]
+        
+            # Ordina per giorni di ritardo in ordine crescente
+            delay_distribution = delay_distribution.sort_values(by="Giorni di Ritardo")
+        
+            # Crea il grafico a barre
+            fig5 = px.bar(
+                delay_distribution,
+                x="Giorni di Ritardo",
+                y="Numero di Pubblicazioni",
+                title="Distribuzione dei Ritardi",
+                color="Giorni di Ritardo",
+                color_discrete_sequence=sns.color_palette("pastel", len(delay_distribution)).as_hex()
+            )
             
-            # Confirm that the column has been created
-            if "ritardo_pubblicazione" in df.columns:
-                mittente_performance = analyze_mittenti_performance(df)
-                # Round the average delay values
-                mittente_performance["Ritardo medio"] = mittente_performance["Ritardo medio"].round(0).astype(int)
-                
-                st.write("Tabella con i ritardi medi di pubblicazione per mittente:")
-                st.dataframe(mittente_performance, use_container_width=True)
-            else:
-                st.error("La colonna 'ritardo_pubblicazione' non è stata creata correttamente.")
-        else:
-            st.error("Le colonne richieste per il calcolo del ritardo non sono presenti nel DataFrame.")
+            fig5.update_layout(dragmode=False, showlegend=False)
+            # Visualizza il grafico a barre in Streamlit
+            col1.plotly_chart(fig5, use_container_width=True, config=PLOTLY_CONFIG)
+        
+            # Analizza la performance dei mittenti
+            mittente_performance = analyze_mittenti_performance(df)
+            
+            # Arrotonda i giorni di ritardo medi e converti in intero (senza decimali)
+            mittente_performance["Ritardo medio"] = mittente_performance["Ritardo medio"].round(0).astype(int)
+            
+            st.write("Tabella con i ritardi medi di pubblicazione per mittente:")
+            st.dataframe(mittente_performance, use_container_width=True)
 
 
 
