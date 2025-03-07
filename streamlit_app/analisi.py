@@ -50,46 +50,72 @@ def page_analisi(df):
 
     # ----- Preparazione dati per il tab "Andamento Temporale" -----
     df["data_inizio_pubblicazione"] = pd.to_datetime(df["data_inizio_pubblicazione"], errors="coerce")
-    df["data_registro_generale"] = pd.to_datetime(df["data_registro_generale"], errors="coerce")
     df_time = df.dropna(subset=["data_inizio_pubblicazione"]).copy()
+
+    # Raggruppamento per giorno
+    df_time["data"] = df_time["data_inizio_pubblicazione"].dt.date
+    daily_counts = df_time.groupby("data").size().rename("Pubblicazioni Giorno")
+    full_date_range = pd.date_range(daily_counts.index.min(), daily_counts.index.max(), freq="D")
+    daily_counts = daily_counts.reindex(full_date_range, fill_value=0)
+    daily_counts_df = pd.DataFrame({
+        "data": daily_counts.index.date,
+        "Pubblicazioni Giorno": daily_counts.values
+    })
+
+    palette_giornaliera = sns.color_palette("pastel", 1).as_hex()
 
     # Distribuzione Mensile: raggruppa per mese (formato "YYYY-MM")
     df_time["mese"] = df_time["data_inizio_pubblicazione"].dt.to_period("M").astype(str)
     pub_per_mese = df_time.groupby("mese").size().reset_index(name="Pubblicazioni Mese")
+    pub_per_mese["mese_dt"] = pd.to_datetime(pub_per_mese["mese"], format="%Y-%m")
     palette_mese = sns.color_palette("pastel", len(pub_per_mese)).as_hex()
 
-    # ----- Analisi Ritardi -----
-    df = analyze_publication_delays(df)
+    # Distribuzione Giornaliera per l'Andamento Cumulato:
+    daily_cumsum = daily_counts.cumsum()
+    cumulative_df = pd.DataFrame({
+        "data": daily_counts.index.date,
+        "Pubblicazioni Giorno": daily_counts.values,
+        "Pubblicazioni Cumulative": daily_cumsum.values
+    })
+    palette_cumul = sns.color_palette("pastel", 1).as_hex()
 
     # ----- Layout dei grafici -----
-    tab1, tab2, tab3 = st.tabs(["📆 Andamento Temporale", "📋 Tipologie & Mittenti", "⏳ Ritardi"])
+    tab1, tab2 = st.tabs(["📆 Andamento Temporale", "📋 Tipologie & Mittenti"])
 
     with tab1:
         col1, col2 = st.columns(2)
         
-        # Grafico 1: Distribuzione Mensile (Bar Chart)
-        fig1 = px.bar(pub_per_mese, x="mese", y="Pubblicazioni Mese",
-                      title="Distribuzione mensile delle pubblicazioni",
-                      color_discrete_sequence=palette_mese)
+        # Grafico 1: Andamento giornaliero delle pubblicazioni (Line Chart spezzata per ogni giorno)
+        fig1 = px.line(daily_counts_df, x="data", y="Pubblicazioni Giorno",
+                       title="Andamento giornaliero",
+                       markers=True, color_discrete_sequence=palette_giornaliera)
         fig1.update_layout(dragmode=False, showlegend=False)
         col1.plotly_chart(fig1, use_container_width=True, config=PLOTLY_CONFIG)
+        
+        # Grafico 2: Andamento Cumulato (Line Chart)
+        fig2 = px.line(cumulative_df, x="data", y="Pubblicazioni Cumulative",
+                       title="Andamento cumulato",
+                       markers=True, color_discrete_sequence=palette_cumul)
+        fig2.update_layout(dragmode=False, showlegend=False)
+        col2.plotly_chart(fig2, use_container_width=True, config=PLOTLY_CONFIG)
 
     with tab2:
         col1, col2 = st.columns(2)
 
-        # Grafico per Tipologie
+        # Grafico per Tipologie (NUMERO SU Y, Tipologie su X)
         if "tipo_atto" in df.columns:
             tipologia_counts = df["tipo_atto"].value_counts().reset_index()
             tipologia_counts.columns = ["Tipo Atto", "Numero di Pubblicazioni"]
             palette_tipologie = sns.color_palette("pastel", len(tipologia_counts)).as_hex()
-            fig3 = px.bar(tipologia_counts, x="Numero di Pubblicazioni", y="Tipo Atto",
-                          title="Tipologie di Atto",
-                          orientation="h",
+            fig3 = px.bar(tipologia_counts, x="Tipo Atto", y="Numero di Pubblicazioni",
+                          title="Tipologie",
                           color="Tipo Atto", color_discrete_sequence=palette_tipologie)
-            fig3.update_layout(showlegend=False)
+            fig3.update_layout(dragmode=False, showlegend=False)
             col1.plotly_chart(fig3, use_container_width=True, config=PLOTLY_CONFIG)
-
-            # Grafico per Mittenti (NUMERO SU Y, Mittenti su X)
+        else:
+            col1.warning("Dati sulle tipologie non disponibili.")
+        
+        # Grafico per Mittenti (NUMERO SU Y, Mittenti su X)
         if "mittente" in df.columns:
             mittente_counts = df["mittente"].value_counts().reset_index()
             mittente_counts.columns = ["Mittente", "Numero di Pubblicazioni"]
