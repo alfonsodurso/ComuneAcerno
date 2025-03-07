@@ -80,7 +80,7 @@ def page_analisi(df):
     palette_cumul = sns.color_palette("pastel", 1).as_hex()
 
     # ----- Layout dei grafici -----
-    tab1, tab2 = st.tabs(["📆 Andamento Temporale", "📋 Tipologie & Mittenti"])
+    tab1, tab2, tab3 = st.tabs(["📆 Andamento Temporale", "📋 Tipologie & Mittenti", "⏳ Ritardi"])
 
     with tab1:
         col1, col2 = st.columns(2)
@@ -129,6 +129,8 @@ def page_analisi(df):
             col2.warning("Dati sui mittenti non disponibili.")
 
     with tab3:
+
+        col1, col2 = st.columns(2)
 
         # Performance dei ritardi
         publication_delays = analyze_publication_delays(df)
