@@ -131,32 +131,11 @@ def page_analisi(df):
             col2.warning("Dati sui mittenti non disponibili.")
     
     with tab3:
-    
-        col1, col2 = st.columns(2)
-    
+        
         # Calcola i ritardi di pubblicazione e aggiorna il DataFrame
         df = analyze_publication_delays(df)
     
-        # Raggruppa per ritardo e conta le pubblicazioni per ogni giorno di ritardo
-        delay_distribution = df["ritardo_pubblicazione"].value_counts().reset_index()
-        delay_distribution.columns = ["Giorni di Ritardo", "Numero di Pubblicazioni"]
-    
-        # Ordina per giorni di ritardo in ordine crescente
-        delay_distribution = delay_distribution.sort_values(by="Giorni di Ritardo")
-    
-        # Crea il grafico a barre
-        fig5 = px.bar(
-            delay_distribution,
-            x="Giorni di Ritardo",
-            y="Numero di Pubblicazioni",
-            title="Distribuzione dei Ritardi",
-            color="Giorni di Ritardo",
-            color_discrete_sequence=sns.color_palette("pastel", len(delay_distribution)).as_hex()
-        )
-        
-        fig5.update_layout(dragmode=False, showlegend=False)
-        # Visualizza il grafico a barre in Streamlit
-        col1.plotly_chart(fig5, use_container_width=True, config=PLOTLY_CONFIG)
+   
     
         # Analizza la performance dei mittenti
         mittente_performance = analyze_mittenti_performance(df)
