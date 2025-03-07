@@ -28,6 +28,10 @@ def calculate_working_days(start_date, end_date):
     return working_days
 
 def analyze_publication_delays(df):
+
+    df["data_registro_generale"] = pd.to_datetime(df["data_registro_generale"], errors="coerce")
+    df["data_inizio_pubblicazione"] = pd.to_datetime(df["data_inizio_pubblicazione"], errors="coerce")
+
     """Calcola il ritardo di pubblicazione in giorni lavorativi."""
     df = df.dropna(subset=["data_registro_generale", "data_inizio_pubblicazione"]).copy()
     
