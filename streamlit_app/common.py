@@ -6,7 +6,11 @@ def load_data():
     query = "SELECT * FROM pubblicazioni"
     df = pd.read_sql(query, conn)
     conn.close()
-    # Non rinominiamo subito le colonne: manteniamo i nomi originali per i filtri
+
+    # Convert dates to datetime
+    df["data_registro_generale"] = pd.to_datetime(df["data_registro_generale"], errors="coerce")
+    df["data_inizio_pubblicazione"] = pd.to_datetime(df["data_inizio_pubblicazione"], errors="coerce")
+    
     return df
 
 def filter_data(df, ricerca, tipo_atto, data_da, data_a):
