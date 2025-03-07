@@ -130,7 +130,10 @@ def page_analisi(df):
             col2.warning("Dati sui mittenti non disponibili.")
     
     with tab3:
-       
+        
+        # Calcola i ritardi di pubblicazione e aggiorna il DataFrame
+        df = analyze_publication_delays(df)
+    
         # Analizza la performance dei mittenti
         mittente_performance = analyze_mittenti_performance(df)
         
@@ -139,6 +142,5 @@ def page_analisi(df):
         
         st.write("Tabella con i ritardi medi di pubblicazione per mittente:")
         st.dataframe(mittente_performance, use_container_width=True)
-
 
 
