@@ -136,8 +136,17 @@ def page_analisi(df):
 
         # Performance dei ritardi
         publication_delays = analyze_publication_delays(df)
+
+        # Raggruppa per ritardo e conta le pubblicazioni per ogni giorno di ritardo
+        delay_distribution = df["ritardo_pubblicazione"].value_counts().reset_index()
+        delay_distribution.columns = ["Giorni di Ritardo", "Numero di Pubblicazioni"]
+        
+        # Ordina per giorni di ritardo in ordine crescente
+        delay_distribution = delay_distribution.sort_values(by="Giorni di Ritardo")
+        
+        # Visualizza la tabella in Streamlit
         st.write("Tabella con la distribuzione dei ritardi:")
-        st.dataframe(publication_delays, use_container_width=True)
+        st.dataframe(delay_distribution, use_container_width=True)
         
         # Compute publication delays first to ensure the column exists.
         df = analyze_publication_delays(df)
