@@ -11,6 +11,8 @@ st.set_page_config(page_title="Albo Pretorio", layout="wide", initial_sidebar_st
 # Barra di navigazione
 menu = st.sidebar.radio("Seleziona una pagina:", ["📖 SFOGLIA", "📋 ELENCO", "📊 ANALISI", "⏳ RITARDI"])
 
+df = load_data()
+
 # Richiama la pagina selezionata
 if menu == "📖 SFOGLIA":
     page_sfoglia(df)
