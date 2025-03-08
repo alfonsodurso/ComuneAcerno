@@ -38,7 +38,7 @@ def analyze_publication_delays(df):
     df["data_registro_generale"] = pd.to_datetime(df["data_registro_generale"], errors="coerce")
     df["data_inizio_pubblicazione"] = pd.to_datetime(df["data_inizio_pubblicazione"], errors="coerce")
     df["ritardo_pubblicazione"] = df.apply(
-        lambda row: calculate_working_days(row["data_registro_generale"], row["data_inizio_pubblicazione"]) - 1,
+        lambda row: max(calculate_working_days(row["data_registro_generale"], row["data_inizio_pubblicazione"]) - 1, 0)
         axis=1
     )
     df["ritardo_pubblicazione"] = df["ritardo_pubblicazione"].apply(lambda x: max(x, 0))
@@ -65,6 +65,8 @@ def perform_topic_modeling(texts):
     topic_model = BERTopic(language="italian")
     topics, probs = topic_model.fit_transform(texts)
     return topic_model, topics, probs
+
+
 
 def page_analisi(df):
     st.header("📊 ANALISI")
@@ -169,45 +171,47 @@ def page_analisi(df):
         st.dataframe(mittente_performance, use_container_width=True)
 
     with tab4:
-        
-        # Extract publication subjects
-        texts = df["oggetto_atto"].tolist()
-        
-        st.write("Performing semantic topic modeling on publication subjects. Please wait...")
-        # Perform topic modeling using BERTopic
-        topic_model, topics, probs = perform_topic_modeling(texts)
-        
-        # Add the identified topics to the DataFrame
-        df["topic"] = topics
-        
-        # Compute the number of publications per topic
-        topic_counts = df["topic"].value_counts().reset_index()
-        topic_counts.columns = ["Topic", "Count"]
-        
-        st.subheader("Topic Distribution")
-        st.write("The table below shows how many publications belong to each identified topic:")
-        st.dataframe(topic_counts)
-        
-        # Plot the topic distribution using a bar chart
-        fig1 = px.bar(topic_counts, x="Topic", y="Count",
-                      title="Number of Publications per Topic",
-                      labels={"Topic": "Topic ID", "Count": "Publications"})
-        st.plotly_chart(fig1)
-        
-        # Create a 'month' column from the publication date
-        df["month"] = df["data_inizio_pubblicazione"].dt.to_period("M").astype(str)
-        
-        # Group by month and topic to count publications over time
-        time_topic = df.groupby(["month", "topic"]).size().reset_index(name="Count")
-        
-        # For the time trend graph, select only the main topics (for example, topics with at least 5 publications)
-        main_topics = topic_counts[topic_counts["Count"] >= 5]["Topic"].tolist()
-        filtered_time_topic = time_topic[time_topic["topic"].isin(main_topics)]
-        
-        st.subheader("Time Trend of Main Topics")
-        st.write("The following line chart shows the monthly trend of the main topics.")
-        fig2 = px.line(filtered_time_topic, x="month", y="Count", color="topic",
-                       title="Monthly Time Trend of Main Topics",
-                       labels={"month": "Month", "Count": "Number of Publications", "topic": "Topic ID"})
-        st.plotly_chart(fig2)
+        # 1️⃣ Controllo testi mancanti
+        texts = df["oggetto_atto"].dropna().tolist()
+    
+        # 2️⃣ Controllo numero minimo di documenti
+        if len(texts) < 5:
+            st.warning("⚠️ Numero insufficiente di documenti per il topic modeling.")
+        else:
+            st.write("Performing semantic topic modeling on publication subjects. Please wait...")
+            topic_model, topics, probs = perform_topic_modeling(texts)
+            df["topic"] = topics  # Aggiunge i topic al dataframe
+    
+            # 3️⃣ Controllo date per la distribuzione temporale
+            df = df.dropna(subset=["data_inizio_pubblicazione"])
+            df["month"] = df["data_inizio_pubblicazione"].dt.to_period("M").astype(str)
+    
+            # 4️⃣ Conta il numero di pubblicazioni per topic
+            topic_counts = df["topic"].value_counts().reset_index()
+            topic_counts.columns = ["Topic", "Count"]
+    
+            # 5️⃣ Selezione dinamica dei principali topic
+            top_n = min(10, len(topic_counts))
+            main_topics = topic_counts.nlargest(top_n, "Count")["Topic"].tolist()
+    
+            st.subheader("Topic Distribution")
+            st.write("The table below shows how many publications belong to each identified topic:")
+            st.dataframe(topic_counts)
+    
+            # 6️⃣ Grafico migliorato con top 10 topic
+            fig1 = px.bar(topic_counts.nlargest(10, "Count"), x="Topic", y="Count",
+                          title="Top 10 Topics",
+                          labels={"Topic": "Topic ID", "Count": "Publications"})
+            st.plotly_chart(fig1)
+    
+            # 7️⃣ Andamento temporale dei topic principali
+            time_topic = df.groupby(["month", "topic"]).size().reset_index(name="Count")
+            filtered_time_topic = time_topic[time_topic["topic"].isin(main_topics)]
+    
+            st.subheader("Time Trend of Main Topics")
+            fig2 = px.line(filtered_time_topic, x="month", y="Count", color="topic",
+                           title="Monthly Time Trend of Main Topics",
+                           labels={"month": "Month", "Count": "Number of Publications", "topic": "Topic ID"})
+            st.plotly_chart(fig2)
+
     
