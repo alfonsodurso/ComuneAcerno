@@ -186,14 +186,16 @@ def display_ritardi_tab(container, df):
     
     performance = aggregated.merge(max_publications, on="mittente", how="left")
     performance["ritardo_medio"] = performance["ritardo_medio"].round(0).astype(int)
+
+    performance = performance.sort_values("ritardo_medio", ascending=False)
     
     # Rinominiamo le colonne per maggiore chiarezza
     performance = performance.rename(columns={
          "mittente": "Mittente",
-         "ritardo_medio": "Ritardo Medio",
-         "numero_pubblicazioni_totali": "Numero Pubblicazioni Totali",
+         "ritardo_medio": "Ritardo medio",
+         "numero_pubblicazioni_totali": "Pubblicazioni totali",
          "ritardo_massimo": "Ritardo Massimo",
-         "pub_max_ritardo": "Numero Pubblicazione con Ritardo Massimo"
+         "pub_max_ritardo": "Pubblicazione max ritardo"
     })
     
     container.write("Tabella con i ritardi medi e ulteriori info per mittente:")
