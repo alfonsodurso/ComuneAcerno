@@ -14,134 +14,180 @@ PLOTLY_CONFIG = {
     ],
     "displayModeBar": True
 }
+ ---------------------- FUNZIONI DI UTILITÀ ----------------------
 
 def calculate_working_days(start_date, end_date):
-    """Calcola il numero di giorni lavorativi (lun-ven) tra due date."""
-    current_date = start_date
-    working_days = 0
-
-    while current_date <= end_date:
-        if current_date.weekday() < 5:  # Lunedì-Venerdì
-            working_days += 1
-        current_date += timedelta(days=1)
-
-    return working_days
+    """
+    Calcola il numero di giorni lavorativi (lun-ven) tra due date,
+    includendo entrambe le estremità e sottraendo 1 (per non contare il giorno di partenza).
+    """
+    # Converte le date in formato numpy datetime64[D]
+    start = np.datetime64(start_date.date()) if isinstance(start_date, pd.Timestamp) else np.datetime64(start_date)
+    end = np.datetime64(end_date.date()) if isinstance(end_date, pd.Timestamp) else np.datetime64(end_date)
+    # Aggiungiamo un giorno a 'end' per includerlo nel conteggio
+    days = np.busday_count(start, end + np.timedelta64(1, 'D')) - 1
+    return max(days, 0)
 
 def analyze_publication_delays(df):
-    # Assuming this function calculates the 'ritardo_pubblicazione' column
+    """
+    Calcola il ritardo di pubblicazione (in giorni lavorativi) tra 'data_registro_generale'
+    e 'data_inizio_pubblicazione'. Viene creata la colonna 'ritardo_pubblicazione'.
+    """
     df = df.dropna(subset=["data_registro_generale", "data_inizio_pubblicazione"]).copy()
     df["data_registro_generale"] = pd.to_datetime(df["data_registro_generale"], errors="coerce")
     df["data_inizio_pubblicazione"] = pd.to_datetime(df["data_inizio_pubblicazione"], errors="coerce")
-    df["ritardo_pubblicazione"] = df.apply(
-        lambda row: calculate_working_days(row["data_registro_generale"], row["data_inizio_pubblicazione"]) - 1,
-        axis=1
-    )
-    df["ritardo_pubblicazione"] = df["ritardo_pubblicazione"].apply(lambda x: max(x, 0))
+    
+    # Conversione vettoriale per il calcolo del ritardo
+    start_dates = pd.to_datetime(df["data_registro_generale"].dt.strftime("%Y-%m-%d")).values.astype('datetime64[D]')
+    end_dates = pd.to_datetime(df["data_inizio_pubblicazione"].dt.strftime("%Y-%m-%d")).values.astype('datetime64[D]')
+    df["ritardo_pubblicazione"] = np.busday_count(start_dates, end_dates + np.timedelta64(1, 'D')) - 1
+    df["ritardo_pubblicazione"] = df["ritardo_pubblicazione"].clip(lower=0)
+    
     return df
 
-
 def analyze_mittenti_performance(df):
-    """Analizza il ritardo medio di pubblicazione per ogni mittente."""
-    mittente_performance = df.groupby("mittente")["ritardo_pubblicazione"].mean().reset_index()
-    mittente_performance.columns = ["Mittente", "Ritardo medio"]
-    mittente_performance = mittente_performance.sort_values(by="Ritardo medio", ascending=False)
-    return mittente_performance
+    """
+    Analizza il ritardo medio di pubblicazione per ogni mittente.
+    Restituisce un DataFrame con il mittente e il ritardo medio ordinato in modo decrescente.
+    """
+    performance = df.groupby("mittente")["ritardo_pubblicazione"].mean().reset_index()
+    performance.columns = ["Mittente", "Ritardo medio"]
+    performance = performance.sort_values(by="Ritardo medio", ascending=False)
+    return performance
 
-def page_analisi(df):
-    st.header("📊 ANALISI")
+# ---------------------- FUNZIONI DI PREPARAZIONE DATI ----------------------
 
-    # ----- Preparazione dati per il tab "Andamento Temporale" -----
+def prepare_time_series_data(df):
+    """
+    Prepara i dati temporali per il calcolo dei grafici:
+    - Andamento giornaliero
+    - Andamento cumulato
+    """
     df["data_inizio_pubblicazione"] = pd.to_datetime(df["data_inizio_pubblicazione"], errors="coerce")
     df_time = df.dropna(subset=["data_inizio_pubblicazione"]).copy()
-
-    # Raggruppamento per giorno
+    
+    # Creazione della colonna data
     df_time["data"] = df_time["data_inizio_pubblicazione"].dt.date
+    
+    # Raggruppamento per giorno
     daily_counts = df_time.groupby("data").size().rename("Pubblicazioni Giorno")
     full_date_range = pd.date_range(daily_counts.index.min(), daily_counts.index.max(), freq="D")
     daily_counts = daily_counts.reindex(full_date_range, fill_value=0)
+    
     daily_counts_df = pd.DataFrame({
         "data": daily_counts.index.date,
         "Pubblicazioni Giorno": daily_counts.values
     })
-
-    palette_giornaliera = sns.color_palette("pastel", 1).as_hex()
-
-    # Distribuzione Mensile: raggruppa per mese (formato "YYYY-MM")
-    df_time["mese"] = df_time["data_inizio_pubblicazione"].dt.to_period("M").astype(str)
-    pub_per_mese = df_time.groupby("mese").size().reset_index(name="Pubblicazioni Mese")
-    pub_per_mese["mese_dt"] = pd.to_datetime(pub_per_mese["mese"], format="%Y-%m")
-    palette_mese = sns.color_palette("pastel", len(pub_per_mese)).as_hex()
-
-    # Distribuzione Giornaliera per l'Andamento Cumulato:
+    
+    # Calcolo del cumulativo
     daily_cumsum = daily_counts.cumsum()
     cumulative_df = pd.DataFrame({
         "data": daily_counts.index.date,
         "Pubblicazioni Giorno": daily_counts.values,
         "Pubblicazioni Cumulative": daily_cumsum.values
     })
-    palette_cumul = sns.color_palette("pastel", 1).as_hex()
-
-    # ----- Layout dei grafici -----
-    tab1, tab2, tab3 = st.tabs(["📆 Andamento Temporale", "📋 Tipologie & Mittenti", "⏳ Ritardi"])
-
-    with tab1:
-        col1, col2 = st.columns(2)
-        
-        # Grafico 1: Andamento giornaliero delle pubblicazioni (Line Chart spezzata per ogni giorno)
-        fig1 = px.line(daily_counts_df, x="data", y="Pubblicazioni Giorno",
-                       title="Andamento giornaliero",
-                       markers=True, color_discrete_sequence=palette_giornaliera)
-        fig1.update_layout(dragmode=False, showlegend=False)
-        col1.plotly_chart(fig1, use_container_width=True, config=PLOTLY_CONFIG)
-        
-        # Grafico 2: Andamento Cumulato (Line Chart)
-        fig2 = px.line(cumulative_df, x="data", y="Pubblicazioni Cumulative",
-                       title="Andamento cumulato",
-                       markers=True, color_discrete_sequence=palette_cumul)
-        fig2.update_layout(dragmode=False, showlegend=False)
-        col2.plotly_chart(fig2, use_container_width=True, config=PLOTLY_CONFIG)
-
-    with tab2:
-        col1, col2 = st.columns(2)
-
-        # Grafico per Tipologie (NUMERO SU Y, Tipologie su X)
-        if "tipo_atto" in df.columns:
-            tipologia_counts = df["tipo_atto"].value_counts().reset_index()
-            tipologia_counts.columns = ["Tipo Atto", "Numero di Pubblicazioni"]
-            palette_tipologie = sns.color_palette("pastel", len(tipologia_counts)).as_hex()
-            fig3 = px.bar(tipologia_counts, x="Tipo Atto", y="Numero di Pubblicazioni",
-                          title="Tipologie",
-                          color="Tipo Atto", color_discrete_sequence=palette_tipologie)
-            fig3.update_layout(dragmode=False, showlegend=False)
-            col1.plotly_chart(fig3, use_container_width=True, config=PLOTLY_CONFIG)
-        else:
-            col1.warning("Dati sulle tipologie non disponibili.")
-        
-        # Grafico per Mittenti (NUMERO SU Y, Mittenti su X)
-        if "mittente" in df.columns:
-            mittente_counts = df["mittente"].value_counts().reset_index()
-            mittente_counts.columns = ["Mittente", "Numero di Pubblicazioni"]
-            palette_mittenti = sns.color_palette("pastel", len(mittente_counts)).as_hex()
-            fig4 = px.bar(mittente_counts, x="Mittente", y="Numero di Pubblicazioni",
-                          title="Mittenti",
-                          color="Mittente", color_discrete_sequence=palette_mittenti)
-            fig4.update_layout(dragmode=False, showlegend=False)
-            col2.plotly_chart(fig4, use_container_width=True, config=PLOTLY_CONFIG)
-        else:
-            col2.warning("Dati sui mittenti non disponibili.")
     
-    with tab3:
-        
-        # Calcola i ritardi di pubblicazione e aggiorna il DataFrame
-        df = analyze_publication_delays(df)
+    return daily_counts_df, cumulative_df
+
+# ---------------------- FUNZIONI DI VISUALIZZAZIONE ----------------------
+
+def display_temporal_tab(container, daily_counts_df, cumulative_df):
+    """
+    Visualizza i grafici relativi all'andamento temporale:
+    - Pubblicazioni giornaliere
+    - Pubblicazioni cumulative
+    """
+    palette = sns.color_palette("pastel", 1).as_hex()
     
-   
+    col1, col2 = container.columns(2)
     
-        # Analizza la performance dei mittenti
-        mittente_performance = analyze_mittenti_performance(df)
-        
-        # Arrotonda i giorni di ritardo medi e converti in intero (senza decimali)
-        mittente_performance["Ritardo medio"] = mittente_performance["Ritardo medio"].round(0).astype(int)
-        
-        st.write("Tabella con i ritardi medi di pubblicazione per mittente:")
-        st.dataframe(mittente_performance, use_container_width=True)
+    # Grafico giornaliero
+    fig_daily = px.line(
+        daily_counts_df, x="data", y="Pubblicazioni Giorno",
+        title="Andamento giornaliero",
+        markers=True, color_discrete_sequence=palette
+    )
+    fig_daily.update_layout(dragmode=False, showlegend=False)
+    col1.plotly_chart(fig_daily, use_container_width=True, config=PLOTLY_CONFIG)
+    
+    # Grafico cumulativo
+    fig_cumulative = px.line(
+        cumulative_df, x="data", y="Pubblicazioni Cumulative",
+        title="Andamento cumulato",
+        markers=True, color_discrete_sequence=palette
+    )
+    fig_cumulative.update_layout(dragmode=False, showlegend=False)
+    col2.plotly_chart(fig_cumulative, use_container_width=True, config=PLOTLY_CONFIG)
+
+def display_tipologie_mittenti_tab(container, df):
+    """
+    Visualizza i grafici a barre per:
+    - Tipologie (se la colonna 'tipo_atto' è presente)
+    - Mittenti (se la colonna 'mittente' è presente)
+    """
+    col1, col2 = container.columns(2)
+    
+    # Grafico Tipologie
+    if "tipo_atto" in df.columns:
+        tipologia_counts = df["tipo_atto"].value_counts().reset_index()
+        tipologia_counts.columns = ["Tipo Atto", "Numero di Pubblicazioni"]
+        palette = sns.color_palette("pastel", len(tipologia_counts)).as_hex()
+        fig_tipologie = px.bar(
+            tipologia_counts, x="Tipo Atto", y="Numero di Pubblicazioni",
+            title="Tipologie", color="Tipo Atto", color_discrete_sequence=palette
+        )
+        fig_tipologie.update_layout(dragmode=False, showlegend=False)
+        col1.plotly_chart(fig_tipologie, use_container_width=True, config=PLOTLY_CONFIG)
+    else:
+        col1.warning("Dati sulle tipologie non disponibili.")
+    
+    # Grafico Mittenti
+    if "mittente" in df.columns:
+        mittente_counts = df["mittente"].value_counts().reset_index()
+        mittente_counts.columns = ["Mittente", "Numero di Pubblicazioni"]
+        palette = sns.color_palette("pastel", len(mittente_counts)).as_hex()
+        fig_mittenti = px.bar(
+            mittente_counts, x="Mittente", y="Numero di Pubblicazioni",
+            title="Mittenti", color="Mittente", color_discrete_sequence=palette
+        )
+        fig_mittenti.update_layout(dragmode=False, showlegend=False)
+        col2.plotly_chart(fig_mittenti, use_container_width=True, config=PLOTLY_CONFIG)
+    else:
+        col2.warning("Dati sui mittenti non disponibili.")
+
+def display_ritardi_tab(container, df):
+    """
+    Calcola e visualizza la tabella con il ritardo medio di pubblicazione per mittente.
+    """
+    df_delays = analyze_publication_delays(df)
+    performance = analyze_mittenti_performance(df_delays)
+    
+    # Arrotonda il ritardo medio e converte in intero
+    performance["Ritardo medio"] = performance["Ritardo medio"].round(0).astype(int)
+    
+    container.write("Tabella con i ritardi medi di pubblicazione per mittente:")
+    container.dataframe(performance, use_container_width=True)
+
+# ---------------------- FUNZIONE PRINCIPALE ----------------------
+
+def page_analisi(df):
+    st.header("📊 ANALISI")
+    
+    # Preparazione dati per i grafici temporali
+    daily_counts_df, cumulative_df = prepare_time_series_data(df)
+    
+    # Creazione dei tab
+    tab_temporale, tab_tipologie, tab_ritardi = st.tabs([
+        "📆 Andamento Temporale",
+        "📋 Tipologie & Mittenti",
+        "⏳ Ritardi"
+    ])
+    
+    with tab_temporale:
+        display_temporal_tab(tab_temporale, daily_counts_df, cumulative_df)
+    
+    with tab_tipologie:
+        display_tipologie_mittenti_tab(tab_tipologie, df)
+    
+    with tab_ritardi:
+        display_ritardi_tab(tab_ritardi, df)
