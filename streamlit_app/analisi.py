@@ -35,9 +35,10 @@ def analyze_publication_delays(df):
     df["data_registro_generale"] = pd.to_datetime(df["data_registro_generale"], errors="coerce")
     df["data_inizio_pubblicazione"] = pd.to_datetime(df["data_inizio_pubblicazione"], errors="coerce")
     df["ritardo_pubblicazione"] = df.apply(
-        lambda row: max(calculate_working_days(row["data_registro_generale"], row["data_inizio_pubblicazione"]) - 1, 0)
+        lambda row: max(calculate_working_days(row["data_registro_generale"], row["data_inizio_pubblicazione"]) - 1, 0),
         axis=1
     )
+
     df["ritardo_pubblicazione"] = df["ritardo_pubblicazione"].apply(lambda x: max(x, 0))
     return df
 
@@ -151,8 +152,7 @@ def page_analisi(df):
         
         # Calcola i ritardi di pubblicazione e aggiorna il DataFrame
         df = analyze_publication_delays(df)
-    
-   
+
     
         # Analizza la performance dei mittenti
         mittente_performance = analyze_mittenti_performance(df)
