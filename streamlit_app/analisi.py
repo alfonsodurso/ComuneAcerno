@@ -1,10 +1,11 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
 import plotly.express as px
 import seaborn as sns
-from datetime import datetime, timedelta
+from datetime import timedelta
 
-# ⚙️ Configurazione toolbar (Zoom con due dita, Pan disattivato)
+# ⚙️ Configurazione per Plotly
 PLOTLY_CONFIG = {
     "displaylogo": False,
     "scrollZoom": True,  # 🔹 Zoom con due dita su mobile
@@ -14,7 +15,8 @@ PLOTLY_CONFIG = {
     ],
     "displayModeBar": True
 }
- ---------------------- FUNZIONI DI UTILITÀ ----------------------
+
+# ---------------------- FUNZIONI DI UTILITÀ ----------------------
 
 def calculate_working_days(start_date, end_date):
     """
