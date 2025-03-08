@@ -16,9 +16,6 @@ PLOTLY_CONFIG = {
     "displayModeBar": True
 }
 
-"""
-RITARDI
-"""
 
 def calculate_working_days(start_date, end_date):
     """Calcola il numero di giorni lavorativi (lun-ven) tra due date."""
@@ -52,9 +49,6 @@ def analyze_mittenti_performance(df):
     mittente_performance = mittente_performance.sort_values(by="Ritardo medio", ascending=False)
     return mittente_performance
 
-"""
-TOPIC
-"""
 
 def perform_topic_modeling(texts):
     """
@@ -65,7 +59,6 @@ def perform_topic_modeling(texts):
     topic_model = BERTopic(language="italian")
     topics, probs = topic_model.fit_transform(texts)
     return topic_model, topics, probs
-
 
 
 def page_analisi(df):
@@ -171,7 +164,7 @@ def page_analisi(df):
         st.dataframe(mittente_performance, use_container_width=True)
 
     with tab4:
-        """
+    
         # 1️⃣ Controllo testi mancanti
         texts = df["oggetto_atto"].dropna().tolist()
     
@@ -214,5 +207,4 @@ def page_analisi(df):
                            title="Monthly Time Trend of Main Topics",
                            labels={"month": "Month", "Count": "Number of Publications", "topic": "Topic ID"})
             st.plotly_chart(fig2)
-"""
-    
+
