@@ -193,8 +193,8 @@ def display_ritardi_tab(container, df):
     performance = performance.rename(columns={
          "mittente": "Mittente",
          "ritardo_medio": "Ritardo medio",
+         "ritardo_massimo": "Ritardo massimo",
          "numero_pubblicazioni_totali": "Pubblicazioni totali",
-         "ritardo_massimo": "Ritardo Massimo",
          "pub_max_ritardo": "Pubblicazione max ritardo"
     })
     
