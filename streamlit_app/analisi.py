@@ -23,10 +23,9 @@ def calculate_working_days(start_date, end_date):
     Calcola il numero di giorni lavorativi (lun-ven) tra due date,
     includendo entrambe le estremità e sottraendo 1 (per non contare il giorno di partenza).
     """
-    # Converte le date in formato numpy datetime64[D]
     start = np.datetime64(start_date.date()) if isinstance(start_date, pd.Timestamp) else np.datetime64(start_date)
     end = np.datetime64(end_date.date()) if isinstance(end_date, pd.Timestamp) else np.datetime64(end_date)
-    # Aggiungiamo un giorno a 'end' per includerlo nel conteggio
+    # np.busday_count conta i giorni lavorativi escludendo il giorno finale: per includerlo aggiungiamo 1 giorno e poi sottraiamo 1
     days = np.busday_count(start, end + np.timedelta64(1, 'D')) - 1
     return max(days, 0)
 
@@ -51,6 +50,7 @@ def analyze_mittenti_performance(df):
     """
     Analizza il ritardo medio di pubblicazione per ogni mittente.
     Restituisce un DataFrame con il mittente e il ritardo medio ordinato in modo decrescente.
+    (Questa funzione viene ora sostituita dall'aggregazione presente in display_ritardi_tab.)
     """
     performance = df.groupby("mittente")["ritardo_pubblicazione"].mean().reset_index()
     performance.columns = ["Mittente", "Ritardo medio"]
@@ -68,7 +68,7 @@ def prepare_time_series_data(df):
     df["data_inizio_pubblicazione"] = pd.to_datetime(df["data_inizio_pubblicazione"], errors="coerce")
     df_time = df.dropna(subset=["data_inizio_pubblicazione"]).copy()
     
-    # Creazione della colonna data
+    # Creazione della colonna 'data'
     df_time["data"] = df_time["data_inizio_pubblicazione"].dt.date
     
     # Raggruppamento per giorno
@@ -159,15 +159,44 @@ def display_tipologie_mittenti_tab(container, df):
 
 def display_ritardi_tab(container, df):
     """
-    Calcola e visualizza la tabella con il ritardo medio di pubblicazione per mittente.
+    Calcola e visualizza la tabella con i ritardi medi di pubblicazione per mittente,
+    arricchita con:
+      - Numero totale di pubblicazioni
+      - Ritardo massimo
+      - Numero (ID) della pubblicazione con ritardo massimo
     """
     df_delays = analyze_publication_delays(df)
-    performance = analyze_mittenti_performance(df_delays)
     
-    # Arrotonda il ritardo medio e converte in intero
-    performance["Ritardo medio"] = performance["Ritardo medio"].round(0).astype(int)
+    # Se non esiste una colonna che identifica univocamente la pubblicazione, usiamo l'indice
+    if "numero_pubblicazione" not in df_delays.columns:
+        df_delays = df_delays.reset_index().rename(columns={"index": "numero_pubblicazione"})
     
-    container.write("Tabella con i ritardi medi di pubblicazione per mittente:")
+    # Aggregazione per mittente:
+    aggregated = df_delays.groupby("mittente").agg(
+         ritardo_medio=('ritardo_pubblicazione', 'mean'),
+         numero_pubblicazioni_totali=('ritardo_pubblicazione', 'count'),
+         ritardo_massimo=('ritardo_pubblicazione', 'max')
+    ).reset_index()
+    
+    # Per ogni mittente, individuiamo il record con il ritardo massimo e ne estraiamo il numero della pubblicazione
+    max_idx = df_delays.groupby("mittente")["ritardo_pubblicazione"].idxmax()
+    max_publications = df_delays.loc[max_idx, ["mittente", "numero_pubblicazione"]].rename(
+         columns={"numero_pubblicazione": "pub_max_ritardo"}
+    )
+    
+    performance = aggregated.merge(max_publications, on="mittente", how="left")
+    performance["ritardo_medio"] = performance["ritardo_medio"].round(0).astype(int)
+    
+    # Rinominiamo le colonne per maggiore chiarezza
+    performance = performance.rename(columns={
+         "mittente": "Mittente",
+         "ritardo_medio": "Ritardo Medio",
+         "numero_pubblicazioni_totali": "Numero Pubblicazioni Totali",
+         "ritardo_massimo": "Ritardo Massimo",
+         "pub_max_ritardo": "Numero Pubblicazione con Ritardo Massimo"
+    })
+    
+    container.write("Tabella con i ritardi medi e ulteriori info per mittente:")
     container.dataframe(performance, use_container_width=True)
 
 # ---------------------- FUNZIONE PRINCIPALE ----------------------
