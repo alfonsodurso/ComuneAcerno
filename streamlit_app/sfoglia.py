@@ -68,3 +68,11 @@ def page_sfoglia(df):
     with col_nav2:
         if st.button("▶️", use_container_width=True):
             st.session_state.sfoglia_index += 1
+
+    col_nav1, col_nav2, _ = st.columns([1, 1, 3])
+    with col_nav1:
+        if st.button("⏪", use_container_width=True):
+            st.session_state.sfoglia_index -= 0
+    with col_nav2:
+        if st.button("⏩", use_container_width=True):
+            st.session_state.sfoglia_index += len(filtered) - 1
