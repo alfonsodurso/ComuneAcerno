@@ -102,7 +102,7 @@ def display_temporal_tab(container, daily_counts_df, cumulative_df):
     """
     palette = sns.color_palette("pastel", 1).as_hex()
     
-    # col1, col2 = container.columns(2)
+    col1, col2 = container.columns(2)
     
     # Grafico giornaliero
     fig_daily = px.line(
@@ -112,10 +112,6 @@ def display_temporal_tab(container, daily_counts_df, cumulative_df):
     )
     fig_daily.update_layout(dragmode=False, showlegend=False)
     # col1.plotly_chart(fig_daily, use_container_width=True, config=PLOTLY_CONFIG)
-    with st.container():
-        st.plotly_chart(fig_daily, use_container_width=True, config=PLOTLY_CONFIG)
-
-
     
     # Grafico cumulativo
     fig_cumulative = px.line(
@@ -125,8 +121,14 @@ def display_temporal_tab(container, daily_counts_df, cumulative_df):
     )
     fig_cumulative.update_layout(dragmode=False, showlegend=False)
     # col2.plotly_chart(fig_cumulative, use_container_width=True, config=PLOTLY_CONFIG)
-    with st.container():
+
+    with col1:
         st.plotly_chart(fig_daily, use_container_width=True, config=PLOTLY_CONFIG)
+    
+    with col2:
+        st.plotly_chart(fig_cumulative, use_container_width=True, config=PLOTLY_CONFIG)
+
+
 
 def display_tipologie_mittenti_tab(container, df):
     """
