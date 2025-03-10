@@ -150,8 +150,8 @@ def display_tipologie_mittenti_tab(container, df):
         mittente_counts = df["mittente"].value_counts().reset_index()
         mittente_counts.columns = ["Mittente", "Numero di Pubblicazioni"]
         
-         # Troncamento dei nomi troppo lunghi
-         mittente_counts["Mittente"] = mittente_counts["Mittente"].apply(lambda x: x[:15] + "…" if len(x) > 15 else x)
+        # Troncamento dei nomi troppo lunghi
+        mittente_counts["Mittente"] = mittente_counts["Mittente"].apply(lambda x: x[:15] + "…" if len(x) > 15 else x)
         
         palette = sns.color_palette("pastel", len(mittente_counts)).as_hex()
         fig_mittenti = px.bar(
