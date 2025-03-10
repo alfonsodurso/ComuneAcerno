@@ -14,7 +14,6 @@ PLOTLY_CONFIG = {
         "resetScale2d", "toggleSpikelines"
     ],
     "displayModeBar": "hover",
-    "responsive": True
 }
 
 # ---------------------- FUNZIONI DI UTILITÀ ----------------------
