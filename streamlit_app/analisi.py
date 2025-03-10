@@ -13,7 +13,8 @@ PLOTLY_CONFIG = {
         "pan2d", "select2d", "lasso2d", "zoom",
         "resetScale2d", "toggleSpikelines"
     ],
-    "displayModeBar": False
+    "displayModeBar": False,
+    "responsive": True
 }
 
 # ---------------------- FUNZIONI DI UTILITÀ ----------------------
