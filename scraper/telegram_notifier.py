@@ -2,11 +2,14 @@ import requests
 from config import TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, TIMEOUT
 
 def escape_markdown(text):
+    """Escape dei caratteri speciali per la formattazione Markdown."""
     if not isinstance(text, str):
         text = str(text)
-    # Escaping per Markdown
-    for ch in ['_', '*', '[', ']', '(', ')', '~', '`', '>', '#', '+', '-', '=', '|', '{', '}']:
+    
+    special_chars = ['_', '*', '[', ']', '(', ')', '~', '`', '>', '#', '+', '-', '=', '|', '{', '}']
+    for ch in special_chars:
         text = text.replace(ch, f"\\{ch}")
+    
     return text
 
 class TelegramNotifier:
@@ -18,62 +21,46 @@ class TelegramNotifier:
     def invia_messaggio(self, pubblicazione):
         """Genera e invia il messaggio Telegram formattato."""
         
-        # Definizione delle chiavi da escludere nel messaggio principale
+        # Chiavi da escludere dalla pubblicazione
         skip_keys = {
-            "Tipo Atto",
-            "Registro Generale",
-            "Data Registro Generale",
-            "Data Fine Pubblicazione",
-            "Allegati"  # Escludiamo la lista iniziale degli allegati
+            "Tipo Atto", "Registro Generale", "Data Registro Generale",
+            "Data Fine Pubblicazione", "Allegati"
         }
 
         lines = ["📢 *Nuova pubblicazione*\n"]
 
-        # Corpo del messaggio (escludendo alcune chiavi)
+        # Creazione del corpo del messaggio
         for key in sorted(pubblicazione.keys()):
             key_title = key.replace('_', ' ').title()
             if key_title in skip_keys:
                 continue
+            
             value = escape_markdown(pubblicazione[key])
             lines.append(f"*{key_title}:* {value}")
 
-        # Aggiunta del link al documento principale (si assume sia un solo link)
+        # Link al documento principale
         documento = pubblicazione.get("documento")
         if documento and documento != "N/A":
-            if isinstance(documento, list):
-                doc_link = documento[0] if documento else ""
-            else:
-                doc_link = documento
-            # lines.append(f"\n*Documento:* [{doc_link}]({doc_link})")
+            doc_link = documento[0] if isinstance(documento, list) else documento
             lines.append(f"\n*Documento:* [Apri]({doc_link})")
 
-
-        # Aggiunta degli allegati: ogni link su una riga separata
+        # Aggiunta degli allegati (tutti su una riga)
         allegati = pubblicazione.get("allegati")
         if allegati and allegati != "N/A":
-            if isinstance(allegati, list):
-                allegati_links = allegati
-            else:
-                allegati_links = [link.strip() for link in allegati.split(",") if link.strip()]
+            allegati_links = allegati if isinstance(allegati, list) else [
+                link.strip() for link in allegati.split(",") if link.strip()
+            ]
             if allegati_links:
                 allegati_formattati = " ".join(f"[Apri {i+1}]({a})" for i, a in enumerate(allegati_links))
                 lines.append(f"*Allegati:* {allegati_formattati}")
-            # if allegati_links:
-                # lines.append("\n*Allegati:*")
-                # for a in allegati_links:
-                    # lines.append(f"[{a}]({a})")
-                    # lines.append(f"[Apri]({a})")
 
-        # Nota per il download
-        lines.append("\n⚠️ *Nota:* se il download non parte automaticamente, apri il link con il tuo browser.")
-        
-        # Nota per streamlit
-        lines.append("\n🔎 Vai sulla [pagina](https://acerno.streamlit.app/) per maggiori informazioni.")
-
+        # Nota finale
+        lines.append("\n⚠️ *Nota:* Se il download non parte automaticamente, apri il link con il tuo browser.")
+        lines.append("\n🔎 Clicca [qui](https://acerno.streamlit.app/) per maggiori informazioni.")
 
         # Composizione del messaggio in formato Markdown
         testo = "\n".join(lines)
-        
+
         # Invio del messaggio Telegram
         url = f"https://api.telegram.org/bot{self.token}/sendMessage"
         payload = {
