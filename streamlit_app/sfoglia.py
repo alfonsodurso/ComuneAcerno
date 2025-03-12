@@ -39,13 +39,17 @@ def page_sfoglia(df):
         if col_original not in ["documento", "allegati"]:
             st.write(f"**{col}:** {current_pub[col_original]}")
 
-    # Documento Principale: utilizziamo un tag HTML per il link
+    # Documento Principale: mostriamo ogni link su una riga separata
     documento = current_pub.get("documento")
     if documento and documento != "N/A":
-        st.markdown("**Documento Principale:**")
-        st.markdown(f'<a href="{documento}" target="_blank">Visualizza documento</a>', unsafe_allow_html=True)
+        if isinstance(documento, list):
+            doc_links = documento
+        else:
+            doc_links = [documento]
+        doc_links_md = "\n".join([f"[{link}]({link})" for link in doc_links])
+        st.markdown(f"**Documento Principale:**\n{doc_links_md}", unsafe_allow_html=True)
 
-    # Allegati: utilizziamo anch'essi HTML per il link, se lo desideri
+    # Allegati: mostriamo ogni link su una riga separata
     allegati = current_pub.get("allegati")
     if allegati and allegati != "N/A":
         if isinstance(allegati, list):
@@ -53,9 +57,8 @@ def page_sfoglia(df):
         else:
             allegati_links = [link.strip() for link in allegati.split(",") if link.strip()]
         if allegati_links:
-            st.markdown("**Allegati:**")
-            att_links_html = "\n".join([f'<a href="{link}" target="_blank">Visualizza allegato {i+1}</a>' for i, link in enumerate(allegati_links)])
-            st.markdown(att_links_html, unsafe_allow_html=True)
+            att_links_md = "\n".join([f"[{link}]({link})" for link in allegati_links])
+            st.markdown(f"**Allegati:**\n{att_links_md}", unsafe_allow_html=True)
 
     # Navigazione tra le pubblicazioni
     col_nav1, col_nav2, _ = st.columns([1, 1, 3])
