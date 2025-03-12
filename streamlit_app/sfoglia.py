@@ -50,7 +50,7 @@ def page_sfoglia(df):
         # st.markdown(f"**Documento Principale:**\n{doc_links_md}", unsafe_allow_html=True)
         doc_link = documento
         doc_link_md = f"[Visualizza documento]({doc_link})"
-        st.markdown(f"**Documento Principale:**\n{doc_link_md}", unsafe_allow_html=True)
+        st.markdown(f"**Documento Principale:**\n{doc_link_md}", unsafe_allow_html=False)
 
     # Allegati: mostriamo ogni link su una riga separata
     allegati = current_pub.get("allegati")
