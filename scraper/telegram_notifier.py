@@ -56,10 +56,13 @@ class TelegramNotifier:
             else:
                 allegati_links = [link.strip() for link in allegati.split(",") if link.strip()]
             if allegati_links:
-                lines.append("\n*Allegati:*")
-                for a in allegati_links:
+                allegati_formattati = " ".join(f"[Apri {i+1}]({a})" for i, a in enumerate(allegati_links))
+                lines.append(f"*Allegati:* {allegati_formattati}")
+            # if allegati_links:
+                # lines.append("\n*Allegati:*")
+                # for a in allegati_links:
                     # lines.append(f"[{a}]({a})")
-                    lines.append(f"[Apri]({a})")
+                    # lines.append(f"[Apri]({a})")
 
         # Nota per il download
         lines.append("\n⚠️ *Nota:* se il download non parte automaticamente, apri il link con il tuo browser.")
