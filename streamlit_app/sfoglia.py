@@ -57,7 +57,7 @@ def page_sfoglia(df):
         else:
             allegati_links = [link.strip() for link in allegati.split(",") if link.strip()]
         if allegati_links:
-            links_md = " ".join(f"[Apri Allegato {i+1}]({link})" for i, link in enumerate(allegati_links))
+            links_md = " ".join(f"[Allegato {i+1}]({link})" for i, link in enumerate(allegati_links))
             st.markdown(f"**Allegati:** {links_md}")
 
     # Navigazione tra le pubblicazioni
