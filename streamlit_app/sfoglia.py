@@ -26,49 +26,59 @@ def page_sfoglia(df):
     filtered_display = filtered.copy()
     filtered_display.columns = [col.replace('_', ' ').title() for col in filtered_display.columns]
 
-    # Gestione dell'indice di navigazione tra le pubblicazioni
+    # Inizializziamo l'indice di navigazione se non esiste
     if "sfoglia_index" not in st.session_state:
         st.session_state.sfoglia_index = 0
-    st.session_state.sfoglia_index = max(0, min(st.session_state.sfoglia_index, len(filtered) - 1))
-
-    current_pub = filtered.iloc[st.session_state.sfoglia_index]
-    st.subheader(f"Pubblicazione {st.session_state.sfoglia_index + 1} di {len(filtered)}")
-
-    # Mostriamo tutte le colonne tranne "documento" e "allegati"
-    for col in filtered_display.columns:
-        col_original = col.lower().replace(' ', '_')
-        if col_original not in ["documento", "allegati"]:
-            st.write(f"**{col}:** {current_pub[col_original]}")
-
-    # Documento Principale: Mostriamo un link con il testo "Apri Documento"
-    documento = str(current_pub.get("documento"))
-    if documento and documento != "N/A":
-        st.markdown(f"**Documento Principale:** [Apri]({documento})")
-
-    # Allegati: Mostriamo ogni link con il testo "Apri Allegato X"
-    allegati = current_pub.get("allegati")
-    if allegati and allegati != "N/A":
-        if isinstance(allegati, list):
-            allegati_links = allegati
-        else:
-            allegati_links = [link.strip() for link in allegati.split(",") if link.strip()]
-        if allegati_links:
-            links_md = " ".join(f"[Allegato {i+1}]({link})" for i, link in enumerate(allegati_links))
-            st.markdown(f"**Allegati:** {links_md}")
-
-    # Navigazione tra le pubblicazioni
-    col_nav1, col_nav2, _ = st.columns([1, 1, 3])
+    
+    # Gestiamo la navigazione
+    total_items = len(filtered)
+    col_nav1, col_nav2, col_nav3, col_nav4, _ = st.columns([1, 1, 1, 1, 3])
+    
     with col_nav1:
-        if st.button("◀️", use_container_width=True):
-            st.session_state.sfoglia_index -= 1
-    with col_nav2:
-        if st.button("▶️", use_container_width=True):
-            st.session_state.sfoglia_index += 1
-
-    col_nav3, col_nav4, _ = st.columns([1, 1, 3])
-    with col_nav3:
         if st.button("⏪", use_container_width=True):
             st.session_state.sfoglia_index = 0
+    with col_nav2:
+        if st.button("◀️", use_container_width=True):
+            st.session_state.sfoglia_index = max(0, st.session_state.sfoglia_index - 1)
+    with col_nav3:
+        if st.button("▶️", use_container_width=True):
+            st.session_state.sfoglia_index = min(total_items - 1, st.session_state.sfoglia_index + 1)
     with col_nav4:
         if st.button("⏩", use_container_width=True):
-            st.session_state.sfoglia_index = len(filtered) - 1
+            st.session_state.sfoglia_index = total_items - 1
+            
+    # Validazione finale dell'indice
+    st.session_state.sfoglia_index = max(0, min(st.session_state.sfoglia_index, total_items - 1))
+    
+    if total_items > 0:
+        current_pub = filtered.iloc[st.session_state.sfoglia_index]
+        st.subheader(f"Pubblicazione {st.session_state.sfoglia_index + 1} di {total_items}")
+
+        # Mostriamo tutte le colonne tranne "documento" e "allegati"
+        for col in filtered_display.columns:
+            col_original = col.lower().replace(' ', '_')
+            if col_original not in ["documento", "allegati"]:
+                value = current_pub.get(col_original, "N/A")
+                st.write(f"**{col}:** {value}")
+
+        # Documento Principale
+        documento = current_pub.get("documento", "")
+        if documento and pd.notna(documento) and str(documento) != "N/A":
+            st.markdown(f"**Documento Principale:** [Apri]({documento})")
+
+        # Allegati
+        allegati = current_pub.get("allegati", "")
+        if allegati and pd.notna(allegati) and str(allegati) != "N/A":
+            try:
+                if isinstance(allegati, list):
+                    allegati_links = allegati
+                elif isinstance(allegati, str):
+                    allegati_links = [link.strip() for link in allegati.split(",") if link.strip()]
+                else:
+                    allegati_links = [str(allegati)]
+                
+                if allegati_links:
+                    links_md = " ".join(f"[Allegato {i+1}]({link})" for i, link in enumerate(allegati_links))
+                    st.markdown(f"**Allegati:** {links_md}")
+            except Exception as e:
+                st.error(f"Errore nel processare gli allegati: {e}")
