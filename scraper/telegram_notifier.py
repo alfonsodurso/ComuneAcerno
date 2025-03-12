@@ -44,7 +44,9 @@ class TelegramNotifier:
                 doc_link = documento[0] if documento else ""
             else:
                 doc_link = documento
-            lines.append(f"\n*Documento:* [{doc_link}]({doc_link})")
+            # lines.append(f"\n*Documento:* [{doc_link}]({doc_link})")
+            lines.append(f"\n*Documento:* [Apri]({doc_link})")
+
 
         # Aggiunta degli allegati: ogni link su una riga separata
         allegati = pubblicazione.get("allegati")
@@ -56,7 +58,8 @@ class TelegramNotifier:
             if allegati_links:
                 lines.append("\n*Allegati:*")
                 for a in allegati_links:
-                    lines.append(f"[{a}]({a})")
+                    # lines.append(f"[{a}]({a})")
+                    lines.append(f"[Apri]({a})")
 
         # Nota per il download
         lines.append("\n⚠️ *Nota:* se il download non parte automaticamente, apri il link con il tuo browser.")
