@@ -43,11 +43,7 @@ def page_sfoglia(df):
     # Documento Principale: Mostriamo un link con il testo "Apri Documento"
     documento = current_pub.get("documento")
     if documento and documento != "N/A":
-        if isinstance(documento, list):
-            doc_link = str(documento[0])
-        else:
-            doc_link = str(documento)
-        st.markdown(f"**Documento Principale:** [Apri](<{doc_link}>)")
+        st.markdown(f"**Documento Principale:** [Apri]({documento})")
 
     # Allegati: Mostriamo ogni link con il testo "Apri Allegato X"
     allegati = current_pub.get("allegati")
