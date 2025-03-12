@@ -22,7 +22,7 @@ def page_sfoglia(df):
         st.info("Nessuna pubblicazione trovata con questi filtri.")
         return
 
-    # Creiamo una copia per visualizzare le colonne in formato "Title"
+    # Creiamo una copia per visualizzare le colonne con titoli leggibili
     filtered_display = filtered.copy()
     filtered_display.columns = [col.replace('_', ' ').title() for col in filtered_display.columns]
 
@@ -33,33 +33,25 @@ def page_sfoglia(df):
     current_pub = filtered.iloc[st.session_state.sfoglia_index]
     st.subheader(f"Pubblicazione {st.session_state.sfoglia_index + 1} di {len(filtered)}")
 
-    # Visualizziamo tutte le colonne tranne "documento" e "allegati"
+    # Mostriamo tutte le colonne tranne "documento" e "allegati"
     for col in filtered_display.columns:
         col_original = col.lower().replace(' ', '_')
         if col_original not in ["documento", "allegati"]:
             st.write(f"**{col}:** {current_pub[col_original]}")
 
-    # Documento Principale: mostriamo ogni link su una riga separata
+    # Documento Principale: Mostriamo un solo link con il testo "Apri Documento"
     documento = current_pub.get("documento")
     if documento and documento != "N/A":
-        if isinstance(documento, list):
-           doc_links = documento
-        else:
-           doc_links = [documento]
-        doc_links_md = "\n".join([f"[{link}]({link})" for link in doc_links])
-        st.markdown(f"**Documento Principale:**\n{doc_links_md}", unsafe_allow_html=True)
+        doc_link = documento[0] if isinstance(documento, list) else documento
+        st.markdown(f"**Documento Principale:** [Apri Documento]({doc_link})", unsafe_allow_html=True)
 
-
-    # Allegati: mostriamo ogni link su una riga separata
+    # Allegati: Mostriamo ogni link con il testo "Apri Allegato X"
     allegati = current_pub.get("allegati")
     if allegati and allegati != "N/A":
-        if isinstance(allegati, list):
-            allegati_links = allegati
-        else:
-            allegati_links = [link.strip() for link in allegati.split(",") if link.strip()]
+        allegati_links = allegati if isinstance(allegati, list) else [link.strip() for link in allegati.split(",") if link.strip()]
         if allegati_links:
-            att_links_md = "\n".join([f"[{link}]({link})" for link in allegati_links])
-            st.markdown(f"**Allegati:**\n{att_links_md}", unsafe_allow_html=True)
+            att_links_md = " ".join([f"[Apri Allegato {i+1}]({link})" for i, link in enumerate(allegati_links)])
+            st.markdown(f"**Allegati:** {att_links_md}", unsafe_allow_html=True)
 
     # Navigazione tra le pubblicazioni
     col_nav1, col_nav2, _ = st.columns([1, 1, 3])
@@ -76,4 +68,4 @@ def page_sfoglia(df):
             st.session_state.sfoglia_index = 0
     with col_nav4:
         if st.button("⏩", use_container_width=True):
-            st.session_state.sfoglia_index += len(filtered) - 1
+            st.session_state.sfoglia_index = len(filtered) - 1
