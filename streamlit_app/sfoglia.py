@@ -42,7 +42,8 @@ def page_sfoglia(df):
     # Documento Principale: visualizziamo un link con il testo segnaposto "Visualizza documento"
     documento = current_pub.get("documento")
     if documento and documento != "N/A":
-        st.markdown(f"**Documento Principale:**\n[Visualizza documento]({documento})", unsafe_allow_html=True)
+        st.markdown("**Documento Principale:**")
+        st.markdown(f"[Visualizza documento]({documento})", unsafe_allow_html=True)
 
     # Allegati: visualizziamo ogni link con il testo "Visualizza allegato X"
     allegati = current_pub.get("allegati")
@@ -52,8 +53,9 @@ def page_sfoglia(df):
         else:
             allegati_links = [link.strip() for link in allegati.split(",") if link.strip()]
         if allegati_links:
+            st.markdown("**Allegati:**")
             att_links_md = "\n".join([f"[Visualizza allegato {i+1}]({link})" for i, link in enumerate(allegati_links)])
-            st.markdown(f"**Allegati:**\n{att_links_md}", unsafe_allow_html=True)
+            st.markdown(att_links_md, unsafe_allow_html=True)
 
     # Navigazione tra le pubblicazioni
     col_nav1, col_nav2, _ = st.columns([1, 1, 3])
