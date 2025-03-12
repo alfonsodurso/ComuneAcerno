@@ -24,7 +24,7 @@ class TelegramNotifier:
         # Chiavi da escludere dalla pubblicazione
         skip_keys = {
             "Tipo Atto", "Registro Generale", "Data Registro Generale",
-            "Data Fine Pubblicazione", "Allegati"
+            "Data Fine Pubblicazione", "Allegati", "Documento"
         }
 
         lines = ["📢 *Nuova pubblicazione*\n"]
