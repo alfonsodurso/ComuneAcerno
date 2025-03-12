@@ -49,9 +49,9 @@ def page_sfoglia(df):
         # doc_links_md = "\n".join([f"[{link}]({link})" for link in doc_links])
         # st.markdown(f"**Documento Principale:**\n{doc_links_md}", unsafe_allow_html=True)
         
-        # Sostituisci l'URL con il testo "Visualizza documento"
-        doc_links_md = "\n".join([f"[Visualizza documento]({link})" for link in doc_links])
-        st.markdown(f"**Documento Principale:**\n{doc_links_md}", unsafe_allow_html=True)
+    # Usa "Visualizza documento" come testo segnaposto per ogni link
+    doc_links_md = "\n".join([f"[Visualizza]({link})" for link in doc_links])
+    st.markdown(f"**Documento Principale:**\n{doc_links_md}", unsafe_allow_html=True)
 
     # Allegati: mostriamo ogni link su una riga separata
     allegati = current_pub.get("allegati")
@@ -65,7 +65,7 @@ def page_sfoglia(df):
             # st.markdown(f"**Allegati:**\n{att_links_md}", unsafe_allow_html=True)
         
             # Utilizza "Visualizza allegato" seguito dal numero per ogni link
-            att_links_md = "\n".join([f"[Visualizza allegato {i+1}]({link})" for i, link in enumerate(allegati_links)])
+            att_links_md = "\n".join([f"[Allegato {i+1}]({link})" for i, link in enumerate(allegati_links)])
             st.markdown(f"**Allegati:**\n{att_links_md}", unsafe_allow_html=True)
 
     # Navigazione tra le pubblicazioni
