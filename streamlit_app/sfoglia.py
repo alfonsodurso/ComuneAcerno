@@ -64,9 +64,9 @@ def page_sfoglia(df):
             # att_links_md = "\n".join([f"[{link}]({link})" for link in allegati_links])
             # st.markdown(f"**Allegati:**\n{att_links_md}", unsafe_allow_html=True)
         
-        # Utilizza "Visualizza allegato" seguito dal numero per ogni link
-        att_links_md = "\n".join([f"[Visualizza allegato {i+1}]({link})" for i, link in enumerate(allegati_links)])
-        st.markdown(f"**Allegati:**\n{att_links_md}", unsafe_allow_html=True)
+            # Utilizza "Visualizza allegato" seguito dal numero per ogni link
+            att_links_md = "\n".join([f"[Visualizza allegato {i+1}]({link})" for i, link in enumerate(allegati_links)])
+            st.markdown(f"**Allegati:**\n{att_links_md}", unsafe_allow_html=True)
 
     # Navigazione tra le pubblicazioni
     col_nav1, col_nav2, _ = st.columns([1, 1, 3])
