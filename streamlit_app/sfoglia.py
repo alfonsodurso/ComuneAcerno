@@ -41,7 +41,7 @@ def page_sfoglia(df):
             st.write(f"**{col}:** {current_pub[col_original]}")
 
     # Documento Principale: Mostriamo un link con il testo "Apri Documento"
-    documento = current_pub.get("documento")
+    documento = str(current_pub.get("documento"))
     if documento and documento != "N/A":
         st.markdown(f"**Documento Principale:** [Apri]({documento})")
 
