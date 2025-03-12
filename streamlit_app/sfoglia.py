@@ -42,16 +42,12 @@ def page_sfoglia(df):
     # Documento Principale: mostriamo ogni link su una riga separata
     documento = current_pub.get("documento")
     if documento and documento != "N/A":
-        # if isinstance(documento, list):
-        #    doc_links = documento
-        # else:
-        #    doc_links = [documento]
-        # doc_links_md = "\n".join([f"[{link}]({link})" for link in doc_links])
-        # st.markdown(f"**Documento Principale:**\n{doc_links_md}", unsafe_allow_html=True)
-        # doc_link = documento
-        # doc_link_md = f"[Visualizza documento]({doc_link})"
-        # st.markdown(f"**Documento Principale:**\n{doc_link_md}", unsafe_allow_html=False)
-        st.write("**Documento Principale:**", f"[Visualizza documento]({documento})")
+        if isinstance(documento, list):
+           doc_links = documento
+        else:
+           doc_links = [documento]
+        doc_links_md = "\n".join([f"[{link}]({link})" for link in doc_links])
+        st.markdown(f"**Documento Principale:**\n{doc_links_md}", unsafe_allow_html=True)
 
 
     # Allegati: mostriamo ogni link su una riga separata
