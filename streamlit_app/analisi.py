@@ -35,6 +35,8 @@ def analyze_publication_delays(df):
     e 'data_inizio_pubblicazione', escludendo le pubblicazioni senza 'data_registro_generale'.
     Crea anche una tabella con le pubblicazioni escluse.
     """
+    st.write("Colonne disponibili:", df.columns.tolist())
+
     # Separiamo le pubblicazioni senza "data_registro_generale"
     df_missing = df[df["data_registro_generale"].isna()][["numero_pubblicazione", "mittente", "oggetto", "data_inizio_pubblicazione"]]
     
