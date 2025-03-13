@@ -42,7 +42,7 @@ class TelegramNotifier:
         documento = pubblicazione.get("documento")
         if documento and documento != "N/A":
             doc_link = documento[0] if isinstance(documento, list) else documento
-            lines.append(f"*Documento:* [Apri]({doc_link})")
+            lines.append(f"\n*Documento:* [Apri]({doc_link})")
 
         # Aggiunta degli allegati (tutti su una riga)
         allegati = pubblicazione.get("allegati")
