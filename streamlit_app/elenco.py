@@ -45,6 +45,16 @@ def page_elenco(df):
                 return "width: 120px;"
             return ""
 
+        df_reduced = performance.rename(columns={
+            "numero_pubblicazione": "Numero",
+            "mittente": "Mittente",
+            "tipo_atto": "Tipo",
+            "data_inizio_pubblicazione": "Data",
+            "oggetto_atto": "Oggetto",
+            "documento_principale": "Documento",
+            "allegati": "allegati"
+        })
+        
         # Mostra la tabella con scorrimento orizzontale
         st.dataframe(
             df_reduced.style.applymap(style_min_width),
