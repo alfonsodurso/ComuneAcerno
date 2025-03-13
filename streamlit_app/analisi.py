@@ -221,13 +221,13 @@ def display_ritardi_tab(container, df):
     })
     
     # Mostriamo la tabella dei ritardi medi
-    st.markdown(**Analisi dei ritardi per mittente**)
+    st.markdown("**Analisi dei ritardi per mittente**")
     #container.write("# Analisi dei ritardi per mittente:")
     container.dataframe(performance, use_container_width=True)
     
      # Visualizziamo la tabella delle pubblicazioni escluse
     if not df_missing.empty:
-        st.markdown(**Pubblicazioni senza la data registro**)
+        st.markdown("**Pubblicazioni senza la data registro**")
 
         # container.write("# Pubblicazioni senza la data registro:")
         df_missing_copy = df_missing.copy()
