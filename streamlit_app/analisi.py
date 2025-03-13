@@ -232,7 +232,7 @@ def display_ritardi_tab(container, df):
         # container.write("# Pubblicazioni senza la data registro:")
         df_missing_copy = df_missing.copy()
         df_missing_copy = df_missing_copy.rename(columns={
-            "numero_pubblicazione": "Numero Pubblicazione",
+            "numero_pubblicazione": "Numero",
             "mittente": "Mittente",
             "oggetto_atto": "Oggetto",
             "data_inizio_pubblicazione": "Data Pubblicazione"
