@@ -28,6 +28,7 @@ def calculate_working_days(start_date, end_date):
     # np.busday_count conta i giorni lavorativi escludendo il giorno finale: per includerlo aggiungiamo 1 giorno e poi sottraiamo 1
     days = np.busday_count(start, end + np.timedelta64(1, 'D')) - 1
     return max(days, 0)
+    
 
 def analyze_publication_delays(df):
     """
@@ -35,25 +36,29 @@ def analyze_publication_delays(df):
     e 'data_inizio_pubblicazione', escludendo le pubblicazioni senza 'data_registro_generale'.
     Restituisce un DataFrame con i ritardi calcolati e uno con le pubblicazioni escluse.
     """
+    # Pulizia: convertiamo stringhe vuote in NaN per facilitare il parsing delle date
+    df["data_registro_generale"] = df["data_registro_generale"].replace("", np.nan)
+    df["data_inizio_pubblicazione"] = df["data_inizio_pubblicazione"].replace("", np.nan)
+
     # Separiamo le pubblicazioni senza "data_registro_generale"
     df_missing = df[df["data_registro_generale"].isna()][
         ["numero_pubblicazione", "mittente", "oggetto_atto", "data_inizio_pubblicazione"]
     ]
     
-    # Filtriamo il DataFrame per includere solo righe con entrambe le date
+    # Filtriamo solo le righe con entrambe le date presenti
     df = df.dropna(subset=["data_registro_generale", "data_inizio_pubblicazione"]).copy()
     
     # Conversione in datetime con gestione degli errori
     df["data_registro_generale"] = pd.to_datetime(df["data_registro_generale"], errors="coerce")
     df["data_inizio_pubblicazione"] = pd.to_datetime(df["data_inizio_pubblicazione"], errors="coerce")
-    
-    # Eliminare righe con date ancora NaT dopo la conversione
+
+    # Rimuoviamo eventuali righe dove la conversione ha fallito (date ancora NaT)
     df = df.dropna(subset=["data_registro_generale", "data_inizio_pubblicazione"]).copy()
     
-    # Conversione a formato compatibile con np.busday_count
+    # Conversione a datetime64[D] per compatibilità con np.busday_count
     start_dates = df["data_registro_generale"].dt.date.astype("datetime64[D]")
     end_dates = df["data_inizio_pubblicazione"].dt.date.astype("datetime64[D]")
-    
+
     # Calcolo del ritardo in giorni lavorativi
     df["ritardo_pubblicazione"] = np.busday_count(start_dates, end_dates + np.timedelta64(1, "D")) - 1
     df["ritardo_pubblicazione"] = df["ritardo_pubblicazione"].clip(lower=0)
