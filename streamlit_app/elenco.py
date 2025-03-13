@@ -52,7 +52,7 @@ def page_elenco(df):
             "data_inizio_pubblicazione": "Data",
             "oggetto_atto": "Oggetto",
             "documento_principale": "Documento",
-            "allegati": "allegati"
+            "allegati": "Allegati"
         })
         
         # Mostra la tabella con scorrimento orizzontale
