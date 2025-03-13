@@ -45,7 +45,7 @@ def page_elenco(df):
                 return "width: 120px;"
             return ""
 
-        df_reduced = performance.rename(columns={
+        df_reduced = df_reduced.rename(columns={
             "numero_pubblicazione": "Numero",
             "mittente": "Mittente",
             "tipo_atto": "Tipo",
