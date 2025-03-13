@@ -56,7 +56,7 @@ class TelegramNotifier:
 
         # Nota finale
         lines.append("\n⚠️ *Nota:* Se il download non parte automaticamente, apri il link con il tuo browser.")
-        lines.append("\n🔎 Clicca [qui](https://acerno.streamlit.app/) per maggiori informazioni.")
+        lines.append("\n🔎 Clicca [QUI](https://acerno.streamlit.app/) per maggiori informazioni.")
 
         # Composizione del messaggio in formato Markdown
         testo = "\n".join(lines)
