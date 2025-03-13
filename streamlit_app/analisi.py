@@ -66,8 +66,6 @@ def analyze_publication_delays(df):
     
     return df, df_missing
 
-
-
 def analyze_mittenti_performance(df):
     """
     Analizza il ritardo medio di pubblicazione per ogni mittente.
@@ -223,13 +221,25 @@ def display_ritardi_tab(container, df):
     })
     
     # Mostriamo la tabella dei ritardi medi
-    container.write("### Tabella con i ritardi medi e ulteriori info per mittente:")
+    container.write("# Analisi dei ritardi per mittente:")
     container.dataframe(performance, use_container_width=True)
     
-    # Mostriamo la tabella delle pubblicazioni escluse
+     # Visualizziamo la tabella delle pubblicazioni escluse
     if not df_missing.empty:
-        container.write("### Pubblicazioni escluse dal calcolo (senza 'data_registro_generale'):")
-        container.dataframe(df_missing, use_container_width=True)
+        container.write("# Pubblicazioni senza la data registro:")
+        df_missing_copy = df_missing.copy()
+        df_missing_copy = df_missing_copy.rename(columns={
+            "numero_pubblicazione": "Numero Pubblicazione",
+            "mittente": "Mittente",
+            "oggetto_atto": "Oggetto",
+            "data_inizio_pubblicazione": "Data Pubblicazione"
+        })
+        # Formatto la colonna Data Pubblicazione nel formato gg-mm-aaaa
+        df_missing_copy["Data Pubblicazione"] = pd.to_datetime(
+            df_missing_copy["Data Pubblicazione"], errors="coerce"
+        ).dt.strftime("%d-%m-%Y")
+        
+        container.dataframe(df_missing_copy, use_container_width=True)
 
 # ---------------------- FUNZIONE PRINCIPALE ----------------------
 
