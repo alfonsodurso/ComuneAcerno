@@ -51,18 +51,21 @@ def analyze_publication_delays(df):
     # Conversione in datetime con gestione degli errori
     df["data_registro_generale"] = pd.to_datetime(df["data_registro_generale"], errors="coerce")
     df["data_inizio_pubblicazione"] = pd.to_datetime(df["data_inizio_pubblicazione"], errors="coerce")
-
+    
     # Rimuoviamo eventuali righe dove la conversione ha fallito (date ancora NaT)
     df = df.dropna(subset=["data_registro_generale", "data_inizio_pubblicazione"]).copy()
     
-    # Calcolo del ritardo in giorni lavorativi
-    df["ritardo_pubblicazione"] = np.busday_count(df["data_registro_generale"].dt.strftime("%Y-%m-%d"),
-                                                  df["data_inizio_pubblicazione"].dt.strftime("%Y-%m-%d")) - 1
-
-    # Evitiamo valori negativi
+    # Conversione a datetime64[D] per compatibilità con np.busday_count
+    start_dates = df["data_registro_generale"].values.astype("datetime64[D]")
+    end_dates = df["data_inizio_pubblicazione"].values.astype("datetime64[D]")
+    
+    # Calcolo del ritardo in giorni lavorativi:
+    # np.busday_count conta esclusivamente il giorno finale; per includerlo aggiungiamo 1 giorno e poi sottraiamo 1
+    df["ritardo_pubblicazione"] = np.busday_count(start_dates, end_dates + np.timedelta64(1, "D")) - 1
     df["ritardo_pubblicazione"] = df["ritardo_pubblicazione"].clip(lower=0)
     
     return df, df_missing
+
 
 
 def analyze_mittenti_performance(df):
