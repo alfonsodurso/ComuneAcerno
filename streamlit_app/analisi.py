@@ -55,12 +55,11 @@ def analyze_publication_delays(df):
     # Rimuoviamo eventuali righe dove la conversione ha fallito (date ancora NaT)
     df = df.dropna(subset=["data_registro_generale", "data_inizio_pubblicazione"]).copy()
     
-    # Conversione a datetime64[D] per compatibilità con np.busday_count
-    start_dates = df["data_registro_generale"].dt.date.astype("datetime64[D]")
-    end_dates = df["data_inizio_pubblicazione"].dt.date.astype("datetime64[D]")
-
     # Calcolo del ritardo in giorni lavorativi
-    df["ritardo_pubblicazione"] = np.busday_count(start_dates, end_dates + np.timedelta64(1, "D")) - 1
+    df["ritardo_pubblicazione"] = np.busday_count(df["data_registro_generale"].dt.strftime("%Y-%m-%d"),
+                                                  df["data_inizio_pubblicazione"].dt.strftime("%Y-%m-%d")) - 1
+
+    # Evitiamo valori negativi
     df["ritardo_pubblicazione"] = df["ritardo_pubblicazione"].clip(lower=0)
     
     return df, df_missing
