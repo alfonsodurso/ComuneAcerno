@@ -31,20 +31,27 @@ def calculate_working_days(start_date, end_date):
 
 def analyze_publication_delays(df):
     """
-    Calcola il ritardo di pubblicazione (in giorni lavorativi) tra 'data_registro_generale'
-    e 'data_inizio_pubblicazione'. Viene creata la colonna 'ritardo_pubblicazione'.
+    Calcola il ritardo di pubblicazione in giorni lavorativi tra 'data_registro_generale'
+    e 'data_inizio_pubblicazione', escludendo le pubblicazioni senza 'data_registro_generale'.
+    Crea anche una tabella con le pubblicazioni escluse.
     """
+    # Separiamo le pubblicazioni senza "data_registro_generale"
+    df_missing = df[df["data_registro_generale"].isna()][["numero_pubblicazione", "mittente", "oggetto", "data_inizio_pubblicazione"]]
+    
+    # Filtriamo il DataFrame per includere solo le righe valide
     df = df.dropna(subset=["data_registro_generale", "data_inizio_pubblicazione"]).copy()
+    
     df["data_registro_generale"] = pd.to_datetime(df["data_registro_generale"], errors="coerce")
     df["data_inizio_pubblicazione"] = pd.to_datetime(df["data_inizio_pubblicazione"], errors="coerce")
     
     # Conversione vettoriale per il calcolo del ritardo
-    start_dates = pd.to_datetime(df["data_registro_generale"].dt.strftime("%Y-%m-%d")).values.astype('datetime64[D]')
-    end_dates = pd.to_datetime(df["data_inizio_pubblicazione"].dt.strftime("%Y-%m-%d")).values.astype('datetime64[D]')
+    start_dates = df["data_registro_generale"].dt.date.astype("datetime64[D]")
+    end_dates = df["data_inizio_pubblicazione"].dt.date.astype("datetime64[D]")
+    
     df["ritardo_pubblicazione"] = np.busday_count(start_dates, end_dates + np.timedelta64(1, 'D')) - 1
     df["ritardo_pubblicazione"] = df["ritardo_pubblicazione"].clip(lower=0)
     
-    return df
+    return df, df_missing
 
 def analyze_mittenti_performance(df):
     """
@@ -165,12 +172,9 @@ def display_tipologie_mittenti_tab(container, df):
 def display_ritardi_tab(container, df):
     """
     Calcola e visualizza la tabella con i ritardi medi di pubblicazione per mittente,
-    arricchita con:
-      - Numero totale di pubblicazioni
-      - Ritardo massimo
-      - Numero (ID) della pubblicazione con ritardo massimo
+    includendo una tabella separata delle pubblicazioni escluse.
     """
-    df_delays = analyze_publication_delays(df)
+    df_delays, df_missing = analyze_publication_delays(df)
     
     # Se non esiste una colonna che identifica univocamente la pubblicazione, usiamo l'indice
     if "numero_pubblicazione" not in df_delays.columns:
@@ -203,8 +207,14 @@ def display_ritardi_tab(container, df):
          "pub_max_ritardo": "Pubblicazione max ritardo"
     })
     
-    container.write("Tabella con i ritardi medi e ulteriori info per mittente:")
+    # Mostriamo la tabella dei ritardi medi
+    container.write("### Tabella con i ritardi medi e ulteriori info per mittente:")
     container.dataframe(performance, use_container_width=True)
+    
+    # Mostriamo la tabella delle pubblicazioni escluse
+    if not df_missing.empty:
+        container.write("### Pubblicazioni escluse dal calcolo (senza 'data_registro_generale'):")
+        container.dataframe(df_missing, use_container_width=True)
 
 # ---------------------- FUNZIONE PRINCIPALE ----------------------
 
