@@ -159,17 +159,17 @@ def display_temporal_tab(container, df):
         "legend": {
             "data": [rename_map.get(sender, sender) for sender in senders],  # Usa la mappa con nomi leggibili
             "selected": legend_selected,  # Attivazione predefinita
-            "bottom": -50
+            "bottom": 50
         },
         "xAxis": {"type": "category", "nameLocation": "middle"},
-        "yAxis": {"name": "Numero"},
+        "yAxis": {},
         "series": [
             {
                 "type": "line",
                 "showSymbol": True,
                 "name": col,
                 "encode": {"x": "data", "y": col},
-                "smooth": True,
+                "smooth": False,
             }
             for col in renamed_dimensions[1:]  # Escludiamo 'data'
         ],
@@ -190,17 +190,17 @@ def display_temporal_tab(container, df):
         "legend": {
             "data": [rename_map.get(sender, sender) for sender in senders],  # Usa la mappa con nomi leggibili
             "selected": legend_selected,  # Attivazione predefinita
-            "bottom": - 50
+            "bottom": 50
         },
         "xAxis": {"type": "category", "nameLocation": "middle"},
-        "yAxis": {"name": "Pubblicazioni Cumulative"},
+        "yAxis": {},
         "series": [
             {
                 "type": "line",
                 "showSymbol": True,
                 "name": col,
                 "encode": {"x": "data", "y": col},
-                "smooth": True,
+                "smooth": False,
             }
             for col in renamed_dimensions[1:]
         ],
