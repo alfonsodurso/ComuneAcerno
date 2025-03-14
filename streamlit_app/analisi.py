@@ -190,7 +190,7 @@ def display_temporal_tab(container, df):
         "legend": {
             "data": [rename_map.get(sender, sender) for sender in senders],  # Usa la mappa con nomi leggibili
             "selected": legend_selected,  # Attivazione predefinita
-            "bottom": "20px"
+            "bottom": "0%"
         },
         "xAxis": {"type": "category", "nameLocation": "middle"},
         "yAxis": {},
