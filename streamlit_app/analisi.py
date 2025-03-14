@@ -147,9 +147,12 @@ def display_temporal_tab(container, df):
         ],
         "title": {"text": "Andamento giornaliero"},
         "tooltip": {"order": "valueDesc", "trigger": "axis"},
+        "legend": {
+            "data": dimensions[1:],  # mostra le serie (esclusa 'data')
+            "bottom": 10
+        },
         "xAxis": {"type": "category", "nameLocation": "middle"},
-        "yAxis": {"name": "Pubblicazioni Giorno"},
-        "grid": {"right": 140},
+        "yAxis": {"name": "Numero"},
         "series": [
             {
                 "type": "line",
@@ -176,7 +179,10 @@ def display_temporal_tab(container, df):
         "tooltip": {"order": "valueDesc", "trigger": "axis"},
         "xAxis": {"type": "category", "nameLocation": "middle"},
         "yAxis": {"name": "Pubblicazioni Cumulative"},
-        "grid": {"right": 140},
+        "legend": {
+            "data": dimensions[1:],
+            "bottom": 10
+        },
         "series": [
             {
                 "type": "line",
