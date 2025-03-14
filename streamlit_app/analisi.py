@@ -159,7 +159,7 @@ def display_temporal_tab(container, df):
         "legend": {
             "data": [rename_map.get(sender, sender) for sender in senders],  # Usa la mappa con nomi leggibili
             "selected": legend_selected,  # Attivazione predefinita
-            "bottom": "0%"
+            "bottom": "0%"  # Posizionamento della legenda sotto il grafico
         },
         "xAxis": {"type": "category", "nameLocation": "middle"},
         "yAxis": {},
@@ -170,12 +170,12 @@ def display_temporal_tab(container, df):
                 "name": col,
                 "encode": {"x": "data", "y": col},
                 "smooth": True,
+                "emphasis": {
+                    "focus": "series"  # Aggiungi emphasis per ogni serie
+                }
             }
             for col in renamed_dimensions[1:]  # Escludiamo 'data'
-        ],
-        emphasis: {
-            focus: 'series'
-        }
+        ]
     }
     
     # Opzione del grafico cumulato
@@ -193,7 +193,7 @@ def display_temporal_tab(container, df):
         "legend": {
             "data": [rename_map.get(sender, sender) for sender in senders],  # Usa la mappa con nomi leggibili
             "selected": legend_selected,  # Attivazione predefinita
-            "bottom": "0%"
+            "bottom": "0%"  # Posizionamento della legenda sotto il grafico
         },
         "xAxis": {"type": "category", "nameLocation": "middle"},
         "yAxis": {},
@@ -204,14 +204,23 @@ def display_temporal_tab(container, df):
                 "name": col,
                 "encode": {"x": "data", "y": col},
                 "smooth": True,
+                "emphasis": {
+                    "focus": "series"  # Aggiungi emphasis per ogni serie
+                }
             }
-            for col in renamed_dimensions[1:]
-        ],
+            for col in renamed_dimensions[1:]  # Escludiamo 'data'
+        ]
     }
+
+    # Calcolare altezza dinamica
+    base_height = 600  # Altezza di base
+    extra_height = len(renamed_dimensions[1:]) * 20  # Aggiungere spazio in base al numero di serie
+    dynamic_height = base_height + extra_height
     
     # Mostra i grafici
-    st_echarts(options=option_daily, height="600px", key="daily_echarts")
-    st_echarts(options=option_cumulative, height="600px", key="cumulative_echarts")
+    st_echarts(options=option_daily, height=f"{dynamic_height}px", key="daily_echarts")
+    st_echarts(options=option_cumulative, height=f"{dynamic_height}px", key="cumulative_echarts")
+
 
 
 def display_tipologie_mittenti_tab(container, df):
