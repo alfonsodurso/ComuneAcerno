@@ -3,7 +3,8 @@ import pandas as pd
 import numpy as np
 import seaborn as sns
 from datetime import timedelta
-from streamlit_echarts import st_echarts
+from streamlit_echarts import st_echarts, JsCode
+
 
 # ⚙️ Configurazione per Plotly (per i tab non modificati)
 PLOTLY_CONFIG = {
@@ -106,10 +107,11 @@ def prepare_time_series_data_by_sender(df):
 def display_temporal_tab(container, df):
     """
     Visualizza due grafici (giornaliero e cumulato) che mostrano l'andamento
-    totale e per ciascun mittente, utilizzando echarts. La selezione delle serie
-    avviene tramite la legenda posta sotto il grafico; la legenda utilizza una funzione
-    formatter che trasforma le etichette con capitalize(), ad eccezione di "TOTAL"
-    che diventa "TOTALE".
+    totale e per ciascun mittente, utilizzando echarts. Il controllo dei layer
+    avviene tramite la legenda posta sotto il grafico, con default che attiva:
+    "AREA TECNICA 1", "AREA TECNICA 2", "AREA VIGILANZA", "AREA AMMINISTRATIVA",
+    "COMUNE DI ACERNO". Le etichette della legenda vengono formattate in modo che
+    ogni parola sia Capitalize() tranne "TOTAL" che diventa "TOTALE".
     """
     # Prepara i dataset aggregati per data e mittente
     daily_dataset, cumulative_dataset, senders = prepare_time_series_data_by_sender(df)
@@ -117,11 +119,10 @@ def display_temporal_tab(container, df):
     # Costruiamo le dimensioni includendo tutte le colonne (i senders e "TOTAL")
     dimensions = ["data", "TOTAL"] + senders
     
-    # Definiamo il set di mittenti da attivare di default (si confronta in uppercase)
+    # Definiamo il set di mittenti da attivare di default (confronto in uppercase)
     default_set = {"AREA TECNICA 1", "AREA TECNICA 2", "AREA VIGILANZA", "AREA AMMINISTRATIVA", "COMUNE DI ACERNO"}
     
-    # Costruiamo il dizionario per la proprietà "selected" della legenda:
-    # "TOTAL" è sempre attivo; per gli altri, se il nome (in uppercase) è nel default_set, saranno accesi.
+    # Dizionario per la proprietà "selected" della legenda
     legend_selected = {}
     for col in dimensions[1:]:
         if col == "TOTAL":
@@ -129,14 +130,14 @@ def display_temporal_tab(container, df):
         else:
             legend_selected[col] = (col.upper() in default_set)
     
-    # Utilizziamo l'intero dataset (con tutte le colonne) per la visualizzazione
+    # Utilizziamo l'intero dataset per la visualizzazione
     daily_filtered = daily_dataset[dimensions]
     cumulative_filtered = cumulative_dataset[dimensions]
     
-    # Funzione formatter per la legenda (funzione JS in formato stringa)
-    legend_formatter = (
+    # Formatter della legenda usando JsCode per far interpretare il codice JavaScript
+    legend_formatter = JsCode(
         "function(name){ "
-        "return name==='TOTAL' ? 'TOTALE' : name.charAt(0).toUpperCase() + name.slice(1).toLowerCase(); "
+        "  return name === 'TOTAL' ? 'TOTALE' : name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();"
         "}"
     )
     
@@ -206,7 +207,6 @@ def display_temporal_tab(container, df):
     
     st_echarts(options=option_daily, height="600px", key="daily_echarts")
     st_echarts(options=option_cumulative, height="600px", key="cumulative_echarts")
-
 
 
 def display_tipologie_mittenti_tab(container, df):
