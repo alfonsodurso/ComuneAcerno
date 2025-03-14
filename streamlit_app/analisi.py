@@ -84,8 +84,8 @@ def prepare_time_series_data_by_sender(df):
     # Calcola il totale per ogni data
     pivot["TOTAL"] = pivot.sum(axis=1)
     # Riordina le colonne: mettiamo il totale come prima colonna
-    senders = sorted([col for col in pivot.columns if col != "TOTAL"])
-    pivot = pivot[["TOTAL"] + senders]
+    senders = sorted([col for col in pivot.columns if col != "TOTALE"])
+    pivot = pivot[["TOTALE"] + senders]
     # Resetta l'indice per avere la colonna data
     daily_dataset = pivot.reset_index()
 
@@ -114,10 +114,10 @@ def display_temporal_tab(container, df):
     
     # Mittenti da visualizzare di default
     default_senders = [sender for sender in [
-        "AREA TECNICA 1,
+        "AREA TECNICA 1",
         "AREA TECNICA 2",
         "AREA VIGILANZA",
-        "AREA AMMINISTRATIVA,
+        "AREA AMMINISTRATIVA",
         "COMUNE DI ACERNO"
     ] if sender in senders]
     
@@ -128,7 +128,7 @@ def display_temporal_tab(container, df):
         default=default_senders
     )
     
-    # Costruisce le dimensioni da utilizzare: si mostra sempre la colonna "TOTAL"
+    # Costruisce le dimensioni da utilizzare: si mostra sempre la colonna "TOTALE"
     dimensions = ["data", "TOTALE"] + selected_senders
 
     # Filtra i dataset per mantenere solo le colonne selezionate
@@ -151,7 +151,7 @@ def display_temporal_tab(container, df):
         "series": [
             {
                 "type": "line",
-                "showSymbol": True,
+                "showSymbol": False,
                 "name": col,
                 "encode": {"x": "data", "y": col},
                 "smooth": True,
@@ -162,7 +162,6 @@ def display_temporal_tab(container, df):
     
     # Crea l'opzione per il grafico cumulato
     option_cumulative = {
-        "animationDuration": 10000,
         "dataset": [
             {
                 "id": "dataset_raw",
@@ -192,7 +191,6 @@ def display_temporal_tab(container, df):
     
     st.subheader("Grafico cumulato (totale e per mittente)")
     st_echarts(options=option_cumulative, height="600px", key="cumulative_echarts")
-
 
 
 def display_tipologie_mittenti_tab(container, df):
