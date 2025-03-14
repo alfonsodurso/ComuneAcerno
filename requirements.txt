@@ -6,3 +6,4 @@ streamlit
 pandas
 plotly
 seaborn
+streamlit-echarts
