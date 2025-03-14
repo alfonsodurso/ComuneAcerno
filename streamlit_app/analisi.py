@@ -107,8 +107,8 @@ def prepare_time_series_data_by_sender(df):
 def display_temporal_tab(container, df):
     """
     Visualizza due grafici (giornaliero e cumulato) che mostrano l'andamento
-    totale e per ciascun mittente, utilizzando echarts. Il controllo dei layer
-    avviene tramite la legenda posta sotto il grafico.
+    totale e per ciascun mittente, utilizzando echarts. La legenda mostrerà
+    i mittenti in un formato leggibile (es. "Area Tecnica 1", "Comune di Acerno").
     """
     # Prepara i dataset aggregati per data e mittente
     daily_dataset, cumulative_dataset, senders = prepare_time_series_data_by_sender(df)
@@ -154,7 +154,7 @@ def display_temporal_tab(container, df):
         "title": {"text": "Andamento giornaliero"},
         "tooltip": {"order": "valueDesc", "trigger": "axis"},
         "legend": {
-            "data": renamed_dimensions[1:],  # Esclude 'data'
+            "data": [rename_map.get(sender, sender) for sender in senders],  # Usa la mappa con nomi leggibili
             "selected": legend_selected,  # Attivazione predefinita
             "bottom": 10
         },
@@ -185,7 +185,7 @@ def display_temporal_tab(container, df):
         "title": {"text": "Andamento cumulato"},
         "tooltip": {"order": "valueDesc", "trigger": "axis"},
         "legend": {
-            "data": renamed_dimensions[1:],  # Esclude 'data'
+            "data": [rename_map.get(sender, sender) for sender in senders],  # Usa la mappa con nomi leggibili
             "selected": legend_selected,  # Attivazione predefinita
             "bottom": 10
         },
