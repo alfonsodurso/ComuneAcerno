@@ -114,10 +114,11 @@ def display_temporal_tab(container, df):
     
     # Mittenti da visualizzare di default
     default_senders = [sender for sender in [
-        "area tecnica 1",
-        "area tecnica 2",
-        "area vigilanza",
-        "area amministrativa comune di acerno"
+        "AREA TECNICA 1",
+        "AREA TECNICA 2",
+        "AREA VIGILANZA",
+        "AREA AMMINISTRATIVA",
+        "COMUNE DI ACERNO"
     ] if sender in senders]
     
     # Widget per la selezione dei mittenti
