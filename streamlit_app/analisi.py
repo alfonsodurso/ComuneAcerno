@@ -169,10 +169,7 @@ def display_temporal_tab(container, df):
                 "showSymbol": True,
                 "name": col,
                 "encode": {"x": "data", "y": col},
-                "smooth": True,
-                "emphasis": {
-                    "focus": "series"  # Aggiungi emphasis per ogni serie
-                }
+                "smooth": True
             }
             for col in renamed_dimensions[1:]  # Escludiamo 'data'
         ]
@@ -203,10 +200,7 @@ def display_temporal_tab(container, df):
                 "showSymbol": True,
                 "name": col,
                 "encode": {"x": "data", "y": col},
-                "smooth": True,
-                "emphasis": {
-                    "focus": "series"  # Aggiungi emphasis per ogni serie
-                }
+                "smooth": True
             }
             for col in renamed_dimensions[1:]  # Escludiamo 'data'
         ]
