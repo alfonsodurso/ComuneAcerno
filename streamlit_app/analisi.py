@@ -126,7 +126,7 @@ def display_temporal_tab(container, df):
     default_set = {"AREA TECNICA 1", "AREA TECNICA 2", "AREA VIGILANZA", "AREA AMMINISTRATIVA", "COMUNE DI ACERNO"}
 
     # Dizionario per la proprietà "selected" della legenda
-    legend_selected = {rename_map[col]: (col.upper() in default_set) for col in senders}
+    legend_selected = {rename_map[col]: (col.capitalize() in default_set) for col in senders}
     legend_selected["TOTALE"] = True  # Manteniamo sempre attivo 'TOTALE'
 
     # Rinominare i dati nel DataFrame
@@ -148,7 +148,7 @@ def display_temporal_tab(container, df):
         "legend": {
             "data": renamed_dimensions[1:],  # Esclude 'data'
             "selected": legend_selected,
-            "bottom": 10
+            "bottom": 100
         },
         "xAxis": {"type": "category", "nameLocation": "middle"},
         "yAxis": {"name": "Numero"},
@@ -179,7 +179,7 @@ def display_temporal_tab(container, df):
         "legend": {
             "data": renamed_dimensions[1:],
             "selected": legend_selected,
-            "bottom": 10
+            "bottom": 50
         },
         "xAxis": {"type": "category", "nameLocation": "middle"},
         "yAxis": {"name": "Pubblicazioni Cumulative"},
