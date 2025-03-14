@@ -137,7 +137,7 @@ def display_temporal_tab(container, df):
     
     # Crea l'opzione per il grafico giornaliero
     option_daily = {
-        "animationDuration": 10000,
+        "animationDuration": 100,
         "dataset": [
             {
                 "id": "dataset_raw",
@@ -153,7 +153,7 @@ def display_temporal_tab(container, df):
         "series": [
             {
                 "type": "line",
-                "showSymbol": False,
+                "showSymbol": True,
                 "name": col,
                 "encode": {"x": "data", "y": col},
                 "smooth": True,
@@ -164,7 +164,7 @@ def display_temporal_tab(container, df):
     
     # Crea l'opzione per il grafico cumulato
     option_cumulative = {
-        "animationDuration": 10000,
+        "animationDuration": 100,
         "dataset": [
             {
                 "id": "dataset_raw",
@@ -180,7 +180,7 @@ def display_temporal_tab(container, df):
         "series": [
             {
                 "type": "line",
-                "showSymbol": False,
+                "showSymbol": True,
                 "name": col,
                 "encode": {"x": "data", "y": col},
                 "smooth": True,
@@ -189,10 +189,8 @@ def display_temporal_tab(container, df):
         ],
     }
     
-    st.subheader("Grafico giornaliero (totale e per mittente)")
     st_echarts(options=option_daily, height="600px", key="daily_echarts")
     
-    st.subheader("Grafico cumulato (totale e per mittente)")
     st_echarts(options=option_cumulative, height="600px", key="cumulative_echarts")
 
 
