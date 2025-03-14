@@ -106,36 +106,41 @@ def prepare_time_series_data_by_sender(df):
 def display_temporal_tab(container, df):
     """
     Visualizza due grafici (giornaliero e cumulato) che mostrano l'andamento
-    totale e per ciascun mittente, consentendo di selezionare quali mittenti visualizzare,
-    utilizzando echarts.
+    totale e per ciascun mittente, utilizzando echarts. La selezione delle serie
+    avviene tramite la legenda posta sotto il grafico; la legenda utilizza una funzione
+    formatter che trasforma le etichette con capitalize(), ad eccezione di "TOTAL"
+    che diventa "TOTALE".
     """
     # Prepara i dataset aggregati per data e mittente
     daily_dataset, cumulative_dataset, senders = prepare_time_series_data_by_sender(df)
     
-    # Mittenti da visualizzare di default
-    default_senders = [sender for sender in [
-        "AREA TECNICA 1",
-        "AREA TECNICA 2",
-        "AREA VIGILANZA",
-        "AREA AMMINISTRATIVA",
-        "COMUNE DI ACERNO"
-    ] if sender in senders]
+    # Costruiamo le dimensioni includendo tutte le colonne (i senders e "TOTAL")
+    dimensions = ["data", "TOTAL"] + senders
     
-    # Widget per la selezione dei mittenti
-    selected_senders = container.multiselect(
-        "Seleziona i mittenti da visualizzare:",
-        options=senders,
-        default=default_senders
-    )
+    # Definiamo il set di mittenti da attivare di default (si confronta in uppercase)
+    default_set = {"AREA TECNICA 1", "AREA TECNICA 2", "AREA VIGILANZA", "AREA AMMINISTRATIVA", "COMUNE DI ACERNO"}
     
-    # Costruisce le dimensioni da utilizzare: si mostra sempre la colonna "TOTAL"
-    dimensions = ["data", "TOTAL"] + selected_senders
-
-    # Filtra i dataset per mantenere solo le colonne selezionate
+    # Costruiamo il dizionario per la proprietà "selected" della legenda:
+    # "TOTAL" è sempre attivo; per gli altri, se il nome (in uppercase) è nel default_set, saranno accesi.
+    legend_selected = {}
+    for col in dimensions[1:]:
+        if col == "TOTAL":
+            legend_selected[col] = True
+        else:
+            legend_selected[col] = (col.upper() in default_set)
+    
+    # Utilizziamo l'intero dataset (con tutte le colonne) per la visualizzazione
     daily_filtered = daily_dataset[dimensions]
     cumulative_filtered = cumulative_dataset[dimensions]
     
-    # Crea l'opzione per il grafico giornaliero
+    # Funzione formatter per la legenda (funzione JS in formato stringa)
+    legend_formatter = (
+        "function(name){ "
+        "return name==='TOTAL' ? 'TOTALE' : name.charAt(0).toUpperCase() + name.slice(1).toLowerCase(); "
+        "}"
+    )
+    
+    # Configurazione del grafico giornaliero
     option_daily = {
         "animationDuration": 100,
         "dataset": [
@@ -148,8 +153,10 @@ def display_temporal_tab(container, df):
         "title": {"text": "Andamento giornaliero"},
         "tooltip": {"order": "valueDesc", "trigger": "axis"},
         "legend": {
-            "data": dimensions[1:],  # mostra le serie (esclusa 'data')
-            "bottom": 10
+            "data": dimensions[1:],  # Esclude la colonna 'data'
+            "selected": legend_selected,
+            "bottom": 10,
+            "formatter": legend_formatter
         },
         "xAxis": {"type": "category", "nameLocation": "middle"},
         "yAxis": {"name": "Numero"},
@@ -161,11 +168,11 @@ def display_temporal_tab(container, df):
                 "encode": {"x": "data", "y": col},
                 "smooth": True,
             }
-            for col in dimensions[1:]  # Escludiamo la colonna 'data'
+            for col in dimensions[1:]
         ],
     }
     
-    # Crea l'opzione per il grafico cumulato
+    # Configurazione del grafico cumulato
     option_cumulative = {
         "animationDuration": 100,
         "dataset": [
@@ -177,12 +184,14 @@ def display_temporal_tab(container, df):
         ],
         "title": {"text": "Andamento cumulato"},
         "tooltip": {"order": "valueDesc", "trigger": "axis"},
-        "xAxis": {"type": "category", "nameLocation": "middle"},
-        "yAxis": {"name": "Pubblicazioni Cumulative"},
         "legend": {
             "data": dimensions[1:],
-            "bottom": 10
+            "selected": legend_selected,
+            "bottom": 10,
+            "formatter": legend_formatter
         },
+        "xAxis": {"type": "category", "nameLocation": "middle"},
+        "yAxis": {"name": "Pubblicazioni Cumulative"},
         "series": [
             {
                 "type": "line",
@@ -196,8 +205,8 @@ def display_temporal_tab(container, df):
     }
     
     st_echarts(options=option_daily, height="600px", key="daily_echarts")
-    
     st_echarts(options=option_cumulative, height="600px", key="cumulative_echarts")
+
 
 
 def display_tipologie_mittenti_tab(container, df):
