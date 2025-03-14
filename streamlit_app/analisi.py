@@ -131,6 +131,9 @@ def display_temporal_tab(container, df):
         "Comune di acerno"
     }
 
+    # Mappatura dei mittenti di default con title()
+    default_active_senders = {sender.title() for sender in default_active_senders}
+
     # Dizionario per la proprietà "selected" della legenda
     legend_selected = {
         rename_map[col]: (rename_map[col] in default_active_senders) for col in senders
