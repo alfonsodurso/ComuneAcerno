@@ -112,15 +112,24 @@ def display_temporal_tab(container, df):
     # Prepara i dataset aggregati per data e mittente
     daily_dataset, cumulative_dataset, senders = prepare_time_series_data_by_sender(df)
     
+    # Mittenti da visualizzare di default
+    default_senders = [sender for sender in [
+        "AREA TECNICA 1,
+        "AREA TECNICA 2",
+        "AREA VIGILANZA",
+        "AREA AMMINISTRATIVA,
+        "COMUNE DI ACERNO"
+    ] if sender in senders]
+    
     # Widget per la selezione dei mittenti
     selected_senders = container.multiselect(
         "Seleziona i mittenti da visualizzare:",
         options=senders,
-        default=senders  # default: tutti i mittenti
+        default=default_senders
     )
     
     # Costruisce le dimensioni da utilizzare: si mostra sempre la colonna "TOTAL"
-    dimensions = ["data", "TOTAL"] + selected_senders
+    dimensions = ["data", "TOTALE"] + selected_senders
 
     # Filtra i dataset per mantenere solo le colonne selezionate
     daily_filtered = daily_dataset[dimensions]
@@ -128,7 +137,6 @@ def display_temporal_tab(container, df):
     
     # Crea l'opzione per il grafico giornaliero
     option_daily = {
-        "animationDuration": 10000,
         "dataset": [
             {
                 "id": "dataset_raw",
@@ -140,11 +148,10 @@ def display_temporal_tab(container, df):
         "tooltip": {"order": "valueDesc", "trigger": "axis"},
         "xAxis": {"type": "category", "nameLocation": "middle"},
         "yAxis": {"name": "Pubblicazioni Giorno"},
-        "grid": {"right": 140},
         "series": [
             {
                 "type": "line",
-                "showSymbol": False,
+                "showSymbol": True,
                 "name": col,
                 "encode": {"x": "data", "y": col},
                 "smooth": True,
@@ -155,36 +162,11 @@ def display_temporal_tab(container, df):
     
     # Crea l'opzione per il grafico cumulato
     option_cumulative = {
-        "animationDuration": 10000,
         "dataset": [
             {
                 "id": "dataset_raw",
-                "dimensions": dimensions,
-                "source": cumulative_filtered.values.tolist(),
-            }
-        ],
-        "title": {"text": "Andamento cumulato"},
-        "tooltip": {"order": "valueDesc", "trigger": "axis"},
-        "xAxis": {"type": "category", "nameLocation": "middle"},
-        "yAxis": {"name": "Pubblicazioni Cumulative"},
-        "grid": {"right": 140},
-        "series": [
-            {
-                "type": "line",
-                "showSymbol": False,
-                "name": col,
-                "encode": {"x": "data", "y": col},
-                "smooth": True,
-            }
-            for col in dimensions[1:]
-        ],
-    }
-    
-    st.subheader("Grafico giornaliero (totale e per mittente)")
-    st_echarts(options=option_daily, height="600px", key="daily_echarts")
-    
-    st.subheader("Grafico cumulato (totale e per mittente)")
-    st_echarts(options=option_cumulative, height="600px", key="cumulative_echarts")
+                "dimensions": dimen
+
 
 
 def display_tipologie_mittenti_tab(container, df):
