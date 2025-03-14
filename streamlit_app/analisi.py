@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import seaborn as sns
 from datetime import timedelta
-from streamlit_echarts import st_echarts, JsCode
+from streamlit_echarts import st_echarts
 
 
 # ⚙️ Configurazione per Plotly (per i tab non modificati)
@@ -108,52 +108,47 @@ def display_temporal_tab(container, df):
     """
     Visualizza due grafici (giornaliero e cumulato) che mostrano l'andamento
     totale e per ciascun mittente, utilizzando echarts. Il controllo dei layer
-    avviene tramite la legenda posta sotto il grafico; la legenda utilizza un formatter
-    che trasforma le etichette in modalità capitalize() (escluso "TOTAL" che diventa "TOTALE").
+    avviene tramite la legenda posta sotto il grafico.
     """
     # Prepara i dataset aggregati per data e mittente
     daily_dataset, cumulative_dataset, senders = prepare_time_series_data_by_sender(df)
     
-    # Costruiamo le dimensioni includendo tutte le colonne (i senders e "TOTAL")
-    dimensions = ["data", "TOTAL"] + senders
+    # Mappa di rinomina per formattare le etichette
+    rename_map = {
+        "TOTAL": "TOTALE",
+        **{sender: sender.capitalize() for sender in senders}  # Capitalize su tutti i mittenti
+    }
+
+    # Applica la rinomina alle colonne
+    renamed_dimensions = ["data"] + [rename_map.get(col, col) for col in ["TOTAL"] + senders]
     
-    # Definiamo il set di mittenti da attivare di default (confronto in uppercase)
+    # Definiamo il set di mittenti da attivare di default
     default_set = {"AREA TECNICA 1", "AREA TECNICA 2", "AREA VIGILANZA", "AREA AMMINISTRATIVA", "COMUNE DI ACERNO"}
-    
+
     # Dizionario per la proprietà "selected" della legenda
-    legend_selected = {}
-    for col in dimensions[1:]:
-        if col == "TOTAL":
-            legend_selected[col] = True
-        else:
-            legend_selected[col] = (col.upper() in default_set)
-    
-    # Utilizziamo l'intero dataset per la visualizzazione
-    daily_filtered = daily_dataset[dimensions]
-    cumulative_filtered = cumulative_dataset[dimensions]
-    
-    # Formatter della legenda usando JsCode e racchiuso tra parentesi
-    legend_formatter = JsCode(
-        "(function(name){ return name === 'TOTAL' ? 'TOTALE' : name.charAt(0).toUpperCase() + name.slice(1).toLowerCase(); })"
-    )
-    
-    # Configurazione del grafico giornaliero
+    legend_selected = {rename_map[col]: (col.upper() in default_set) for col in senders}
+    legend_selected["TOTALE"] = True  # Manteniamo sempre attivo 'TOTALE'
+
+    # Rinominare i dati nel DataFrame
+    daily_filtered = daily_dataset.rename(columns=rename_map)
+    cumulative_filtered = cumulative_dataset.rename(columns=rename_map)
+
+    # Opzione del grafico giornaliero
     option_daily = {
         "animationDuration": 100,
         "dataset": [
             {
                 "id": "dataset_raw",
-                "dimensions": dimensions,
+                "dimensions": renamed_dimensions,
                 "source": daily_filtered.values.tolist(),
             }
         ],
         "title": {"text": "Andamento giornaliero"},
         "tooltip": {"order": "valueDesc", "trigger": "axis"},
         "legend": {
-            "data": dimensions[1:],  # Esclude la colonna 'data'
+            "data": renamed_dimensions[1:],  # Esclude 'data'
             "selected": legend_selected,
-            "bottom": 10,
-            "formatter": legend_formatter
+            "bottom": 10
         },
         "xAxis": {"type": "category", "nameLocation": "middle"},
         "yAxis": {"name": "Numero"},
@@ -165,27 +160,26 @@ def display_temporal_tab(container, df):
                 "encode": {"x": "data", "y": col},
                 "smooth": True,
             }
-            for col in dimensions[1:]
+            for col in renamed_dimensions[1:]  # Escludiamo la colonna 'data'
         ],
     }
     
-    # Configurazione del grafico cumulato
+    # Opzione del grafico cumulato
     option_cumulative = {
         "animationDuration": 100,
         "dataset": [
             {
                 "id": "dataset_raw",
-                "dimensions": dimensions,
+                "dimensions": renamed_dimensions,
                 "source": cumulative_filtered.values.tolist(),
             }
         ],
         "title": {"text": "Andamento cumulato"},
         "tooltip": {"order": "valueDesc", "trigger": "axis"},
         "legend": {
-            "data": dimensions[1:],
+            "data": renamed_dimensions[1:],
             "selected": legend_selected,
-            "bottom": 10,
-            "formatter": legend_formatter
+            "bottom": 10
         },
         "xAxis": {"type": "category", "nameLocation": "middle"},
         "yAxis": {"name": "Pubblicazioni Cumulative"},
@@ -197,10 +191,11 @@ def display_temporal_tab(container, df):
                 "encode": {"x": "data", "y": col},
                 "smooth": True,
             }
-            for col in dimensions[1:]
+            for col in renamed_dimensions[1:]
         ],
     }
     
+    # Mostra i grafici
     st_echarts(options=option_daily, height="600px", key="daily_echarts")
     st_echarts(options=option_cumulative, height="600px", key="cumulative_echarts")
 
