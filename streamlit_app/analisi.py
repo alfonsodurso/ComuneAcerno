@@ -162,10 +162,36 @@ def display_temporal_tab(container, df):
     
     # Crea l'opzione per il grafico cumulato
     option_cumulative = {
+        "animationDuration": 10000,
         "dataset": [
             {
                 "id": "dataset_raw",
-                "dimensions": dimen
+                "dimensions": dimensions,
+                "source": cumulative_filtered.values.tolist(),
+            }
+        ],
+        "title": {"text": "Andamento cumulato"},
+        "tooltip": {"order": "valueDesc", "trigger": "axis"},
+        "xAxis": {"type": "category", "nameLocation": "middle"},
+        "yAxis": {"name": "Pubblicazioni Cumulative"},
+        "grid": {"right": 140},
+        "series": [
+            {
+                "type": "line",
+                "showSymbol": False,
+                "name": col,
+                "encode": {"x": "data", "y": col},
+                "smooth": True,
+            }
+            for col in dimensions[1:]
+        ],
+    }
+    
+    st.subheader("Grafico giornaliero (totale e per mittente)")
+    st_echarts(options=option_daily, height="600px", key="daily_echarts")
+    
+    st.subheader("Grafico cumulato (totale e per mittente)")
+    st_echarts(options=option_cumulative, height="600px", key="cumulative_echarts")
 
 
 
