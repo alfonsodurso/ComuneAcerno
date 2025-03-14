@@ -116,17 +116,25 @@ def display_temporal_tab(container, df):
     # Mappa di rinomina per formattare le etichette
     rename_map = {
         "TOTAL": "TOTALE",
-        **{sender: sender.capitalize() for sender in senders}  # Capitalize su tutti i mittenti
+        **{sender: sender.capitalize() for sender in senders if sender != "TOTAL"}  # Capitalize su tutti i mittenti
     }
 
-    # Applica la rinomina alle colonne
+    # Lista di dimensioni rinominate
     renamed_dimensions = ["data"] + [rename_map.get(col, col) for col in ["TOTAL"] + senders]
     
-    # Definiamo il set di mittenti da attivare di default
-    default_set = {"AREA TECNICA 1", "AREA TECNICA 2", "AREA VIGILANZA", "AREA AMMINISTRATIVA", "COMUNE DI ACERNO"}
+    # Mittenti da attivare di default
+    default_active_senders = {
+        "Area tecnica 1",
+        "Area tecnica 2",
+        "Area vigilanza",
+        "Area amministrativa",
+        "Comune di acerno"
+    }
 
     # Dizionario per la proprietà "selected" della legenda
-    legend_selected = {rename_map[col]: (col.capitalize() in default_set) for col in senders}
+    legend_selected = {
+        rename_map[col]: (rename_map[col] in default_active_senders) for col in senders
+    }
     legend_selected["TOTALE"] = True  # Manteniamo sempre attivo 'TOTALE'
 
     # Rinominare i dati nel DataFrame
@@ -147,8 +155,8 @@ def display_temporal_tab(container, df):
         "tooltip": {"order": "valueDesc", "trigger": "axis"},
         "legend": {
             "data": renamed_dimensions[1:],  # Esclude 'data'
-            "selected": legend_selected,
-            "bottom": 100
+            "selected": legend_selected,  # Attivazione predefinita
+            "bottom": 10
         },
         "xAxis": {"type": "category", "nameLocation": "middle"},
         "yAxis": {"name": "Numero"},
@@ -160,7 +168,7 @@ def display_temporal_tab(container, df):
                 "encode": {"x": "data", "y": col},
                 "smooth": True,
             }
-            for col in renamed_dimensions[1:]  # Escludiamo la colonna 'data'
+            for col in renamed_dimensions[1:]  # Escludiamo 'data'
         ],
     }
     
@@ -177,9 +185,9 @@ def display_temporal_tab(container, df):
         "title": {"text": "Andamento cumulato"},
         "tooltip": {"order": "valueDesc", "trigger": "axis"},
         "legend": {
-            "data": renamed_dimensions[1:],
-            "selected": legend_selected,
-            "bottom": 50
+            "data": renamed_dimensions[1:],  # Esclude 'data'
+            "selected": legend_selected,  # Attivazione predefinita
+            "bottom": 10
         },
         "xAxis": {"type": "category", "nameLocation": "middle"},
         "yAxis": {"name": "Pubblicazioni Cumulative"},
