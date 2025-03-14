@@ -173,6 +173,9 @@ def display_temporal_tab(container, df):
             }
             for col in renamed_dimensions[1:]  # Escludiamo 'data'
         ],
+        emphasis: {
+            focus: 'series'
+        }
     }
     
     # Opzione del grafico cumulato
