@@ -84,8 +84,8 @@ def prepare_time_series_data_by_sender(df):
     # Calcola il totale per ogni data
     pivot["TOTAL"] = pivot.sum(axis=1)
     # Riordina le colonne: mettiamo il totale come prima colonna
-    senders = sorted([col for col in pivot.columns if col != "TOTALE"])
-    pivot = pivot[["TOTALE"] + senders]
+    senders = sorted([col for col in pivot.columns if col != "TOTAL"])
+    pivot = pivot[["TOTAL"] + senders]
     # Resetta l'indice per avere la colonna data
     daily_dataset = pivot.reset_index()
 
@@ -114,11 +114,10 @@ def display_temporal_tab(container, df):
     
     # Mittenti da visualizzare di default
     default_senders = [sender for sender in [
-        "AREA TECNICA 1",
-        "AREA TECNICA 2",
-        "AREA VIGILANZA",
-        "AREA AMMINISTRATIVA",
-        "COMUNE DI ACERNO"
+        "area tecnica 1",
+        "area tecnica 2",
+        "area vigilanza",
+        "area amministrativa comune di acerno"
     ] if sender in senders]
     
     # Widget per la selezione dei mittenti
@@ -128,8 +127,8 @@ def display_temporal_tab(container, df):
         default=default_senders
     )
     
-    # Costruisce le dimensioni da utilizzare: si mostra sempre la colonna "TOTALE"
-    dimensions = ["data", "TOTALE"] + selected_senders
+    # Costruisce le dimensioni da utilizzare: si mostra sempre la colonna "TOTAL"
+    dimensions = ["data", "TOTAL"] + selected_senders
 
     # Filtra i dataset per mantenere solo le colonne selezionate
     daily_filtered = daily_dataset[dimensions]
@@ -137,6 +136,7 @@ def display_temporal_tab(container, df):
     
     # Crea l'opzione per il grafico giornaliero
     option_daily = {
+        "animationDuration": 10000,
         "dataset": [
             {
                 "id": "dataset_raw",
@@ -148,6 +148,7 @@ def display_temporal_tab(container, df):
         "tooltip": {"order": "valueDesc", "trigger": "axis"},
         "xAxis": {"type": "category", "nameLocation": "middle"},
         "yAxis": {"name": "Pubblicazioni Giorno"},
+        "grid": {"right": 140},
         "series": [
             {
                 "type": "line",
@@ -162,6 +163,7 @@ def display_temporal_tab(container, df):
     
     # Crea l'opzione per il grafico cumulato
     option_cumulative = {
+        "animationDuration": 10000,
         "dataset": [
             {
                 "id": "dataset_raw",
