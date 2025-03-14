@@ -108,10 +108,8 @@ def display_temporal_tab(container, df):
     """
     Visualizza due grafici (giornaliero e cumulato) che mostrano l'andamento
     totale e per ciascun mittente, utilizzando echarts. Il controllo dei layer
-    avviene tramite la legenda posta sotto il grafico, con default che attiva:
-    "AREA TECNICA 1", "AREA TECNICA 2", "AREA VIGILANZA", "AREA AMMINISTRATIVA",
-    "COMUNE DI ACERNO". Le etichette della legenda vengono formattate in modo che
-    ogni parola sia Capitalize() tranne "TOTAL" che diventa "TOTALE".
+    avviene tramite la legenda posta sotto il grafico; la legenda utilizza un formatter
+    che trasforma le etichette in modalità capitalize() (escluso "TOTAL" che diventa "TOTALE").
     """
     # Prepara i dataset aggregati per data e mittente
     daily_dataset, cumulative_dataset, senders = prepare_time_series_data_by_sender(df)
@@ -134,11 +132,9 @@ def display_temporal_tab(container, df):
     daily_filtered = daily_dataset[dimensions]
     cumulative_filtered = cumulative_dataset[dimensions]
     
-    # Formatter della legenda usando JsCode per far interpretare il codice JavaScript
+    # Formatter della legenda usando JsCode e racchiuso tra parentesi
     legend_formatter = JsCode(
-        "function(name){ "
-        "  return name === 'TOTAL' ? 'TOTALE' : name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();"
-        "}"
+        "(function(name){ return name === 'TOTAL' ? 'TOTALE' : name.charAt(0).toUpperCase() + name.slice(1).toLowerCase(); })"
     )
     
     # Configurazione del grafico giornaliero
