@@ -108,7 +108,7 @@ def display_temporal_tab(container, df):
     """
     Visualizza due grafici (giornaliero e cumulato) che mostrano l'andamento
     totale e per ciascun mittente, utilizzando echarts. La legenda mostrerà
-    i mittenti in un formato leggibile (es. "Area Tecnica 1", "Comune di Acerno").
+    i mittenti con la prima lettera di ogni parola in maiuscolo.
     """
     # Prepara i dataset aggregati per data e mittente
     daily_dataset, cumulative_dataset, senders = prepare_time_series_data_by_sender(df)
@@ -116,7 +116,7 @@ def display_temporal_tab(container, df):
     # Mappa di rinomina per formattare le etichette
     rename_map = {
         "TOTAL": "TOTALE",
-        **{sender: sender.capitalize() for sender in senders if sender != "TOTAL"}  # Capitalize su tutti i mittenti
+        **{sender: sender.title() for sender in senders if sender != "TOTAL"}  # Usa title() su tutti i mittenti
     }
 
     # Lista di dimensioni rinominate
