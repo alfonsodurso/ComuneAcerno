@@ -208,7 +208,7 @@ def display_temporal_tab(container, df):
 
     # Calcolare altezza dinamica
     base_height = 600  # Altezza di base
-    extra_height = len(renamed_dimensions[1:]) * 5  # Aggiungere spazio in base al numero di serie
+    extra_height = len(renamed_dimensions[1:]) * 0  # Aggiungere spazio in base al numero di serie
     dynamic_height = base_height + extra_height
     
     # Mostra i grafici
