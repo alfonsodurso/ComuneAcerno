@@ -197,7 +197,7 @@ def display_temporal_tab(container, df):
                         "bottom": "0px"  # Sposta ulteriormente la legenda per dispositivi piccoli
                     },
                     "grid": {
-                        "bottom": "50%"  # Aumenta lo spazio in basso per dispositivi piccoli
+                        "bottom": "20%"  # Aumenta lo spazio in basso per dispositivi piccoli
                     }
                 }
             }
