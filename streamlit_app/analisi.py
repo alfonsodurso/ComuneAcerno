@@ -157,20 +157,19 @@ def display_temporal_tab(container, df):
         "title": {"text": "Andamento giornaliero"},
         "tooltip": {
             "trigger": "axis",
-            "triggerOn": "click",  # Mostra tooltip al click, non al passaggio del dito
             "textStyle": {"fontSize": 10},
             "extraCssText": "padding: 5px;"
         },
         "legend": {
             "data": [rename_map.get(sender, sender) for sender in senders],
             "selected": legend_selected,
-            "bottom": "60px",  # Posiziona la legenda sotto il grafico
+            "bottom": "160px",  # Posiziona la legenda sotto il grafico
             "textStyle": {"fontSize": 10}
         },
         "grid": {
             "left": "3%",
             "right": "4%",
-            "bottom": "20%"  # Aumenta il margine inferiore per fare spazio alla legenda
+            "bottom": "50%"  # Aumenta il margine inferiore per fare spazio alla legenda
         },
         "xAxis": {"type": "category", "nameLocation": "middle"},
         "yAxis": {},
