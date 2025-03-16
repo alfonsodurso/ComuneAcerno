@@ -164,7 +164,7 @@ def display_temporal_tab(container, df):
         "legend": {
             "data": [rename_map.get(sender, sender) for sender in senders],
             "selected": legend_selected,
-            "right": "0%",  # Default: posizione a destra
+            "right": "50%",  # Default: posizione a destra
             "orient": "vertical",  # Default: layout verticale
             "textStyle": {"fontSize": 10}
         },
