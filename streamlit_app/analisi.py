@@ -170,7 +170,7 @@ def display_temporal_tab(container, df):
         "grid": {
             "left": "3%",
             "right": "4%",
-            "bottom": "20%"  # Aumenta il margine inferiore per fare spazio alla legenda
+            "bottom": "15%"  # Aumenta il margine inferiore per fare spazio alla legenda
         },
         "xAxis": {"type": "category", "nameLocation": "middle"},
         "yAxis": {},
@@ -198,7 +198,7 @@ def display_temporal_tab(container, df):
                         "bottom": "0px"  # Sposta ulteriormente la legenda per dispositivi piccoli
                     },
                     "grid": {
-                        "bottom": "20%"  # Aumenta lo spazio in basso per dispositivi piccoli
+                        "bottom": "30%"  # Aumenta lo spazio in basso per dispositivi piccoli
                     }
                 }
             }
