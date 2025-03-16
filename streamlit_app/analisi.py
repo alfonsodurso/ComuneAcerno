@@ -164,13 +164,13 @@ def display_temporal_tab(container, df):
         "legend": {
             "data": [rename_map.get(sender, sender) for sender in senders],
             "selected": legend_selected,
-            "bottom": "0px",  # Posiziona la legenda sotto il grafico
+            "left": "0px", 
             "textStyle": {"fontSize": 10}
         },
         "grid": {
             "left": "3%",
             "right": "4%",
-            "bottom": "80px"  # Aumenta il margine inferiore per fare spazio alla legenda
+            "bottom": "80px"  
         },
         "xAxis": {"type": "category", "nameLocation": "middle"},
         "yAxis": {},
