@@ -157,7 +157,6 @@ def display_temporal_tab(container, df):
         "title": {"text": "Andamento giornaliero"},
         "tooltip": {
             "trigger": "axis",
-            "triggerOn": "click",  # Mostra tooltip solo al click su mobile
             "textStyle": {"fontSize": 10},
             "extraCssText": "padding: 5px;"
         },
@@ -198,9 +197,9 @@ def display_temporal_tab(container, df):
                         "bottom": "0%"
                     },
                     "grid": {
-                        "left": "5%",
-                        "right": "5%",
-                        "bottom": "15%"  # Più spazio sotto per la legenda
+                        "left": "0%",
+                        "right": "0%",
+                        "bottom": "30px"  # Più spazio sotto per la legenda
                     }
                 }
             }
