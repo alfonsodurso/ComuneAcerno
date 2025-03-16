@@ -155,11 +155,22 @@ def display_temporal_tab(container, df):
             }
         ],
         "title": {"text": "Andamento giornaliero"},
-        "tooltip": {"order": "valueDesc", "trigger": "axis"},
+        "tooltip": {
+            "trigger": "axis",
+            "triggerOn": "click",  # Mostra tooltip al click, non al passaggio del dito
+            "textStyle": {"fontSize": 10},
+            "extraCssText": "padding: 5px;"
+        },
         "legend": {
-            "data": [rename_map.get(sender, sender) for sender in senders],  # Usa la mappa con nomi leggibili
-            "selected": legend_selected,  # Attivazione predefinita
-            "bottom": "0%"  # Posizionamento della legenda sotto il grafico
+            "data": [rename_map.get(sender, sender) for sender in senders],
+            "selected": legend_selected,
+            "bottom": "60px",  # Posiziona la legenda sotto il grafico
+            "textStyle": {"fontSize": 10}
+        },
+        "grid": {
+            "left": "3%",
+            "right": "4%",
+            "bottom": "20%"  # Aumenta il margine inferiore per fare spazio alla legenda
         },
         "xAxis": {"type": "category", "nameLocation": "middle"},
         "yAxis": {},
@@ -169,11 +180,31 @@ def display_temporal_tab(container, df):
                 "showSymbol": True,
                 "name": col,
                 "encode": {"x": "data", "y": col},
-                "smooth": True
+                "smooth": True,
+                "emphasis": {"focus": "series"}
             }
-            for col in renamed_dimensions[1:]  # Escludiamo 'data'
+            for col in renamed_dimensions[1:]
+        ],
+        # Configurazione responsive tramite media query
+        "media": [
+            {
+                "query": {"maxWidth": 768},
+                "option": {
+                    "tooltip": {
+                        "textStyle": {"fontSize": 8}
+                    },
+                    "legend": {
+                        "textStyle": {"fontSize": 8},
+                        "bottom": "80px"  # Sposta ulteriormente la legenda per dispositivi piccoli
+                    },
+                    "grid": {
+                        "bottom": "30%"  # Aumenta lo spazio in basso per dispositivi piccoli
+                    }
+                }
+            }
         ]
     }
+
     
     # Opzione del grafico cumulato
     option_cumulative = {
