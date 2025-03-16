@@ -157,20 +157,21 @@ def display_temporal_tab(container, df):
         "title": {"text": "Andamento giornaliero"},
         "tooltip": {
             "trigger": "axis",
-            "triggerOn": "click",
+            "triggerOn": "click",  # Mostra tooltip solo al click su mobile
             "textStyle": {"fontSize": 10},
-            "extraCssText": "padding: 10px;"
+            "extraCssText": "padding: 5px;"
         },
         "legend": {
             "data": [rename_map.get(sender, sender) for sender in senders],
             "selected": legend_selected,
-            "left": "0px", 
+            "left": "0%",  # Default: posizione a sinistra
+            "orient": "vertical",  # Default: layout verticale
             "textStyle": {"fontSize": 10}
         },
         "grid": {
-            "left": "3%",
-            "right": "4%",
-            "bottom": "80px"  
+            "left": "15%",  # Aggiungiamo spazio per la legenda
+            "right": "5%",
+            "bottom": "10%"
         },
         "xAxis": {"type": "category", "nameLocation": "middle"},
         "yAxis": {},
@@ -185,25 +186,26 @@ def display_temporal_tab(container, df):
             }
             for col in renamed_dimensions[1:]
         ],
-        # Configurazione responsive tramite media query
+        # Configurazione responsive per dispositivi mobili
         "media": [
             {
                 "query": {"maxWidth": 768},
                 "option": {
-                    "tooltip": {
-                        "textStyle": {"fontSize": 8}
-                    },
                     "legend": {
-                        "textStyle": {"fontSize": 8},
-                        "bottom": "0px"  # Sposta ulteriormente la legenda per dispositivi piccoli
+                        "orient": "horizontal",  # Legenda in basso su mobile
+                        "left": "center",
+                        "bottom": "0%"
                     },
                     "grid": {
-                        "bottom": "30%"  # Aumenta lo spazio in basso per dispositivi piccoli
+                        "left": "5%",
+                        "right": "5%",
+                        "bottom": "15%"  # Più spazio sotto per la legenda
                     }
                 }
             }
         ]
     }
+
 
     
     # Opzione del grafico cumulato
