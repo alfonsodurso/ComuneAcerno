@@ -169,9 +169,9 @@ def display_temporal_tab(container, df):
             "textStyle": {"fontSize": 10}
         },
         "grid": {
-            "left": "5%",  # Aggiungiamo spazio per la legenda
-            "right": "15%",
-            "bottom": "5%"
+            "left": "0%",  # Aggiungiamo spazio per la legenda
+            "right": "0%",
+            "bottom": "0%"
         },
         "xAxis": {"type": "category", "nameLocation": "middle"},
         "yAxis": {},
