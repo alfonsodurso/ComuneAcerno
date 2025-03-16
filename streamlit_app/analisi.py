@@ -169,7 +169,7 @@ def display_temporal_tab(container, df):
         "grid": {
             "left": "3%",
             "right": "4%",
-            "bottom": "50%"  # Aumenta il margine inferiore per fare spazio alla legenda
+            "bottom": "10%"  # Aumenta il margine inferiore per fare spazio alla legenda
         },
         "xAxis": {"type": "category", "nameLocation": "middle"},
         "yAxis": {},
