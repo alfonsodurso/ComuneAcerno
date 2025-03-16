@@ -163,7 +163,7 @@ def display_temporal_tab(container, df):
         "legend": {
             "data": [rename_map.get(sender, sender) for sender in senders],
             "selected": legend_selected,
-            "bottom": "0px",  # Posiziona la legenda sotto il grafico
+            "bottom": "10px",  # Posiziona la legenda sotto il grafico
             "textStyle": {"fontSize": 10}
         },
         "grid": {
