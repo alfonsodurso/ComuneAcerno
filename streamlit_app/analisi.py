@@ -195,7 +195,6 @@ def display_temporal_tab(container, df):
                     },
                     "legend": {
                         "textStyle": {"fontSize": 8},
-                        "extraCssText": "padding: 8px;"
                         "bottom": "0px"  # Sposta ulteriormente la legenda per dispositivi piccoli
                     },
                     "grid": {
