@@ -199,7 +199,7 @@ def display_temporal_tab(container, df):
                     "grid": {
                         "left": "0%",
                         "right": "0%",
-                        "bottom": "30px"  # Più spazio sotto per la legenda
+                        "bottom": "50px"  # Più spazio sotto per la legenda
                     }
                 }
             }
