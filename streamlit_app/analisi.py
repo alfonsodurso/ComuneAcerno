@@ -146,7 +146,7 @@ def display_temporal_tab(container, df):
 
     # Opzione del grafico giornaliero
     option_daily = {
-        "animationDuration": 100,
+        "animationDuration": 200,
         "dataset": [
             {
                 "id": "dataset_raw",
@@ -170,7 +170,7 @@ def display_temporal_tab(container, df):
         "grid": {
             "upper": "30px",
             "left": "0%",  # Aggiungiamo spazio per la legenda
-            "right": "0%",
+            "right": "30%",
             "bottom": "30px"
         },
         "xAxis": {"type": "category", "nameLocation": "middle"},
