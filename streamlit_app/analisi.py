@@ -146,14 +146,11 @@ def display_temporal_tab(container, df):
             "legend": {
                 "data": selected_cols[1:],
                 "selected": legend_selected,
-                "orient": "horizontal",
                 "bottom": "5%"
             },
             "xAxis": {"type": "category"},
             "yAxis": {},
             "grid": {
-                "left": "0%",
-                "right": "0%",
                 "bottom": "15%"
             },
             # Media query per dispositivi mobili: layout orizzontale con legenda centrata
@@ -162,8 +159,6 @@ def display_temporal_tab(container, df):
                     "query": {"maxWidth": 768},
                     "option": {
                         "legend": {
-                            "orient": "horizontal",
-                            "left": "center",
                             "bottom": "5%"
                         },
                         "grid": {
