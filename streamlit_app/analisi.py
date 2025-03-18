@@ -147,14 +147,12 @@ def display_temporal_tab(container, df):
                 "data": selected_cols[1:],
                 "selected": legend_selected,
                 "orient": "horizontal",
-                "bottom": "5%"
+                "bottom": "15%"
             },
             "xAxis": {"type": "category"},
             "yAxis": {},
             "grid": {
-                "left": "0%",
-                "right": "0%",
-                "bottom": "15%"
+                "bottom": "5%"
             },
             "series": [
                 {
@@ -168,17 +166,14 @@ def display_temporal_tab(container, df):
             # Configurazione responsiva per smartphone
             "media": [
                 {
-                    "query": {"maxWidth": 768},
                     "option": {
                         "legend": {
                             "orient": "horizontal",
                             "left": "center",
-                            "bottom": "5%"
+                            "bottom": "25%"
                         },
                         "grid": {
-                            "left": "5%",
-                            "right": "5%",
-                            "bottom": "25%"
+                            "bottom": "55%"
                         }
                     }
                 }
