@@ -193,7 +193,7 @@ def display_temporal_tab(container, df):
             "orient": "vertical",
             "textStyle": {"fontSize": 12}
         },
-        "grid": {"left": "0%", "right": "20%", "bottom": "5%", "upper": "5%"},
+        "grid": {"left": "0%", "right": "20%", "bottom": "0%", "upper": "0%"},
         "xAxis": {"type": "category"},
         "yAxis": {},
         "series": [
@@ -234,7 +234,7 @@ def display_temporal_tab(container, df):
             "orient": "vertical",
             "textStyle": {"fontSize": 12}
         },
-        "grid": {"left": "0%", "right": "20%", "bottom": "5%", "upper": "5%"},
+        "grid": {"left": "0%", "right": "20%", "bottom": "0%", "upper": "0%"},
         "xAxis": {"type": "category"},
         "yAxis": {},
         "series": [
