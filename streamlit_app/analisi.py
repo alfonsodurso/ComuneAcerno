@@ -152,7 +152,7 @@ def display_temporal_tab(container, df):
             "xAxis": {"type": "category"},
             "yAxis": {},
             "grid": {
-                "bottom": "50px"
+                "bottom": "70px"
             },
             "series": [
                 {
