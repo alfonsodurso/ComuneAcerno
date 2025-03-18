@@ -137,7 +137,7 @@ def display_temporal_tab(container, df):
             "legend": {"data": selected_cols[1:], "selected": legend_sel, "bottom": "0%"},
             "xAxis": {"type": "category"},
             "yAxis": {},
-            "grid": {"bottom": "21%"},
+            "grid": {"bottom": "10%"},
             "series": [{
                 "type": "line",
                 "name": col,
