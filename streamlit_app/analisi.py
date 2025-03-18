@@ -147,12 +147,12 @@ def display_temporal_tab(container, df):
                 "data": selected_cols[1:],
                 "selected": legend_selected,
                 "orient": "horizontal",
-                "bottom": "7%"
+                "bottom": "75px"
             },
             "xAxis": {"type": "category"},
             "yAxis": {},
             "grid": {
-                "bottom": "5%"
+                "bottom": "55px"
             },
             "series": [
                 {
@@ -163,22 +163,6 @@ def display_temporal_tab(container, df):
                 }
                 for col in selected_cols[1:]
             ],
-            # Configurazione responsiva per smartphone
-            "media": [
-                {
-                    "option": {
-                        "legend": {
-                            "orient": "horizontal",
-                            "left": "center",
-                            "bottom": "7%"
-                        },
-                        "grid": {
-                            "bottom": "5%"
-                        }
-                    }
-                }
-            ]
-        }
     
     st_echarts(options=create_chart("Andamento giornaliero", daily_filtered), key="daily_echarts")
     st_echarts(options=create_chart("Andamento cumulato", cumulative_filtered), key="cumulative_echarts")
