@@ -159,7 +159,8 @@ def display_temporal_tab(container, df):
                     "query": {"maxWidth": 768},
                     "option": {
                         "legend": {
-                            "bottom": "0%"
+                            "bottom": "0%",
+                            "orient": "vertical"
                         },
                         "grid": {
                             "bottom": "32.5%"
