@@ -123,6 +123,7 @@ def display_temporal_tab(container, df):
         "Area amministrativa",
         "Comune di acerno"
     }
+    
     # Converti in title-case per il confronto visivo
     default_active_senders_display = {s.title() for s in default_active_senders}
     
@@ -177,22 +178,22 @@ def display_temporal_tab(container, df):
     
     # Opzioni del grafico giornaliero
     option_daily = {
-        "animationDuration": 100,
+        "animationDuration": 200,
         "dataset": [{
             "id": "dataset_raw",
             "dimensions": selected_display_columns,
             "source": daily_filtered.values.tolist()
         }],
         "title": {"text": "Andamento giornaliero"},
-        "tooltip": {"trigger": "axis", "triggerOn": "click"},
+        "tooltip": {"trigger": "axis", "triggerOn": "over"},
         "legend": {
             "data": selected_display_columns[1:],  # Escludi "data"
             "selected": legend_selected,
-            "left": "0%",
+            "right": "center",
             "orient": "vertical",
             "textStyle": {"fontSize": 10}
         },
-        "grid": {"left": "15%", "right": "5%", "bottom": "10%"},
+        "grid": {"left": "5%", "right": "5%", "bottom": "10%"},
         "xAxis": {"type": "category"},
         "yAxis": {},
         "series": [
