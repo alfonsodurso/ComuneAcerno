@@ -151,7 +151,7 @@ def display_temporal_tab(container, df):
             "xAxis": {"type": "category"},
             "yAxis": {},
             "grid": {
-                "bottom": "22.5%"
+                "bottom": "21%"
             },
             # Media query per dispositivi mobili: layout orizzontale con legenda centrata
             "media": [
@@ -159,8 +159,7 @@ def display_temporal_tab(container, df):
                     "query": {"maxWidth": 768},
                     "option": {
                         "legend": {
-                            "bottom": "0%",
-                            "orient": "vertical"
+                            "bottom": "0%"
                         },
                         "grid": {
                             "bottom": "32.5%"
