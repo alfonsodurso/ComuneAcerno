@@ -106,105 +106,46 @@ def prepare_time_series_data_by_sender(df):
 
 def display_temporal_tab(container, df):
     """
-    Visualizza due grafici (giornaliero e cumulato) che mostrano l'andamento
-    totale e per ciascun mittente, utilizzando echarts. I mittenti non attivi di default
-    vengono raggruppati sotto la dicitura 'Altri'.
-    
-    Le modifiche ai nomi delle colonne sono applicate solo a livello di visualizzazione.
+    Visualizza due grafici (giornaliero e cumulato) con andamento totale e per mittente,
+    raggruppando i mittenti inattivi sotto "Altri".
     """
-    # Prepara i dataset aggregati per data e mittente
-    daily_dataset, cumulative_dataset, senders = prepare_time_series_data_by_sender(df)
+    daily_data, cumulative_data, senders = prepare_time_series_data_by_sender(df)
     
-    # Definisci i mittenti da attivare di default (in formato "display")
-    default_active_senders = {
-        "Area tecnica 1",
-        "Area tecnica 2",
-        "Area vigilanza",
-        "Area amministrativa",
-        "Comune di acerno"
-    }
+    active_senders = {s.title() for s in {
+        "Area tecnica 1", "Area tecnica 2", "Area vigilanza", "Area amministrativa", "Comune di acerno"
+    }}
     
-    # Converti in title-case per il confronto visivo
-    default_active_senders_display = {s.title() for s in default_active_senders}
+    display_map = {col: "TOTALE" if col == "TOTAL" else col.title() for col in daily_data.columns}
+    display_map["data"] = "data"
     
-    # Crea una mappa per la visualizzazione basata sulle colonne originali.
-    # La colonna "data" viene mantenuta invariata,
-    # "TOTAL" viene trasformato in "TOTALE" e gli altri in title-case.
-    display_map = {}
-    for col in list(daily_dataset.columns):  # usare list(...) per essere sicuri che la collezione sia fissa
-        if col == "data":
-            display_map[col] = col
-        elif col == "TOTAL":
-            display_map[col] = "TOTALE"
-        else:
-            display_map[col] = str(col).title()
+    active_original = {s for s in senders if display_map.get(s, s) in active_senders}
+    inactive_original = set(senders) - active_original
     
-    # Determina i mittenti attivi e inattivi usando i nomi originali.
-    # "TOTAL" non viene considerato qui.
-    active_senders_original = {s for s in senders if display_map.get(s, str(s)) in default_active_senders_display}
-    inactive_senders_original = {s for s in senders if s not in active_senders_original}
+    for dataset in [daily_data, cumulative_data]:
+        dataset["Altri"] = dataset[list(inactive_original)].sum(axis=1)
     
-    # Aggiungi la colonna "Altri" sommando le colonne dei mittenti inattivi
-    daily_dataset["Altri"] = daily_dataset[list(inactive_senders_original)].sum(axis=1)
-    cumulative_dataset["Altri"] = cumulative_dataset[list(inactive_senders_original)].sum(axis=1)
+    rename_columns = {col: display_map[col] for col in daily_data.columns if col not in {"data", "Altri"}}
+    daily_display, cumulative_display = [df.rename(columns=rename_columns) for df in [daily_data, cumulative_data]]
     
-    # Prepara copie dei dataset per la visualizzazione (senza alterare i dati originali)
-    daily_display = daily_dataset.copy()
-    cumulative_display = cumulative_dataset.copy()
+    selected_cols = ["data", "TOTALE"] + sorted(display_map[s] for s in active_original) + ["Altri"]
+    daily_filtered, cumulative_filtered = [df[selected_cols] for df in [daily_display, cumulative_display]]
     
-    # Crea una mappatura per rinominare le colonne (escludendo 'data' e 'Altri')
-    rename_columns = {col: display_map.get(col, str(col)) for col in daily_display.columns if col not in {"data", "Altri"}}
-    daily_display = daily_display.rename(columns=rename_columns)
-    cumulative_display = cumulative_display.rename(columns=rename_columns)
+    legend_selected = {col: col in active_senders or col == "TOTALE" for col in selected_cols[1:]}
     
-    # Definisci l'ordine delle colonne da visualizzare:
-    # - "data"
-    # - Il totale (visualizzato come "TOTALE")
-    # - I mittenti attivi (nella loro forma visualizzata), ordinati in base all'ordine originale
-    # - "Altri"
-    active_senders_ordered = [s for s in sorted(senders) if s in active_senders_original]
-    active_senders_display_ordered = [display_map.get(s, str(s)) for s in active_senders_ordered]
-    selected_display_columns = ["data", display_map["TOTAL"]] + active_senders_display_ordered + ["Altri"]
+    def create_chart(title, dataset):
+        return {
+            "animationDuration": 200,
+            "dataset": [{"id": "dataset_raw", "dimensions": selected_cols, "source": dataset.values.tolist()}],
+            "title": {"text": title},
+            "tooltip": {"trigger": "axis"},
+            "legend": {"data": selected_cols[1:], "selected": legend_selected, "orient": "vertical"},
+            "xAxis": {"type": "category"},
+            "yAxis": {},
+            "series": [{"type": "line", "name": col, "encode": {"x": "data", "y": col}, "smooth": True} for col in selected_cols[1:]]
+        }
     
-    # Filtra i dataset per visualizzazione con le colonne selezionate
-    daily_filtered = daily_display[selected_display_columns]
-    cumulative_filtered = cumulative_display[selected_display_columns]
-    
-    # Configura la legenda: attiva di default le serie "TOTALE" e i mittenti attivi
-    legend_selected = {
-        col: (col in active_senders_display_ordered or col == display_map["TOTAL"])
-        for col in selected_display_columns[1:]  # Escludi "data"
-    }
-    
-    # Opzioni del grafico giornaliero
-    option_daily = {
-        "animationDuration": 100,
-        "dataset": [{"id": "dataset_raw", "dimensions": selected_columns, "source": daily_filtered.values.tolist()}],
-        "title": {"text": "Andamento giornaliero"},
-        "tooltip": {"trigger": "axis", "triggerOn": "click"},
-        "legend": {
-            "data": selected_columns[1:],  # Escludiamo "data"
-            "selected": legend_selected,
-            "left": "0%" if container.is_mobile else "10%",
-            "orient": "horizontal" if container.is_mobile else "vertical",
-            "textStyle": {"fontSize": 10}
-        },
-        "grid": {"left": "15%" if not container.is_mobile else "5%", "right": "5%", "bottom": "15%"},
-        "xAxis": {"type": "category"},
-        "yAxis": {},
-        "series": [{"type": "line", "showSymbol": True, "name": col, "encode": {"x": "data", "y": col}, "smooth": True}
-                   for col in selected_columns[1:]],
-    }
-
-    # Stessa configurazione per il cumulato
-    option_cumulative = {**option_daily, "title": {"text": "Andamento cumulato"},
-                         "dataset": [{"id": "dataset_raw", "dimensions": selected_columns, "source": cumulative_filtered.values.tolist()}]}
-
-    # Mostra i grafici
-    st_echarts(options=option_daily, height="600px", key="daily_echarts")
-    st_echarts(options=option_cumulative, height="600px", key="cumulative_echarts")
-
-
+    st_echarts(options=create_chart("Andamento giornaliero", daily_filtered), key="daily_echarts")
+    st_echarts(options=create_chart("Andamento cumulato", cumulative_filtered), key="cumulative_echarts")
 
 
 def display_tipologie_mittenti_tab(container, df):
