@@ -138,10 +138,10 @@ def display_temporal_tab(container, df):
             "dataset": [{"id": "dataset_raw", "dimensions": selected_cols, "source": dataset.values.tolist()}],
             "title": {"text": title},
             "tooltip": {"trigger": "axis"},
-            "legend": {"data": selected_cols[1:], "selected": legend_selected, "orient": "horizontal", "bottom": "10%"},
+            "legend": {"data": selected_cols[1:], "selected": legend_selected, "orient": "horizontal", "bottom": "5%"},
             "xAxis": {"type": "category"},
             "yAxis": {},
-            "grid": {"bottom": "85px"},
+            "grid": {"bottom": "10%"},
             "series": [{"type": "line", "name": col, "encode": {"x": "data", "y": col}, "smooth": True} for col in selected_cols[1:]]
         }
     
