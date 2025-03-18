@@ -162,7 +162,7 @@ def display_temporal_tab(container, df):
                     "smooth": True
                 }
                 for col in selected_cols[1:]
-            ],
+            ]
     
     st_echarts(options=create_chart("Andamento giornaliero", daily_filtered), key="daily_echarts")
     st_echarts(options=create_chart("Andamento cumulato", cumulative_filtered), key="cumulative_echarts")
