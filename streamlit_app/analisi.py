@@ -185,7 +185,7 @@ def display_temporal_tab(container, df):
             "source": daily_filtered.values.tolist()
         }],
         "title": {"text": "Andamento giornaliero"},
-        "tooltip": {"trigger": "axis", "triggerOn": "hover"},
+        "tooltip": {"trigger": "axis", "triggerOn": "mousemove|click"},
         "legend": {
             "data": selected_display_columns[1:],  # Escludi "data"
             "selected": legend_selected,
@@ -226,7 +226,7 @@ def display_temporal_tab(container, df):
             "source": cumulative_filtered.values.tolist()
         }],
         "title": {"text": "Andamento cumulato"},
-        "tooltip": {"trigger": "axis", "triggerOn": "click"},
+        "tooltip": {"trigger": "axis", "triggerOn": "mousemove|click"},
         "legend": {
             "data": selected_display_columns[1:],
             "selected": legend_selected,
