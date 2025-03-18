@@ -193,7 +193,7 @@ def display_temporal_tab(container, df):
             "orient": "vertical",
             "textStyle": {"fontSize": 12}
         },
-        "grid": {"left": "0%", "right": "0%", "bottom": "15%", "upper": "5%"},
+        "grid": {"left": "0%", "right": "0%", "bottom": "5%", "upper": "5%"},
         "xAxis": {"type": "category"},
         "yAxis": {},
         "series": [
@@ -228,13 +228,13 @@ def display_temporal_tab(container, df):
         "title": {"text": "Andamento cumulato"},
         "tooltip": {"trigger": "axis", "triggerOn": "mousemove|click"},
         "legend": {
-            "data": selected_display_columns[1:],
+            "data": selected_display_columns[1:],  # Escludi "data"
             "selected": legend_selected,
-            "left": "0%",
+            "right": "right",
             "orient": "vertical",
             "textStyle": {"fontSize": 12}
         },
-        "grid": {"left": "0%", "right": "0%", "bottom": "15%", "upper": "5%"},
+        "grid": {"left": "0%", "right": "0%", "bottom": "5%", "upper": "5%"},
         "xAxis": {"type": "category"},
         "yAxis": {},
         "series": [
