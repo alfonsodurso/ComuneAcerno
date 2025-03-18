@@ -189,7 +189,6 @@ def display_temporal_tab(container, df):
         "legend": {
             "data": selected_display_columns[1:],  # Escludi "data"
             "selected": legend_selected,
-            "orient": "vertical",
             "textStyle": {"fontSize": 12}
         },
         "grid": {"left": "0%", "right": "0%", "bottom": "0%", "upper": "0%"},
@@ -208,8 +207,7 @@ def display_temporal_tab(container, df):
         "media": [
             {
                 "option": {
-                    "legend": {"orient": "horizontal", "left": "center", "bottom": "0%"},
-                    "grid": {"left": "0%", "right": "0%", "bottom": "35px"}
+                    "grid": {"left": "0%", "right": "0%", "bottom": "55px"}
                 }
             }
         ]
@@ -228,7 +226,6 @@ def display_temporal_tab(container, df):
         "legend": {
             "data": selected_display_columns[1:],  # Escludi "data"
             "selected": legend_selected,
-            "orient": "vertical",
             "textStyle": {"fontSize": 12}
         },
         "grid": {"left": "0%", "right": "0%", "bottom": "0%", "upper": "0%"},
@@ -247,8 +244,7 @@ def display_temporal_tab(container, df):
         "media": [
             {
                 "option": {
-                    "legend": {"orient": "horizontal", "left": "center", "bottom": "0%"},
-                    "grid": {"left": "0%", "right": "0%", "bottom": "25px"}
+                    "grid": {"left": "0%", "right": "0%", "bottom": "75px"}
                 }
             }
         ]
