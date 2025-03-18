@@ -130,19 +130,27 @@ def display_temporal_tab(container, df):
         "Area amministrativa",
         "Comune di acerno"
     }
+    
+    # Converte in formato corretto
+    senders_title = {s: s.title() for s in senders}  # Titolo corretto per ogni mittente
+    default_active_senders = {s.title() for s in default_active_senders}
 
-    # Mappatura dei mittenti di default con title()
-    default_active_senders = {sender.title() for sender in default_active_senders}
+    # Mittenti disattivati (solo quelli che esistono nel dataset)
+    inactive_senders = {senders_title[s] for s in senders if senders_title[s] not in default_active_senders and s != "TOTAL"}
 
-    # Dizionario per la proprietà "selected" della legenda
-    legend_selected = {
-        rename_map[col]: (rename_map[col] in default_active_senders) for col in senders
-    }
-    legend_selected["TOTALE"] = True  # Manteniamo sempre attivo 'TOTALE'
+    # Creiamo la colonna "Altri" solo se ci sono mittenti disattivati
+    if inactive_senders:
+        daily_dataset["Altri"] = daily_dataset[list(inactive_senders)].sum(axis=1)
+        cumulative_dataset["Altri"] = cumulative_dataset[list(inactive_senders)].sum(axis=1)
 
-    # Rinominare i dati nel DataFrame
-    daily_filtered = daily_dataset.rename(columns=rename_map)
-    cumulative_filtered = cumulative_dataset.rename(columns=rename_map)
+    # Filtriamo solo le colonne necessarie
+    selected_columns = ["data", "TOTAL"] + list(default_active_senders) + (["Altri"] if inactive_senders else [])
+    daily_filtered = daily_dataset[selected_columns].rename(columns={"TOTAL": "TOTALE"})
+    cumulative_filtered = cumulative_dataset[selected_columns].rename(columns={"TOTAL": "TOTALE"})
+
+    # Configurazione della legenda
+    legend_selected = {col: (col in default_active_senders or col == "TOTALE") for col in selected_columns[1:]}
+
 
     # Opzione del grafico giornaliero
     option_daily = {
