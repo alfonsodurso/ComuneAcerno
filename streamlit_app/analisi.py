@@ -146,7 +146,7 @@ def display_temporal_tab(container, df):
             "legend": {
                 "data": selected_cols[1:],
                 "selected": legend_selected,
-                "bottom": "5%"
+                "bottom": "0%"
             },
             "xAxis": {"type": "category"},
             "yAxis": {},
@@ -159,7 +159,7 @@ def display_temporal_tab(container, df):
                     "query": {"maxWidth": 768},
                     "option": {
                         "legend": {
-                            "bottom": "5%"
+                            "bottom": "0%"
                         },
                         "grid": {
                             "bottom": "30%"
