@@ -189,7 +189,7 @@ def display_temporal_tab(container, df):
         "legend": {
             "data": selected_display_columns[1:],  # Escludi "data"
             "selected": legend_selected,
-            "right": "center",
+            "right": "right",
             "orient": "vertical",
             "textStyle": {"fontSize": 10}
         },
