@@ -189,11 +189,10 @@ def display_temporal_tab(container, df):
         "legend": {
             "data": selected_display_columns[1:],  # Escludi "data"
             "selected": legend_selected,
-            "right": "right",
             "orient": "vertical",
             "textStyle": {"fontSize": 12}
         },
-        "grid": {"left": "0%", "right": "20%", "bottom": "0%", "upper": "0%"},
+        "grid": {"left": "0%", "right": "0%", "bottom": "0%", "upper": "0%"},
         "xAxis": {"type": "category"},
         "yAxis": {},
         "series": [
@@ -210,7 +209,7 @@ def display_temporal_tab(container, df):
             {
                 "option": {
                     "legend": {"orient": "horizontal", "left": "center", "bottom": "0%"},
-                    "grid": {"left": "0%", "right": "0%", "bottom": "35%"}
+                    "grid": {"left": "0%", "right": "0%", "bottom": "35px"}
                 }
             }
         ]
@@ -229,11 +228,10 @@ def display_temporal_tab(container, df):
         "legend": {
             "data": selected_display_columns[1:],  # Escludi "data"
             "selected": legend_selected,
-            "right": "right",
             "orient": "vertical",
             "textStyle": {"fontSize": 12}
         },
-        "grid": {"left": "0%", "right": "20%", "bottom": "0%", "upper": "0%"},
+        "grid": {"left": "0%", "right": "0%", "bottom": "0%", "upper": "0%"},
         "xAxis": {"type": "category"},
         "yAxis": {},
         "series": [
@@ -250,7 +248,7 @@ def display_temporal_tab(container, df):
             {
                 "option": {
                     "legend": {"orient": "horizontal", "left": "center", "bottom": "0%"},
-                    "grid": {"left": "0%", "right": "0%", "bottom": "35%"}
+                    "grid": {"left": "0%", "right": "0%", "bottom": "25px"}
                 }
             }
         ]
