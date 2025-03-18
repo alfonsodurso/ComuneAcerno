@@ -191,9 +191,9 @@ def display_temporal_tab(container, df):
             "selected": legend_selected,
             "right": "right",
             "orient": "vertical",
-            "textStyle": {"fontSize": 10}
+            "textStyle": {"fontSize": 12}
         },
-        "grid": {"left": "0%", "right": "0%", "bottom": "0%"},
+        "grid": {"left": "0%", "right": "0%", "bottom": "0%", "upper": "5%"},
         "xAxis": {"type": "category"},
         "yAxis": {},
         "series": [
@@ -232,9 +232,9 @@ def display_temporal_tab(container, df):
             "selected": legend_selected,
             "left": "0%",
             "orient": "vertical",
-            "textStyle": {"fontSize": 10}
+            "textStyle": {"fontSize": 12}
         },
-        "grid": {"left": "15%", "right": "5%", "bottom": "10%"},
+        "grid": {"left": "0%", "right": "0%", "bottom": "0%", "upper": "5%"},
         "xAxis": {"type": "category"},
         "yAxis": {},
         "series": [
@@ -252,7 +252,7 @@ def display_temporal_tab(container, df):
                 "query": {"maxWidth": 768},
                 "option": {
                     "legend": {"orient": "horizontal", "left": "center", "bottom": "0%"},
-                    "grid": {"left": "5%", "right": "5%", "bottom": "15%"}
+                    "grid": {"left": "0%", "right": "0%", "bottom": "15%"}
                 }
             }
         ]
