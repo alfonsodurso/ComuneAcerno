@@ -147,7 +147,7 @@ def display_temporal_tab(container, df):
                 "data": selected_cols[1:],
                 "selected": legend_selected,
                 "orient": "horizontal",
-                "bottom": "75px"
+                "bottom": "5px"
             },
             "xAxis": {"type": "category"},
             "yAxis": {},
