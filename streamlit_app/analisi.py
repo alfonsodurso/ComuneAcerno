@@ -193,7 +193,7 @@ def display_temporal_tab(container, df):
             "orient": "vertical",
             "textStyle": {"fontSize": 12}
         },
-        "grid": {"left": "0%", "right": "0%", "bottom": "5%", "upper": "5%"},
+        "grid": {"left": "0%", "right": "20%", "bottom": "5%", "upper": "5%"},
         "xAxis": {"type": "category"},
         "yAxis": {},
         "series": [
@@ -211,7 +211,7 @@ def display_temporal_tab(container, df):
                 "query": {"maxWidth": 768},
                 "option": {
                     "legend": {"orient": "horizontal", "left": "center", "bottom": "0%"},
-                    "grid": {"left": "0%", "right": "0%", "bottom": "15%"}
+                    "grid": {"left": "0%", "right": "0%", "bottom": "20%"}
                 }
             }
         ]
@@ -234,7 +234,7 @@ def display_temporal_tab(container, df):
             "orient": "vertical",
             "textStyle": {"fontSize": 12}
         },
-        "grid": {"left": "0%", "right": "0%", "bottom": "5%", "upper": "5%"},
+        "grid": {"left": "0%", "right": "20%", "bottom": "5%", "upper": "5%"},
         "xAxis": {"type": "category"},
         "yAxis": {},
         "series": [
@@ -252,18 +252,16 @@ def display_temporal_tab(container, df):
                 "query": {"maxWidth": 768},
                 "option": {
                     "legend": {"orient": "horizontal", "left": "center", "bottom": "0%"},
-                    "grid": {"left": "0%", "right": "0%", "bottom": "15%"}
+                    "grid": {"left": "0%", "right": "0%", "bottom": "20%"}
                 }
             }
         ]
     }
     
-    # Altezza dinamica (qui usiamo un'altezza fissa di 600px, da regolare se necessario)
-    dynamic_height = 600
 
     # Mostra i grafici nel container
-    st_echarts(options=option_daily, height=f"{dynamic_height}px", key="daily_echarts")
-    st_echarts(options=option_cumulative, height=f"{dynamic_height}px", key="cumulative_echarts")
+    st_echarts(options=option_daily, key="daily_echarts")
+    st_echarts(options=option_cumulative, key="cumulative_echarts")
 
 
 
