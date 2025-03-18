@@ -141,44 +141,6 @@ def display_temporal_tab(container, df):
             "legend": {"data": selected_cols[1:], "selected": legend_selected, "orient": "horizontal", "bottom": "5%"},
             "xAxis": {"type": "category"},
             "yAxis": {},
-            "grid": {"left": "0%", "right": "0%", "bottom": "15%"},
-            "series": [{"type": "line", "name": col, "encode": {"x": "data", "y": col}, "smooth": True} for col in selected_cols[1:]]
-        }
-    
-    st_echarts(options=create_chart("Andamento giornaliero", daily_filtered), key="daily_echarts")
-    st_echarts(options=create_chart("Andamento cumulato", cumulative_filtered), key="cumulative_echarts")
-  daily_data, cumulative_data, senders = prepare_time_series_data_by_sender(df)
-    
-    active_senders = {s.title() for s in {
-        "Area tecnica 1", "Area tecnica 2", "Area vigilanza", "Area amministrativa", "Comune di acerno"
-    }}
-    
-    display_map = {col: "TOTALE" if col == "TOTAL" else col.title() for col in daily_data.columns}
-    display_map["data"] = "data"
-    
-    active_original = {s for s in senders if display_map.get(s, s) in active_senders}
-    inactive_original = set(senders) - active_original
-    
-    for dataset in [daily_data, cumulative_data]:
-        dataset["Altri"] = dataset[list(inactive_original)].sum(axis=1)
-    
-    rename_columns = {col: display_map[col] for col in daily_data.columns if col not in {"data", "Altri"}}
-    daily_display, cumulative_display = [df.rename(columns=rename_columns) for df in [daily_data, cumulative_data]]
-    
-    selected_cols = ["data", "TOTALE"] + sorted(display_map[s] for s in active_original) + ["Altri"]
-    daily_filtered, cumulative_filtered = [df[selected_cols] for df in [daily_display, cumulative_display]]
-    
-    legend_selected = {col: col in active_senders or col == "TOTALE" for col in selected_cols[1:]}
-    
-    def create_chart(title, dataset):
-        return {
-            "animationDuration": 200,
-            "dataset": [{"id": "dataset_raw", "dimensions": selected_cols, "source": dataset.values.tolist()}],
-            "title": {"text": title},
-            "tooltip": {"trigger": "axis"},
-            "legend": {"data": selected_cols[1:], "selected": legend_selected, "orient": "horizontal", "bottom": "5%"},
-            "xAxis": {"type": "category"},
-            "yAxis": {},
             "grid": {"bottom": "10%"},
             "series": [{"type": "line", "name": col, "encode": {"x": "data", "y": col}, "smooth": True} for col in selected_cols[1:]]
         }
