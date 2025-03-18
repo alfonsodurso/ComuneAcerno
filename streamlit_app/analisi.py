@@ -185,7 +185,7 @@ def display_temporal_tab(container, df):
             "source": daily_filtered.values.tolist()
         }],
         "title": {"text": "Andamento giornaliero"},
-        "tooltip": {"trigger": "axis", "triggerOn": "over"},
+        "tooltip": {"trigger": "axis", "triggerOn": "hover"},
         "legend": {
             "data": selected_display_columns[1:],  # Escludi "data"
             "selected": legend_selected,
