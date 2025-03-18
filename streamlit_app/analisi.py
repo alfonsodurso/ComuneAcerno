@@ -138,15 +138,15 @@ def display_temporal_tab(container, df):
             "dataset": [{"id": "dataset_raw", "dimensions": selected_cols, "source": dataset.values.tolist()}],
             "title": {"text": title},
             "tooltip": {"trigger": "axis"},
-            "legend": {"data": selected_cols[1:], "selected": legend_selected, "orient": "vertical"},
+            "legend": {"data": selected_cols[1:], "selected": legend_selected, "orient": "horizontal", "bottom": "10%"},
             "xAxis": {"type": "category"},
             "yAxis": {},
+            "grid": {"left": "10%", "right": "10%", "bottom": "20%"},
             "series": [{"type": "line", "name": col, "encode": {"x": "data", "y": col}, "smooth": True} for col in selected_cols[1:]]
         }
     
     st_echarts(options=create_chart("Andamento giornaliero", daily_filtered), key="daily_echarts")
     st_echarts(options=create_chart("Andamento cumulato", cumulative_filtered), key="cumulative_echarts")
-
 
 def display_tipologie_mittenti_tab(container, df):
     col1, col2 = container.columns(2)
