@@ -178,82 +178,31 @@ def display_temporal_tab(container, df):
     
     # Opzioni del grafico giornaliero
     option_daily = {
-        "animationDuration": 200,
-        "dataset": [{
-            "id": "dataset_raw",
-            "dimensions": selected_display_columns,
-            "source": daily_filtered.values.tolist()
-        }],
-        "title": {"text": "Andamento giornaliero"},
-        "tooltip": {"trigger": "axis", "triggerOn": "mousemove|click"},
-        "legend": {
-            "data": selected_display_columns[1:],  # Escludi "data"
-            "selected": legend_selected,
-            "textStyle": {"fontSize": 12}
-        },
-        "grid": {"left": "0%", "right": "0%", "bottom": "0%", "upper": "0%"},
-        "xAxis": {"type": "category"},
-        "yAxis": {},
-        "series": [
-            {
-                "type": "line",
-                "showSymbol": True,
-                "name": col,
-                "encode": {"x": "data", "y": col},
-                "smooth": True
-            }
-            for col in selected_display_columns[1:]
-        ],
-        "media": [
-            {
-                "option": {
-                    "grid": {"left": "0%", "right": "0%", "bottom": "55px"}
-                }
-            }
-        ]
-    }
-    
-    # Opzioni del grafico cumulato (simile al grafico giornaliero, ma con i dati cumulati)
-    option_cumulative = {
         "animationDuration": 100,
-        "dataset": [{
-            "id": "dataset_raw",
-            "dimensions": selected_display_columns,
-            "source": cumulative_filtered.values.tolist()
-        }],
-        "title": {"text": "Andamento cumulato"},
-        "tooltip": {"trigger": "axis", "triggerOn": "mousemove|click"},
+        "dataset": [{"id": "dataset_raw", "dimensions": selected_columns, "source": daily_filtered.values.tolist()}],
+        "title": {"text": "Andamento giornaliero"},
+        "tooltip": {"trigger": "axis", "triggerOn": "click"},
         "legend": {
-            "data": selected_display_columns[1:],  # Escludi "data"
+            "data": selected_columns[1:],  # Escludiamo "data"
             "selected": legend_selected,
-            "textStyle": {"fontSize": 12}
+            "left": "0%" if container.is_mobile else "10%",
+            "orient": "horizontal" if container.is_mobile else "vertical",
+            "textStyle": {"fontSize": 10}
         },
-        "grid": {"left": "0%", "right": "0%", "bottom": "0%", "upper": "0%"},
+        "grid": {"left": "15%" if not container.is_mobile else "5%", "right": "5%", "bottom": "15%"},
         "xAxis": {"type": "category"},
         "yAxis": {},
-        "series": [
-            {
-                "type": "line",
-                "showSymbol": True,
-                "name": col,
-                "encode": {"x": "data", "y": col},
-                "smooth": True
-            }
-            for col in selected_display_columns[1:]
-        ],
-        "media": [
-            {
-                "option": {
-                    "grid": {"left": "0%", "right": "0%", "bottom": "75px"}
-                }
-            }
-        ]
+        "series": [{"type": "line", "showSymbol": True, "name": col, "encode": {"x": "data", "y": col}, "smooth": True}
+                   for col in selected_columns[1:]],
     }
-    
 
-    # Mostra i grafici nel container
-    st_echarts(options=option_daily, key="daily_echarts")
-    st_echarts(options=option_cumulative, key="cumulative_echarts")
+    # Stessa configurazione per il cumulato
+    option_cumulative = {**option_daily, "title": {"text": "Andamento cumulato"},
+                         "dataset": [{"id": "dataset_raw", "dimensions": selected_columns, "source": cumulative_filtered.values.tolist()}]}
+
+    # Mostra i grafici
+    st_echarts(options=option_daily, height="600px", key="daily_echarts")
+    st_echarts(options=option_cumulative, height="600px", key="cumulative_echarts")
 
 
 
