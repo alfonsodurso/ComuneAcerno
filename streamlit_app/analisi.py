@@ -146,7 +146,7 @@ def display_temporal_tab(container, df):
             "legend": {
                 "data": selected_cols[1:],
                 "selected": legend_selected,
-                "orient": "vertical",
+                "orient": "horizontal",
                 "bottom": "5%"
             },
             "xAxis": {"type": "category"},
@@ -167,9 +167,7 @@ def display_temporal_tab(container, df):
                             "bottom": "5%"
                         },
                         "grid": {
-                            "left": "5%",
-                            "right": "5%",
-                            "bottom": "25%"
+                            "bottom": "30%"
                         }
                     }
                 }
