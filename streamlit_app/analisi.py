@@ -133,8 +133,8 @@ def display_temporal_tab(container, df):
     inactive_senders = {rename_map[s] for s in senders if rename_map[s] not in active_senders and s != "TOTAL"}
 
     # Creiamo una nuova colonna "Altri" sommando tutti i mittenti disattivati
-    daily_dataset["Altri"] = daily_dataset[inactive_senders].sum(axis=1)
-    cumulative_dataset["Altri"] = cumulative_dataset[inactive_senders].sum(axis=1)
+    daily_dataset["Altri"] = daily_dataset[list(inactive_senders)].sum(axis=1)
+    cumulative_dataset["Altri"] = cumulative_dataset[list(inactive_senders)].sum(axis=1)
 
     # Filtriamo solo le colonne necessarie
     selected_columns = ["data", "TOTALE"] + list(active_senders) + ["Altri"]
