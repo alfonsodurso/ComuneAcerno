@@ -109,7 +109,7 @@ def display_temporal_tab(container, df):
     Visualizza due grafici (giornaliero e cumulato) che mostrano l'andamento
     totale e per ciascun mittente, utilizzando echarts. I mittenti non attivi di default
     vengono raggruppati sotto la dicitura 'Altri'.
-
+    
     Le modifiche ai nomi delle colonne sono applicate solo a livello di visualizzazione.
     """
     # Prepara i dataset aggregati per data e mittente
@@ -123,60 +123,59 @@ def display_temporal_tab(container, df):
         "Area amministrativa",
         "Comune di acerno"
     }
-    # Normalizziamo in title-case (il formato visualizzato)
+    # Converti in title-case per il confronto visivo
     default_active_senders_display = {s.title() for s in default_active_senders}
     
-    # Crea una mappa per la visualizzazione:
-    # - "data" resta invariato
-    # - "TOTAL" viene visualizzato come "TOTALE"
-    # - Tutti gli altri mittenti sono convertiti in title-case
+    # Crea una mappa per la visualizzazione basata sulle colonne originali.
+    # La colonna "data" viene mantenuta invariata,
+    # "TOTAL" viene trasformato in "TOTALE" e gli altri in title-case.
     display_map = {}
-    for col in daily_dataset.columns:
+    for col in list(daily_dataset.columns):  # usare list(...) per essere sicuri che la collezione sia fissa
         if col == "data":
             display_map[col] = col
         elif col == "TOTAL":
             display_map[col] = "TOTALE"
         else:
-            display_map[col] = col.title()
-
-    # Determina i mittenti attivi e inattivi usando i nomi originali e la mappa di visualizzazione.
-    # Escludiamo "TOTAL" dal confronto.
-    active_senders_original = {s for s in senders if display_map[s] in default_active_senders_display}
+            display_map[col] = str(col).title()
+    
+    # Determina i mittenti attivi e inattivi usando i nomi originali.
+    # "TOTAL" non viene considerato qui.
+    active_senders_original = {s for s in senders if display_map.get(s, str(s)) in default_active_senders_display}
     inactive_senders_original = {s for s in senders if s not in active_senders_original}
     
     # Aggiungi la colonna "Altri" sommando le colonne dei mittenti inattivi
     daily_dataset["Altri"] = daily_dataset[list(inactive_senders_original)].sum(axis=1)
     cumulative_dataset["Altri"] = cumulative_dataset[list(inactive_senders_original)].sum(axis=1)
     
-    # Crea versioni per la visualizzazione (senza modificare i dataset originali)
+    # Prepara copie dei dataset per la visualizzazione (senza alterare i dati originali)
     daily_display = daily_dataset.copy()
     cumulative_display = cumulative_dataset.copy()
-    # Applica la mappatura per la visualizzazione (escludendo le colonne 'data' e 'Altri')
-    rename_columns = {col: display_map[col] for col in daily_display.columns if col not in {"data", "Altri"}}
+    
+    # Crea una mappatura per rinominare le colonne (escludendo 'data' e 'Altri')
+    rename_columns = {col: display_map.get(col, str(col)) for col in daily_display.columns if col not in {"data", "Altri"}}
     daily_display = daily_display.rename(columns=rename_columns)
     cumulative_display = cumulative_display.rename(columns=rename_columns)
-    # La colonna "Altri" la lasciamo invariata
     
-    # Ricostruisci l'ordine delle colonne per la visualizzazione:
+    # Definisci l'ordine delle colonne da visualizzare:
     # - "data"
-    # - il totale (visualizzato come "TOTALE")
-    # - i mittenti attivi (nella loro forma visualizzata), ordinati secondo l'ordine originale
+    # - Il totale (visualizzato come "TOTALE")
+    # - I mittenti attivi (nella loro forma visualizzata), ordinati in base all'ordine originale
     # - "Altri"
     active_senders_ordered = [s for s in sorted(senders) if s in active_senders_original]
-    active_senders_display_ordered = [display_map[s] for s in active_senders_ordered]
+    active_senders_display_ordered = [display_map.get(s, str(s)) for s in active_senders_ordered]
     selected_display_columns = ["data", display_map["TOTAL"]] + active_senders_display_ordered + ["Altri"]
     
-    # Filtra i dataset di visualizzazione per avere solo le colonne selezionate
+    # Filtra i dataset per visualizzazione con le colonne selezionate
     daily_filtered = daily_display[selected_display_columns]
     cumulative_filtered = cumulative_display[selected_display_columns]
     
-    # Configura la legenda: le serie attive (e il totale) sono selezionate di default
+    # Configura la legenda: attiva di default le serie "TOTALE" e i mittenti attivi
     legend_selected = {
         col: (col in active_senders_display_ordered or col == display_map["TOTAL"])
-        for col in selected_display_columns[1:]  # escludi "data"
+        for col in selected_display_columns[1:]  # Escludi "data"
     }
     
-    # Imposta le opzioni per il grafico giornaliero
+    # Opzioni del grafico giornaliero
     option_daily = {
         "animationDuration": 100,
         "dataset": [{
@@ -217,7 +216,7 @@ def display_temporal_tab(container, df):
         ]
     }
     
-    # Imposta le opzioni per il grafico cumulato
+    # Opzioni del grafico cumulato (simile al grafico giornaliero, ma con i dati cumulati)
     option_cumulative = {
         "animationDuration": 100,
         "dataset": [{
@@ -258,12 +257,13 @@ def display_temporal_tab(container, df):
         ]
     }
     
-    # Altezza dinamica o fissa (qui usiamo 600px)
+    # Altezza dinamica (qui usiamo un'altezza fissa di 600px, da regolare se necessario)
     dynamic_height = 600
 
     # Mostra i grafici nel container
     st_echarts(options=option_daily, height=f"{dynamic_height}px", key="daily_echarts")
     st_echarts(options=option_cumulative, height=f"{dynamic_height}px", key="cumulative_echarts")
+
 
 
 
