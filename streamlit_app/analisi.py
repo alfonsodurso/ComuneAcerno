@@ -107,22 +107,13 @@ def prepare_time_series_data_by_sender(df):
 def display_temporal_tab(container, df):
     """
     Visualizza due grafici (giornaliero e cumulato) che mostrano l'andamento
-    totale e per ciascun mittente, utilizzando echarts. La legenda mostrerà
-    i mittenti con la prima lettera di ogni parola in maiuscolo.
+    totale e per ciascun mittente, utilizzando echarts. I mittenti non attivi di default
+    vengono raggruppati sotto la dicitura 'Altri'.
     """
     # Prepara i dataset aggregati per data e mittente
     daily_dataset, cumulative_dataset, senders = prepare_time_series_data_by_sender(df)
-    
-    # Mappa di rinomina per formattare le etichette
-    rename_map = {
-        "TOTAL": "TOTALE",
-        **{sender: sender.title() for sender in senders if sender != "TOTAL"}  # Usa title() su tutti i mittenti
-    }
 
-    # Lista di dimensioni rinominate
-    renamed_dimensions = ["data"] + [rename_map.get(col, col) for col in ["TOTAL"] + senders]
-    
-    # Mittenti da attivare di default
+    # Lista di mittenti da attivare di default
     default_active_senders = {
         "Area tecnica 1",
         "Area tecnica 2",
@@ -131,80 +122,65 @@ def display_temporal_tab(container, df):
         "Comune di acerno"
     }
 
-    # Mappatura dei mittenti di default con title()
-    default_active_senders = {sender.title() for sender in default_active_senders}
-
-    # Dizionario per la proprietà "selected" della legenda
-    legend_selected = {
-        rename_map[col]: (rename_map[col] in default_active_senders) for col in senders
+    # Mappa per formattare le etichette
+    rename_map = {
+        "TOTAL": "TOTALE",
+        **{sender: sender.title() for sender in senders if sender != "TOTAL"}
     }
-    legend_selected["TOTALE"] = True  # Manteniamo sempre attivo 'TOTALE'
 
-    # Rinominare i dati nel DataFrame
-    daily_filtered = daily_dataset.rename(columns=rename_map)
-    cumulative_filtered = cumulative_dataset.rename(columns=rename_map)
+    # Separiamo i mittenti attivi da quelli da raggruppare in "Altri"
+    active_senders = {s.title() for s in default_active_senders}
+    inactive_senders = {rename_map[s] for s in senders if rename_map[s] not in active_senders and s != "TOTAL"}
 
-    # Opzione del grafico giornaliero
+    # Creiamo una nuova colonna "Altri" sommando tutti i mittenti disattivati
+    daily_dataset["Altri"] = daily_dataset[inactive_senders].sum(axis=1)
+    cumulative_dataset["Altri"] = cumulative_dataset[inactive_senders].sum(axis=1)
+
+    # Filtriamo solo le colonne necessarie
+    selected_columns = ["data", "TOTALE"] + list(active_senders) + ["Altri"]
+    daily_filtered = daily_dataset[selected_columns]
+    cumulative_filtered = cumulative_dataset[selected_columns]
+
+    # Configurazione della legenda
+    legend_selected = {col: (col in active_senders or col == "TOTALE") for col in selected_columns[1:]}
+
+    # Opzioni del grafico giornaliero
     option_daily = {
-        "animationDuration": 200,
-        "dataset": [
-            {
-                "id": "dataset_raw",
-                "dimensions": renamed_dimensions,
-                "source": daily_filtered.values.tolist(),
-            }
-        ],
+        "animationDuration": 100,
+        "dataset": [{"id": "dataset_raw", "dimensions": selected_columns, "source": daily_filtered.values.tolist()}],
         "title": {"text": "Andamento giornaliero"},
-        "tooltip": {
-            "trigger": "axis",
-            "textStyle": {"fontSize": 10},
-            "extraCssText": "padding: 5px;"
-        },
+        "tooltip": {"trigger": "axis", "triggerOn": "click"},
         "legend": {
-            "data": [rename_map.get(sender, sender) for sender in senders],
+            "data": selected_columns[1:],  # Escludiamo "data"
             "selected": legend_selected,
-            "right": "0%",  # Default: posizione a destra
-            "orient": "vertical",  # Default: layout verticale
+            "left": "0%",
+            "orient": "vertical",
             "textStyle": {"fontSize": 10}
         },
-        "grid": {
-            "upper": "30px",
-            "left": "0%",  # Aggiungiamo spazio per la legenda
-            "right": "30%",
-            "bottom": "30px"
-        },
-        "xAxis": {"type": "category", "nameLocation": "middle"},
+        "grid": {"left": "15%", "right": "5%", "bottom": "10%"},
+        "xAxis": {"type": "category"},
         "yAxis": {},
-        "series": [
-            {
-                "type": "line",
-                "showSymbol": True,
-                "name": col,
-                "encode": {"x": "data", "y": col},
-                "smooth": True,
-                "emphasis": {"focus": "series"}
-            }
-            for col in renamed_dimensions[1:]
-        ],
-        # Configurazione responsive per dispositivi mobili
+        "series": [{"type": "line", "showSymbol": True, "name": col, "encode": {"x": "data", "y": col}, "smooth": True}
+                   for col in selected_columns[1:]],
         "media": [
             {
                 "query": {"maxWidth": 768},
                 "option": {
-                    "legend": {
-                        "orient": "horizontal",  # Legenda in basso su mobile
-                        "left": "center",
-                        "bottom": "0%"
-                    },
-                    "grid": {
-                        "left": "0%",
-                        "right": "0%",
-                        "bottom": "30%"  # Più spazio sotto per la legenda
-                    }
+                    "legend": {"orient": "horizontal", "left": "center", "bottom": "0%"},
+                    "grid": {"left": "5%", "right": "5%", "bottom": "15%"}
                 }
             }
         ]
     }
+
+    # Stessa configurazione per il cumulato
+    option_cumulative = {**option_daily, "title": {"text": "Andamento cumulato"},
+                         "dataset": [{"id": "dataset_raw", "dimensions": selected_columns, "source": cumulative_filtered.values.tolist()}]}
+
+    # Mostra i grafici
+    st_echarts(options=option_daily, height="600px", key="daily_echarts")
+    st_echarts(options=option_cumulative, height="600px", key="cumulative_echarts")
+
 
 
     
@@ -247,8 +223,6 @@ def display_temporal_tab(container, df):
     # Mostra i grafici
     st_echarts(options=option_daily, height=f"{dynamic_height}px", key="daily_echarts")
     st_echarts(options=option_cumulative, height=f"{dynamic_height}px", key="cumulative_echarts")
-
-
 
 def display_tipologie_mittenti_tab(container, df):
     col1, col2 = container.columns(2)
