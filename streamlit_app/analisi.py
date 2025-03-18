@@ -151,7 +151,7 @@ def display_temporal_tab(container, df):
             "xAxis": {"type": "category"},
             "yAxis": {},
             "grid": {
-                "bottom": "15%"
+                "bottom": "25%"
             },
             # Media query per dispositivi mobili: layout orizzontale con legenda centrata
             "media": [
