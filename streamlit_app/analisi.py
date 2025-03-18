@@ -145,7 +145,6 @@ def display_temporal_tab(container, df):
                 "smooth": True
             } for col in selected_cols[1:]],
             "media": [{
-                "query": {"maxWidth": 768},
                 "option": {"legend": {"bottom": "0%"}, "grid": {"bottom": "32.5%"}}
             }]
         }
