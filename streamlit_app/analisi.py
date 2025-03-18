@@ -108,7 +108,7 @@ def display_temporal_tab(container, df):
     """
     Visualizza due grafici (giornaliero e cumulato) con andamento totale e per mittente,
     raggruppando i mittenti inattivi sotto "Altri". La configurazione è ottimizzata
-    anche per smartphone.
+    per desktop e smartphone tramite media query.
     """
     daily_data, cumulative_data, senders = prepare_time_series_data_by_sender(df)
     
@@ -146,14 +146,34 @@ def display_temporal_tab(container, df):
             "legend": {
                 "data": selected_cols[1:],
                 "selected": legend_selected,
-                "orient": "horizontal",
-                "bottom": "10px"
+                "orient": "vertical",
+                "bottom": "5%"
             },
             "xAxis": {"type": "category"},
             "yAxis": {},
             "grid": {
-                "bottom": "80px"
+                "left": "0%",
+                "right": "0%",
+                "bottom": "15%"
             },
+            # Media query per dispositivi mobili: layout orizzontale con legenda centrata
+            "media": [
+                {
+                    "query": {"maxWidth": 768},
+                    "option": {
+                        "legend": {
+                            "orient": "horizontal",
+                            "left": "center",
+                            "bottom": "5%"
+                        },
+                        "grid": {
+                            "left": "5%",
+                            "right": "5%",
+                            "bottom": "25%"
+                        }
+                    }
+                }
+            ],
             "series": [
                 {
                     "type": "line",
@@ -167,6 +187,7 @@ def display_temporal_tab(container, df):
     
     st_echarts(options=create_chart("Andamento giornaliero", daily_filtered), key="daily_echarts")
     st_echarts(options=create_chart("Andamento cumulato", cumulative_filtered), key="cumulative_echarts")
+
 
 
 def display_tipologie_mittenti_tab(container, df):
