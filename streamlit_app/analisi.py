@@ -210,7 +210,7 @@ def display_temporal_tab(container, df):
             {
                 "option": {
                     "legend": {"orient": "horizontal", "left": "center", "bottom": "0%"},
-                    "grid": {"left": "0%", "right": "0%", "bottom": "25%"}
+                    "grid": {"left": "0%", "right": "0%", "bottom": "35%"}
                 }
             }
         ]
@@ -250,7 +250,7 @@ def display_temporal_tab(container, df):
             {
                 "option": {
                     "legend": {"orient": "horizontal", "left": "center", "bottom": "0%"},
-                    "grid": {"left": "0%", "right": "0%", "bottom": "25%"}
+                    "grid": {"left": "0%", "right": "0%", "bottom": "35%"}
                 }
             }
         ]
