@@ -104,7 +104,7 @@ def crea_config_chart(title: str, dataset: pd.DataFrame, selected_cols: list) ->
         }],
         "title": {"text": title},
         "tooltip": {"trigger": "axis"},
-        "legend": {"data": selected_cols[1:], "bottom": "1%"},
+        "legend": {"data": selected_cols[1:], "bottom": "10%"},
         "xAxis": {"type": "category"},
         "yAxis": {},
         "grid": {"bottom": "20"},
