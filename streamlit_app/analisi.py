@@ -27,7 +27,7 @@ def prepara_dati_serie_temporali(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.Dat
 
 def prepara_dati_calendario(df: pd.DataFrame) -> list:
     df["data"] = pd.to_datetime(df["data"], format="%d-%m-%Y")
-    total_per_day = df.groupby(df["data"].dt.date)["TOTALE"].sum().reset_index()
+    total_per_day = df.groupby(df["data"].dt.date)["TOTAL"].sum().reset_index()
     total_per_day.columns = ["date", "total"]
     return [[str(row["date"]), row["total"]] for _, row in total_per_day.iterrows()]
 
