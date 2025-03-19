@@ -35,12 +35,24 @@ def prepara_dati_calendario(df: pd.DataFrame) -> list:
 
 # ---------------------- FUNZIONI DI VISUALIZZAZIONE ----------------------
 def crea_config_chart(title: str, dataset: pd.DataFrame, selected_cols: list) -> dict:
+    # Converte il dataset in una lista di liste
+    source = dataset.values.tolist()
+    
+    # Funzione helper per convertire i Timestamps in stringhe
+    def convert_cell(cell):
+        if hasattr(cell, "strftime"):
+            return cell.strftime("%d-%m-%Y")
+        return cell
+    
+    # Applica la conversione a tutte le celle
+    source = [[convert_cell(cell) for cell in row] for row in source]
+    
     return {
         "animationDuration": 500,
         "dataset": [{
             "id": "dataset_raw",
             "dimensions": selected_cols,
-            "source": dataset.values.tolist()
+            "source": source
         }],
         "title": {"text": title},
         "tooltip": {"trigger": "axis"},
@@ -55,6 +67,7 @@ def crea_config_chart(title: str, dataset: pd.DataFrame, selected_cols: list) ->
             "smooth": True
         } for col in selected_cols[1:]]
     }
+
 
 def crea_config_calendar(calendar_data: list) -> dict:
     return {
