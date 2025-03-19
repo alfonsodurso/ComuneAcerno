@@ -122,7 +122,23 @@ def crea_config_chart(title: str, dataset: pd.DataFrame, selected_cols: list) ->
             "smooth": True
         } for col in selected_cols[1:]],
         "labelLayout": {"moveOverlap": "shiftX"},
-        "emphasis": {"focus": "series"}
+        "emphasis": {"focus": "series"},
+        # Configurazione mobile: legenda in basso e orizzontale per evitare sovrapposizioni
+        "media": [{
+            "query": { "maxWidth": 768 },
+            "option": {
+                "legend": {
+                    "left": "center",
+                    "right": "auto",
+                    "bottom": "0%",
+                    "top": "auto",
+                    "orient": "horizontal"
+                },
+                "grid": {
+                    "bottom": "15%"  # Fa spazio alla legenda
+                }
+            }
+        }]
     }
 
 def crea_config_calendar(calendar_data: list) -> dict:
