@@ -131,7 +131,6 @@ def crea_config_chart(title: str, dataset: pd.DataFrame, selected_cols: list) ->
                     "bottom": "25%",
                     "orient": "horizontal"
                 }
-                }
             }
         }]
     }
