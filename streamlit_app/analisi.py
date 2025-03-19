@@ -83,6 +83,7 @@ def crea_config_chart(title: str, dataset: pd.DataFrame, selected_cols: list) ->
     """
     Crea la configurazione per un grafico lineare ECharts.
     Converte ogni cella in un formato nativo serializzabile (es. se è un Timestamp, lo formatta come stringa).
+    Su PC la legenda è a destra e orientata verticalmente; su smartphone la legenda è in basso, sempre verticale.
     """
     # Converte il dataset in lista di liste
     source = dataset.values.tolist()
@@ -104,7 +105,13 @@ def crea_config_chart(title: str, dataset: pd.DataFrame, selected_cols: list) ->
         }],
         "title": {"text": title},
         "tooltip": {"trigger": "axis"},
-        "legend": {"data": selected_cols[1:], "right": "0%"},
+        # Configurazione base per PC
+        "legend": {
+            "data": selected_cols[1:],
+            "orient": "vertical",
+            "right": "0%",
+            "top": "middle"
+        },
         "xAxis": {"type": "category"},
         "yAxis": {},
         "grid": {"right": "15%"},
@@ -114,8 +121,22 @@ def crea_config_chart(title: str, dataset: pd.DataFrame, selected_cols: list) ->
             "encode": {"x": "data", "y": col},
             "smooth": True
         } for col in selected_cols[1:]],
-        "labelLayout": {"moveOverlap": "shiftY"},
-        "emphasis": {"focus": "series"}        
+        "labelLayout": {"moveOverlap": "shiftX"},
+        "emphasis": {"focus": "series"},
+        # Configurazione media per smartphone: legenda in basso, sempre verticale
+        "media": [{
+            "query": { "maxWidth": 768 },
+            "option": {
+                "legend": {
+                    "left": "center",
+                    "bottom": "0%",
+                    "orient": "vertical"
+                },
+                "grid": {
+                    "right": "0%"
+                }
+            }
+        }]
     }
 
 def crea_config_calendar(calendar_data: list) -> dict:
