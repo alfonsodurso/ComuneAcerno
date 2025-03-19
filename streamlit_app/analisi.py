@@ -104,16 +104,18 @@ def crea_config_chart(title: str, dataset: pd.DataFrame, selected_cols: list) ->
         }],
         "title": {"text": title},
         "tooltip": {"trigger": "axis"},
-        "legend": {"data": selected_cols[1:], "bottom": "0%"},
+        "legend": {"data": selected_cols[1:], "bottom": "5%"},
         "xAxis": {"type": "category"},
         "yAxis": {},
-        "grid": {"bottom": "5%"},
+        "grid": {"bottom": "10%"},
         "series": [{
             "type": "line",
             "name": col,
             "encode": {"x": "data", "y": col},
             "smooth": True
-        } for col in selected_cols[1:]]
+        } for col in selected_cols[1:]],
+        "labelLayout": {"moveOverlap": "shiftY"},
+        "emphasis": {"focus": "series"}
     }
 
 def crea_config_calendar(calendar_data: list) -> dict:
