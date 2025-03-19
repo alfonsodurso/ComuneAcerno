@@ -131,7 +131,8 @@ def crea_config_chart(title: str, dataset: pd.DataFrame, selected_cols: list) ->
                     "orient": "horizontal"
                 },
                 "grid": {
-                    "top": "5%"  # Fa spazio alla legenda
+                    "top": "5%",
+                    "bottom": "5%" # Fa spazio alla legenda
                 }
             }
         }]
