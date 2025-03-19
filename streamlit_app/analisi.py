@@ -84,16 +84,25 @@ def display_temporal_tab(container, df: pd.DataFrame):
 
     selected_cols = ["data", "TOTAL"] + senders
 
+    # Definizione dei grafici con chiavi interne semplici
     schede = {
-        "📈 Andamento Giornaliero": crea_config_chart("Andamento giornaliero", daily_data, selected_cols),
-        "📉 Andamento Cumulato": crea_config_chart("Andamento cumulato", cumulative_data, selected_cols),
-        "📅 Heatmap Calendario": crea_config_calendar(calendar_data),
+        "andamento_giornaliero": crea_config_chart("Andamento giornaliero", daily_data, selected_cols),
+        "andamento_cumulato": crea_config_chart("Andamento cumulato", cumulative_data, selected_cols),
+        "heatmap_calendario": crea_config_calendar(calendar_data),
     }
 
-    # Variabile per la selezione della scheda
-    selected_tab = st.radio("Seleziona il grafico", list(schede.keys()), horizontal=True)
+    # Mappa etichette visibili -> chiavi interne
+    tab_labels = {
+        "Andamento Giornaliero": "andamento_giornaliero",
+        "Andamento Cumulato": "andamento_cumulato",
+        "Heatmap Calendario": "heatmap_calendario",
+    }
+    
+    # Selezione della scheda con radio buttons (etichetta user-friendly)
+    selected_label = st.radio("Seleziona il grafico", list(tab_labels.keys()), horizontal=True)
+    selected_key = tab_labels[selected_label]
 
-    # Applica un'animazione di transizione tra i grafici
+    # Aggiungi animazioni di transizione tramite CSS
     st.markdown("""
         <style>
             .echarts-container { 
@@ -107,7 +116,8 @@ def display_temporal_tab(container, df: pd.DataFrame):
         """, unsafe_allow_html=True)
 
     st.markdown('<div class="echarts-container">', unsafe_allow_html=True)
-    st_echarts(options=schede[selected_tab], key=selected_tab)
+    # Lazy loading: il grafico viene caricato solo quando la scheda è selezionata
+    st_echarts(options=schede[selected_key], key=selected_key)
     st.markdown("</div>", unsafe_allow_html=True)
 
 # ---------------------- FUNZIONE PRINCIPALE ----------------------
