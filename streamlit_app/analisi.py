@@ -11,7 +11,7 @@ def prepara_dati_serie_temporali(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.Dat
     df_temp["data"] = df_temp["data_inizio_pubblicazione"].dt.date
 
     pivot = df_temp.pivot_table(index="data", columns="mittente", aggfunc="size", fill_value=0).sort_index()
-    pivot["TOTAL"] = pivot.sum(axis=1)
+    pivot["TOTALE"] = pivot.sum(axis=1)
     senders = sorted([col for col in pivot.columns if col != "TOTAL"])
     daily_dataset = pivot.reset_index()
 
