@@ -26,12 +26,8 @@ def prepara_dati_serie_temporali(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.Dat
     return daily_dataset, cumulative_dataset, senders
 
 def prepara_dati_calendario(df: pd.DataFrame) -> list:
-    """
-    Prepara i dati per il calendario heatmap.
-    Nota: ora viene utilizzata la colonna "TOTAL" per il calcolo.
-    """
     df["data"] = pd.to_datetime(df["data"], format="%d-%m-%Y")
-    total_per_day = df.groupby(df["data"].dt.date)["TOTAL"].sum().reset_index()
+    total_per_day = df.groupby(df["data"].dt.date)["TOTALE"].sum().reset_index()
     total_per_day.columns = ["date", "total"]
     return [[str(row["date"]), row["total"]] for _, row in total_per_day.iterrows()]
 
@@ -86,7 +82,6 @@ def display_temporal_tab(container, df: pd.DataFrame):
     daily_data, cumulative_data, senders = prepara_dati_serie_temporali(df)
     calendar_data = prepara_dati_calendario(daily_data)
 
-    # Definiamo le colonne da visualizzare (in questo esempio, si usa "TOTAL")
     selected_cols = ["data", "TOTAL"] + senders
 
     schede = {
@@ -95,10 +90,10 @@ def display_temporal_tab(container, df: pd.DataFrame):
         "📅 Heatmap Calendario": crea_config_calendar(calendar_data),
     }
 
-    # Lazy loading tramite radio button orizzontale
+    # Variabile per la selezione della scheda
     selected_tab = st.radio("Seleziona il grafico", list(schede.keys()), horizontal=True)
 
-    # Animazione e transizione per la visualizzazione del grafico
+    # Applica un'animazione di transizione tra i grafici
     st.markdown("""
         <style>
             .echarts-container { 
