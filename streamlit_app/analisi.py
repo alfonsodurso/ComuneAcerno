@@ -4,6 +4,9 @@ import numpy as np
 import seaborn as sns
 from datetime import timedelta
 from streamlit_echarts import st_echarts
+from pyecharts.charts import Calendar
+from pyecharts import options as opts
+from pyecharts.globals import ThemeType
 
 
 # ⚙️ Configurazione per Plotly (per i tab non modificati)
