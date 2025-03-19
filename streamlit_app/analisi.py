@@ -103,7 +103,6 @@ def crea_config_chart(title: str, dataset: pd.DataFrame, selected_cols: list) ->
             "dimensions": selected_cols,
             "source": source
         }],
-        "title": {"text": title},
         "tooltip": {"trigger": "axis"},
         # Configurazione base per PC
         "legend": {
@@ -128,11 +127,11 @@ def crea_config_chart(title: str, dataset: pd.DataFrame, selected_cols: list) ->
             "query": { "maxWidth": 768 },
             "option": {
                 "legend": {
-                    "top": "90%",
+                    "top": "80%",
                     "orient": "horizontal"
                 },
                 "grid": {
-                    "top": "10%"  # Fa spazio alla legenda
+                    "top": "20%"  # Fa spazio alla legenda
                 }
             }
         }]
