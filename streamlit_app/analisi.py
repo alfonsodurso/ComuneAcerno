@@ -128,11 +128,11 @@ def crea_config_chart(title: str, dataset: pd.DataFrame, selected_cols: list) ->
             "query": { "maxWidth": 768 },
             "option": {
                 "legend": {
-                    "left": "center",
+                    "top": "30%",
                     "orient": "horizontal"
                 },
                 "grid": {
-                    "bottom": "100%"  # Fa spazio alla legenda
+                    "bottom": "5%"  # Fa spazio alla legenda
                 }
             }
         }]
