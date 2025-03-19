@@ -152,6 +152,46 @@ def display_temporal_tab(container, df):
     st_echarts(options=create_chart("Andamento giornaliero", daily_filtered), key="daily_echarts")
     st_echarts(options=create_chart("Andamento cumulato", cumulative_filtered), key="cumulative_echarts")
 
+# Prepara i dati per il calendario heatmap
+    def prepare_calendar_data(df):
+        df['data'] = pd.to_datetime(df['data'])
+        total_per_day = df.groupby(df['data'].dt.date)['TOTALE'].sum().reset_index()
+        total_per_day.columns = ['date', 'total']
+        return total_per_day.values.tolist()
+
+    calendar_data = prepare_calendar_data(daily_filtered)
+
+    # Crea il calendario heatmap
+    calendar = (
+        Calendar(init_opts=opts.InitOpts(theme=ThemeType.LIGHT))
+        .add(
+            "",
+            calendar_data,
+            calendar_opts=opts.CalendarOpts(
+                range=[str(calendar_data[0][0]), str(calendar_data[-1][0])],
+                cell_size=["auto", 20],
+                daylabel_opts=opts.CalendarDayLabelOpts(name_map="it"),
+                monthlabel_opts=opts.CalendarMonthLabelOpts(name_map="it"),
+                yearlabel_opts=opts.CalendarYearLabelOpts(position="top"),
+            ),
+            label_opts=opts.LabelOpts(is_show=False),
+        )
+        .set_global_opts(
+            title_opts=opts.TitleOpts(title="Calendario delle Pubblicazioni Totali"),
+            visualmap_opts=opts.VisualMapOpts(
+                min_=0,
+                max_=max([x[1] for x in calendar_data]),
+                calculable=True,
+                orient="horizontal",
+                left="center",
+                top="top",
+            ),
+        )
+    )
+
+    # Renderizza il calendario nel container
+    container.write(calendar.render_embed(), unsafe_allow_html=True)
+
 def display_tipologie_mittenti_tab(container, df):
     col1, col2 = container.columns(2)
     
