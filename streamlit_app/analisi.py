@@ -133,7 +133,7 @@ def crea_config_chart(title: str, dataset: pd.DataFrame, selected_cols: list) ->
                     "orient": "vertical"
                 },
                 "grid": {
-                    "bottom": "15%"
+                    "bottom": "1%"
                 }
             }
         }]
