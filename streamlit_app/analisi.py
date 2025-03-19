@@ -183,14 +183,10 @@ def display_temporal_tab(container, df: pd.DataFrame):
     # CSS per animazioni di transizione (opzionale) e per rendere il grafico responsive
     st.markdown("""
         <style>
-            .echarts-container { 
-                transition: opacity 0.5s ease-in-out; 
-                opacity: 1;
-            }
-            .echarts-responsive {
-                width: 100% !important;
-                height: 70vh !important;  /* l'altezza è impostata al 70% dell'altezza della viewport */
-            }
+            /* Riduce il margine inferiore del container dei radio buttons */
+            .stRadio { margin-bottom: 0px; }
+            /* Se necessario, regola anche i margini dei container dei grafici */
+            .echarts-container { margin-top: 0px; }
         </style>
         """, unsafe_allow_html=True)
 
