@@ -128,7 +128,6 @@ def crea_config_chart(title: str, dataset: pd.DataFrame, selected_cols: list) ->
             "query": { "maxWidth": 768 },
             "option": {
                 "legend": {
-                    "left": "bottom",
                     "bottom": "5%",
                     "orient": "horizontal"
                 },
