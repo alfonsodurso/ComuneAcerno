@@ -128,7 +128,7 @@ def crea_config_chart(title: str, dataset: pd.DataFrame, selected_cols: list) ->
             "option": {
                 "legend": {
                     "top": "80%",
-                    "bottom": "20%",
+                    "bottom": "10%",
                     "orient": "horizontal"
                 },
                 "grid": {
