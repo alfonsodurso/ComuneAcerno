@@ -155,7 +155,8 @@ def display_temporal_tab(container, df):
     st_echarts(options=create_chart("Andamento giornaliero", daily_filtered), key="daily_echarts")
     st_echarts(options=create_chart("Andamento cumulato", cumulative_filtered), key="cumulative_echarts")
 
-# Prepara i dati per il calendario heatmap
+
+    # Prepara i dati per il calendario heatmap
     def prepare_calendar_data(df):
         df['data'] = pd.to_datetime(df['data'])
         total_per_day = df.groupby(df['data'].dt.date)['TOTALE'].sum().reset_index()
