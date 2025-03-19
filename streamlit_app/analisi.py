@@ -107,13 +107,15 @@ def crea_config_chart(title: str, dataset: pd.DataFrame, selected_cols: list) ->
         "legend": {"data": selected_cols[1:], "bottom": "0%"},
         "xAxis": {"type": "category"},
         "yAxis": {},
-        "grid": {"bottom": "5%"},
+        "grid": {"bottom": "15%"},
         "series": [{
             "type": "line",
             "name": col,
             "encode": {"x": "data", "y": col},
             "smooth": True
-        } for col in selected_cols[1:]]
+        } for col in selected_cols[1:]],
+        "labelLayout": {"moveOverlap": "shiftY"},
+        "emphasis": {"focus": "series"}        
     }
 
 def crea_config_calendar(calendar_data: list) -> dict:
@@ -180,22 +182,9 @@ def display_temporal_tab(container, df: pd.DataFrame):
     selected_label = st.radio("Seleziona il grafico", list(tab_labels.keys()), horizontal=True)
     selected_key = tab_labels[selected_label]
 
-    # CSS per animazioni di transizione (opzionale) e per rendere il grafico responsive
-    st.markdown("""
-        <style>
-            /* Riduce il margine inferiore del container dei radio buttons */
-            .stRadio { margin-bottom: 0px; }
-            /* Se necessario, regola anche i margini dei container dei grafici */
-            .echarts-container { margin-top: 0px; }
-        </style>
-        """, unsafe_allow_html=True)
-
-    # Avvolge il componente in un container responsive
     with st.container():
         try:
-            st.markdown('<div class="echarts-container echarts-responsive">', unsafe_allow_html=True)
             st_echarts(options=schede[selected_key], key=selected_key)
-            st.markdown('</div>', unsafe_allow_html=True)
         except Exception as e:
             st.error("Errore durante il caricamento del grafico.")
             st.exception(e)
