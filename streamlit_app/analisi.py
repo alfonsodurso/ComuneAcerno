@@ -3,7 +3,6 @@ import pandas as pd
 from streamlit_echarts import st_echarts
 
 # ---------------------- FUNZIONI DI PREPARAZIONE DATI ----------------------
-
 def prepara_dati_serie_temporali(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame, list]:
     df_temp = df.copy()
     df_temp["data_inizio_pubblicazione"] = pd.to_datetime(df_temp["data_inizio_pubblicazione"], errors="coerce")
@@ -12,31 +11,37 @@ def prepara_dati_serie_temporali(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.Dat
 
     pivot = df_temp.pivot_table(index="data", columns="mittente", aggfunc="size", fill_value=0).sort_index()
     pivot["TOTAL"] = pivot.sum(axis=1)
+    # Converte tutti i valori numerici in Python int (evita numpy.int64)
+    pivot = pivot.applymap(int)
     senders = sorted([col for col in pivot.columns if col != "TOTAL"])
     daily_dataset = pivot.reset_index()
 
     cumulative_dataset = daily_dataset.copy()
     for col in cumulative_dataset.columns:
         if col != "data":
-            cumulative_dataset[col] = cumulative_dataset[col].cumsum()
+            cumulative_dataset[col] = cumulative_dataset[col].cumsum().apply(int)
 
     daily_dataset["data"] = daily_dataset["data"].apply(lambda d: d.strftime("%d-%m-%Y"))
     cumulative_dataset["data"] = cumulative_dataset["data"].apply(lambda d: d.strftime("%d-%m-%Y"))
-
+    
     return daily_dataset, cumulative_dataset, senders
 
 def prepara_dati_calendario(df: pd.DataFrame) -> list:
+    # Assumendo che la colonna "data" sia formattata come "%d-%m-%Y"
     df["data"] = pd.to_datetime(df["data"], format="%d-%m-%Y")
     total_per_day = df.groupby(df["data"].dt.date)["TOTAL"].sum().reset_index()
     total_per_day.columns = ["date", "total"]
     return [[str(row["date"]), row["total"]] for _, row in total_per_day.iterrows()]
 
 # ---------------------- FUNZIONI DI VISUALIZZAZIONE ----------------------
-
 def crea_config_chart(title: str, dataset: pd.DataFrame, selected_cols: list) -> dict:
     return {
         "animationDuration": 500,
-        "dataset": [{"id": "dataset_raw", "dimensions": selected_cols, "source": dataset.values.tolist()}],
+        "dataset": [{
+            "id": "dataset_raw",
+            "dimensions": selected_cols,
+            "source": dataset.values.tolist()
+        }],
         "title": {"text": title},
         "tooltip": {"trigger": "axis"},
         "legend": {"data": selected_cols[1:], "bottom": "0%"},
@@ -76,33 +81,32 @@ def crea_config_calendar(calendar_data: list) -> dict:
         }]
     }
 
-# ---------------------- LAYOUT A SCHEDE ----------------------
-
+# ---------------------- LAYOUT A SCHEDE CON LA GESTIONE DELLA SERIALIZZAZIONE ----------------------
 def display_temporal_tab(container, df: pd.DataFrame):
     daily_data, cumulative_data, senders = prepara_dati_serie_temporali(df)
     calendar_data = prepara_dati_calendario(daily_data)
 
+    # Costruzione della lista di colonne da usare per il dataset
     selected_cols = ["data", "TOTAL"] + senders
 
-    # Definizione dei grafici con chiavi interne semplici
+    # Definizione dei grafici con chiavi "pulite"
     schede = {
         "andamento_giornaliero": crea_config_chart("Andamento giornaliero", daily_data, selected_cols),
         "andamento_cumulato": crea_config_chart("Andamento cumulato", cumulative_data, selected_cols),
         "heatmap_calendario": crea_config_calendar(calendar_data),
     }
 
-    # Mappa etichette visibili -> chiavi interne
+    # Mappa etichette utente -> chiavi interne
     tab_labels = {
         "Andamento Giornaliero": "andamento_giornaliero",
         "Andamento Cumulato": "andamento_cumulato",
         "Heatmap Calendario": "heatmap_calendario",
     }
     
-    # Selezione della scheda con radio buttons (etichetta user-friendly)
     selected_label = st.radio("Seleziona il grafico", list(tab_labels.keys()), horizontal=True)
     selected_key = tab_labels[selected_label]
 
-    # Aggiungi animazioni di transizione tramite CSS
+    # (Opzionale) CSS per animazioni; se causa problemi, commenta questa sezione
     st.markdown("""
         <style>
             .echarts-container { 
@@ -115,21 +119,24 @@ def display_temporal_tab(container, df: pd.DataFrame):
         </style>
         """, unsafe_allow_html=True)
 
-    st.markdown('<div class="echarts-container">', unsafe_allow_html=True)
-    # Lazy loading: il grafico viene caricato solo quando la scheda è selezionata
-    st_echarts(options=schede[selected_key], key=selected_key)
-    st.markdown("</div>", unsafe_allow_html=True)
+    # Usa un container e gestisci eventuali eccezioni
+    chart_container = st.container()
+    with chart_container:
+        try:
+            st_echarts(options=schede[selected_key], key=selected_key)
+        except Exception as e:
+            st.error("Errore durante il caricamento del grafico.")
+            st.exception(e)
 
 # ---------------------- FUNZIONE PRINCIPALE ----------------------
-
 def page_analisi(df: pd.DataFrame):
     st.header("📊 ANALISI")
-
+    
     tab_temporale, tab_tipologie, tab_ritardi = st.tabs([
         "📆 Andamento Temporale",
         "📋 Tipologie & Mittenti",
         "⏳ Ritardi"
     ])
-
+    
     with tab_temporale:
         display_temporal_tab(tab_temporale, df)
