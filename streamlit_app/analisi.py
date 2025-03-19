@@ -11,7 +11,7 @@ def prepara_dati_serie_temporali(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.Dat
     df_temp["data"] = df_temp["data_inizio_pubblicazione"].dt.date
 
     pivot = df_temp.pivot_table(index="data", columns="mittente", aggfunc="size", fill_value=0).sort_index()
-    pivot["TOTALE"] = pivot.sum(axis=1)
+    pivot["TOTAL"] = pivot.sum(axis=1)
     senders = sorted([col for col in pivot.columns if col != "TOTAL"])
     daily_dataset = pivot.reset_index()
 
@@ -26,8 +26,12 @@ def prepara_dati_serie_temporali(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.Dat
     return daily_dataset, cumulative_dataset, senders
 
 def prepara_dati_calendario(df: pd.DataFrame) -> list:
+    """
+    Prepara i dati per il calendario heatmap.
+    Nota: ora viene utilizzata la colonna "TOTAL" per il calcolo.
+    """
     df["data"] = pd.to_datetime(df["data"], format="%d-%m-%Y")
-    total_per_day = df.groupby(df["data"].dt.date)["TOTALE"].sum().reset_index()
+    total_per_day = df.groupby(df["data"].dt.date)["TOTAL"].sum().reset_index()
     total_per_day.columns = ["date", "total"]
     return [[str(row["date"]), row["total"]] for _, row in total_per_day.iterrows()]
 
@@ -82,6 +86,7 @@ def display_temporal_tab(container, df: pd.DataFrame):
     daily_data, cumulative_data, senders = prepara_dati_serie_temporali(df)
     calendar_data = prepara_dati_calendario(daily_data)
 
+    # Definiamo le colonne da visualizzare (in questo esempio, si usa "TOTAL")
     selected_cols = ["data", "TOTAL"] + senders
 
     schede = {
@@ -90,10 +95,10 @@ def display_temporal_tab(container, df: pd.DataFrame):
         "📅 Heatmap Calendario": crea_config_calendar(calendar_data),
     }
 
-    # Variabile per la selezione della scheda
+    # Lazy loading tramite radio button orizzontale
     selected_tab = st.radio("Seleziona il grafico", list(schede.keys()), horizontal=True)
 
-    # Applica un'animazione di transizione tra i grafici
+    # Animazione e transizione per la visualizzazione del grafico
     st.markdown("""
         <style>
             .echarts-container { 
