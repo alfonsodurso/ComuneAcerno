@@ -124,15 +124,11 @@ def crea_doughnut_chart(data: list) -> dict:
 
 # ---------------------- VISUALIZZAZIONE ----------------------
 
-def display_temporal_tab(container, df: pd.DataFrame):
+def display_temporal_tab(container, df: pd.DataFrame, selected_cols: list):
     """
     Visualizza i grafici temporali con possibilità di filtrare i dati tramite una multiselect.
     """
     daily_data, cumulative_data = prepare_time_series_data_by_sender(df)
-    # Escludiamo "data" per la multiselect (assicurandoci di mantenerla sempre)
-    available_cols = daily_data.columns.tolist()[1:]
-    selected_cols = st.multiselect("Seleziona i dati da visualizzare:", available_cols, default=available_cols)
-    selected_cols.insert(0, "data")
 
     schede = {
         "andamento_giornaliero": crea_config_chart("Andamento giornaliero", daily_data[selected_cols], selected_cols),
@@ -155,7 +151,7 @@ def display_temporal_tab(container, df: pd.DataFrame):
 
 # ------------------------Tipologie & Mittenti----------------------------
 
-def display_tipologie_mittenti_tab(container, df: pd.DataFrame):
+def display_tipologie_mittenti_tab(container, df: pd.DataFrame, selected_cols: list):
     """
     Visualizza la scheda Tipologie & Mittenti con la selezione delle tipologie di atto e il grafico a ciambella.
     """
@@ -171,7 +167,7 @@ def display_tipologie_mittenti_tab(container, df: pd.DataFrame):
         if selected_view == "Tipologie Atto":
             tipo_data = prepare_tipo_atto_data(filtered_df)
             if tipo_data:
-                st_echarts(options=crea_doughnut_chart(tipo_data), height="500px")
+                st_echarts(options=crea_doughnut_chart(tipo_data))
             else:
                 st.warning("Nessun dato disponibile per la selezione attuale.")
 
@@ -179,15 +175,19 @@ def display_tipologie_mittenti_tab(container, df: pd.DataFrame):
 
 def page_analisi(df: pd.DataFrame):
     st.header("📊 ANALISI")
+
+    # Creare la multiselect una sola volta e conservarla come variabile globale
+    available_cols = df.columns.tolist()[1:]  # Assumendo che la colonna "data" sia la prima
+    selected_cols = st.multiselect("Seleziona i dati da visualizzare:", available_cols, default=available_cols)
+    selected_cols.insert(0, "data")  # Includiamo sempre "data"
+
     tab_temporale, tab_tipologie, tab_ritardi = st.tabs([
         "📆 Andamento Temporale",
         "📋 Tipologie & Mittenti",
         "⏳ Ritardi"
     ])
-    with tab_temporale:
-        display_temporal_tab(tab_temporale, df)
-    with tab_tipologie:
-        display_tipologie_mittenti_tab(tab_tipologie, df)
 
-if __name__ == "__main__":
-    page_analisi(df_example)
+    with tab_temporale:
+        display_temporal_tab(tab_temporale, df, selected_cols)
+    with tab_tipologie:
+        display_tipologie_mittenti_tab(tab_tipologie, df, selected_cols)
