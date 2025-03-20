@@ -55,6 +55,15 @@ def prepare_time_series_data_by_sender(df: pd.DataFrame) -> tuple[pd.DataFrame, 
 
     return daily_dataset, cumulative_dataset
 
+# ------------------------Tipologie & Mittenti----------------------------
+
+def prepare_tipo_atto_data(df: pd.DataFrame) -> list:
+    """
+    Prepara i dati per la distribuzione delle tipologie di atto pubblicate.
+    """
+    tipo_counts = df["tipo_atto"].value_counts().to_dict()
+    return [{"value": count, "name": tipo} for tipo, count in tipo_counts.items()]
+
 # ---------------------- CONFIGURAZIONE DEI GRAFICI ----------------------
 
 def crea_config_chart(title: str, dataset: pd.DataFrame, selected_cols: list) -> dict:
@@ -81,6 +90,36 @@ def crea_config_chart(title: str, dataset: pd.DataFrame, selected_cols: list) ->
         } for col in selected_cols[1:]],
         "labelLayout": {"moveOverlap": "shiftX"},
         "emphasis": {"focus": "series"},
+    }
+
+# ------------------------Tipologie & Mittenti----------------------------
+
+def crea_doughnut_chart(data: list) -> dict:
+    """
+    Configura il grafico a ciambella (doughnut chart) per la distribuzione delle tipologie di atto.
+    """
+    return {
+        "tooltip": {"trigger": "item"},
+        "legend": {"top": "5%", "left": "center"},
+        "series": [
+            {
+                "name": "Tipologie Atto",
+                "type": "pie",
+                "radius": ["40%", "70%"],
+                "avoidLabelOverlap": False,
+                "itemStyle": {
+                    "borderRadius": 10,
+                    "borderColor": "#fff",
+                    "borderWidth": 2,
+                },
+                "label": {"show": False, "position": "center"},
+                "emphasis": {
+                    "label": {"show": True, "fontSize": "20", "fontWeight": "bold"}
+                },
+                "labelLine": {"show": False},
+                "data": data,
+            }
+        ],
     }
 
 # ---------------------- VISUALIZZAZIONE ----------------------
@@ -113,6 +152,28 @@ def display_temporal_tab(container, df: pd.DataFrame):
         except Exception as e:
             st.error("Errore durante il caricamento del grafico.")
             st.exception(e)
+
+# ------------------------Tipologie & Mittenti----------------------------
+
+def display_tipologie_mittenti_tab(container, df: pd.DataFrame):
+    """
+    Visualizza la scheda Tipologie & Mittenti con la selezione delle tipologie di atto e il grafico a ciambella.
+    """
+    with container:
+        # Selezione della visualizzazione
+        selected_view = st.radio("Seleziona la visualizzazione:", ["Tipologie Atto"], horizontal=True)
+
+        # Filtriamo i dati in base alla multiselect
+        available_types = df["tipo_atto"].unique().tolist()
+        selected_types = st.multiselect("Filtra per tipologia di atto:", available_types, default=available_types)
+        filtered_df = df[df["tipo_atto"].isin(selected_types)]
+
+        if selected_view == "Tipologie Atto":
+            tipo_data = prepare_tipo_atto_data(filtered_df)
+            if tipo_data:
+                st_echarts(options=crea_doughnut_chart(tipo_data), height="500px")
+            else:
+                st.warning("Nessun dato disponibile per la selezione attuale.")
 
 # ---------------------- FUNZIONE PRINCIPALE ----------------------
 
