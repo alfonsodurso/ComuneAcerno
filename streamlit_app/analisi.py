@@ -4,7 +4,7 @@ from streamlit_echarts import st_echarts
 
 # ---------------------- FUNZIONE DI PREPARAZIONE DATI ----------------------
 
-def prepare_time_series_data_by_sender(df: pd.DataFrame, active_senders: list) -> tuple[pd.DataFrame, pd.DataFrame]:
+def prepare_time_series_data_by_sender(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
     Prepara i dati temporali aggregati per data e mittente.
     I mittenti nel df sono in uppercase.
@@ -53,20 +53,82 @@ def prepare_time_series_data_by_sender(df: pd.DataFrame, active_senders: list) -
         if col != "data":
             cumulative_dataset[col] = cumulative_dataset[col].cumsum()
 
-    # Filtriamo i dati in base ai mittenti attivi selezionati (convertendo i mittenti in uppercase)
-    active_senders_upper = [sender.upper() for sender in active_senders]
-    filtered_daily = daily_dataset[["data"] + [active_mapping[sender] for sender in active if sender.upper() in active_senders_upper] + ["Altri"]]
-    filtered_cumulative = cumulative_dataset[["data"] + [active_mapping[sender] for sender in active if sender.upper() in active_senders_upper] + ["Altri"]]
+    return daily_dataset, cumulative_dataset
 
-    return filtered_daily, filtered_cumulative
+# ------------------------Tipologie & Mittenti----------------------------
+
+def prepare_tipo_atto_data(df: pd.DataFrame) -> list:
+    """
+    Prepara i dati per la distribuzione delle tipologie di atto pubblicate.
+    """
+    tipo_counts = df["tipo_atto"].value_counts().to_dict()
+    return [{"value": count, "name": tipo} for tipo, count in tipo_counts.items()]
+
+# ---------------------- CONFIGURAZIONE DEI GRAFICI ----------------------
+
+def crea_config_chart(title: str, dataset: pd.DataFrame, selected_cols: list) -> dict:
+    """
+    Crea la configurazione per un grafico lineare ECharts.
+    """
+    source = dataset.values.tolist()
+    source = [[cell.strftime("%d-%m-%Y") if hasattr(cell, "strftime") else cell for cell in row] for row in source]
+    return {
+        "animationDuration": 500,
+        "dataset": [{
+            "id": "dataset_raw",
+            "dimensions": selected_cols,
+            "source": source
+        }],
+        "tooltip": {"trigger": "axis"},
+        "xAxis": {"type": "category"},
+        "yAxis": {},
+        "series": [{
+            "type": "line",
+            "name": col,
+            "encode": {"x": "data", "y": col},
+            "smooth": True
+        } for col in selected_cols[1:]],
+        "labelLayout": {"moveOverlap": "shiftX"},
+        "emphasis": {"focus": "series"},
+    }
+
+# ------------------------Tipologie & Mittenti----------------------------
+
+def crea_doughnut_chart(data: list) -> dict:
+    """
+    Configura il grafico a ciambella (doughnut chart) per la distribuzione delle tipologie di atto.
+    """
+    return {
+        "tooltip": {"trigger": "item"},
+        "legend": {"top": "5%", "left": "center"},
+        "series": [
+            {
+                "name": "Tipologie Atto",
+                "type": "pie",
+                "radius": ["40%", "70%"],
+                "avoidLabelOverlap": False,
+                "itemStyle": {
+                    "borderRadius": 10,
+                    "borderColor": "#fff",
+                    "borderWidth": 2,
+                },
+                "label": {"show": False, "position": "center"},
+                "emphasis": {
+                    "label": {"show": True, "fontSize": "20", "fontWeight": "bold"}
+                },
+                "labelLine": {"show": False},
+                "data": data,
+            }
+        ],
+    }
 
 # ---------------------- VISUALIZZAZIONE ----------------------
 
-def display_temporal_tab(container, df: pd.DataFrame, active_senders: list):
+def display_temporal_tab(container, df: pd.DataFrame):
     """
     Visualizza i grafici temporali con possibilità di filtrare i dati tramite una multiselect.
     """
-    daily_data, cumulative_data = prepare_time_series_data_by_sender(df, active_senders)
+    daily_data, cumulative_data = prepare_time_series_data_by_sender(df)
     # Escludiamo "data" per la multiselect (assicurandoci di mantenerla sempre)
     available_cols = daily_data.columns.tolist()[1:]
     selected_cols = st.multiselect("Seleziona i dati da visualizzare:", available_cols, default=available_cols)
@@ -93,7 +155,7 @@ def display_temporal_tab(container, df: pd.DataFrame, active_senders: list):
 
 # ------------------------Tipologie & Mittenti----------------------------
 
-def display_tipologie_mittenti_tab(container, df: pd.DataFrame, active_senders: list):
+def display_tipologie_mittenti_tab(container, df: pd.DataFrame):
     """
     Visualizza la scheda Tipologie & Mittenti con la selezione delle tipologie di atto e il grafico a ciambella.
     """
@@ -117,23 +179,15 @@ def display_tipologie_mittenti_tab(container, df: pd.DataFrame, active_senders: 
 
 def page_analisi(df: pd.DataFrame):
     st.header("📊 ANALISI")
-
-    # Crea la multiselect globale per i mittenti
-    available_senders = [
-        "Area Tecnica 1", "Area Tecnica 2", "Area Vigilanza", "Area Amministrativa", "Comune di Acerno", "Altri"
-    ]
-    active_senders = st.multiselect("Seleziona i mittenti:", available_senders, default=available_senders)
-
     tab_temporale, tab_tipologie, tab_ritardi = st.tabs([
         "📆 Andamento Temporale",
         "📋 Tipologie & Mittenti",
         "⏳ Ritardi"
     ])
     with tab_temporale:
-        display_temporal_tab(tab_temporale, df, active_senders)
+        display_temporal_tab(tab_temporale, df)
     with tab_tipologie:
-        display_tipologie_mittenti_tab(tab_tipologie, df, active_senders)
+        display_tipologie_mittenti_tab(tab_tipologie, df)
 
 if __name__ == "__main__":
-    # Assicurati di caricare il tuo DataFrame df_example
     page_analisi(df_example)
