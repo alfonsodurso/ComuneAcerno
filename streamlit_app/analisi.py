@@ -53,9 +53,10 @@ def prepare_time_series_data_by_sender(df: pd.DataFrame, active_senders: list) -
         if col != "data":
             cumulative_dataset[col] = cumulative_dataset[col].cumsum()
 
-    # Filtriamo i dati in base ai mittenti attivi selezionati
-    filtered_daily = daily_dataset[["data"] + [active_mapping[sender] for sender in active if sender in active_senders] + ["Altri"]]
-    filtered_cumulative = cumulative_dataset[["data"] + [active_mapping[sender] for sender in active if sender in active_senders] + ["Altri"]]
+    # Filtriamo i dati in base ai mittenti attivi selezionati (convertendo i mittenti in uppercase)
+    active_senders_upper = [sender.upper() for sender in active_senders]
+    filtered_daily = daily_dataset[["data"] + [active_mapping[sender] for sender in active if sender.upper() in active_senders_upper] + ["Altri"]]
+    filtered_cumulative = cumulative_dataset[["data"] + [active_mapping[sender] for sender in active if sender.upper() in active_senders_upper] + ["Altri"]]
 
     return filtered_daily, filtered_cumulative
 
