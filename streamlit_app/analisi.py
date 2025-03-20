@@ -186,14 +186,8 @@ def page_analisi(df: pd.DataFrame):
     ])
     with tab_temporale:
         display_temporal_tab(tab_temporale, df)
+    with tab_tipologie:
+        display_tipologie_mittenti_tab(tab_tipologie, df)
 
-# Esempio di utilizzo (assicurati che il DataFrame 'df' contenga le colonne attese,
-# in particolare 'data_inizio_pubblicazione' e 'mittente' in uppercase)
 if __name__ == "__main__":
-    # Creazione di un DataFrame di esempio per testare l'app
-    data = {
-        "data_inizio_pubblicazione": ["2023-01-01", "2023-01-02", "2023-01-03"],
-        "mittente": ["AREA TECNICA 1", "COMUNE DI ACERNO", "AREA VIGILANZA"]
-    }
-    df_example = pd.DataFrame(data)
     page_analisi(df_example)
