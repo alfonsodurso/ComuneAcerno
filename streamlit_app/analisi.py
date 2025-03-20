@@ -71,7 +71,6 @@ def crea_config_chart(title: str, dataset: pd.DataFrame, selected_cols: list) ->
             "source": source
         }],
         "tooltip": {"trigger": "axis"},
-        "legend": {"data": selected_cols[1:], "orient": "horizontal", "top": "bottom"},
         "xAxis": {"type": "category"},
         "yAxis": {},
         "series": [{
