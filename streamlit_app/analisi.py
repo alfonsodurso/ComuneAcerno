@@ -162,7 +162,7 @@ def display_typology_tab(container, df: pd.DataFrame):
     """Visualizza la tab Tipologie & Mittenti con il grafico a ciambella e il filtro per mittente."""
     st.subheader("Tipologie di Atto Pubblicate")
 
-    # Definizione della mappatura per i 5 mittenti principali
+    # Mappatura dei mittenti
     active_mapping = {
         "AREA TECNICA 1": "Area Tecnica 1",
         "AREA TECNICA 2": "Area Tecnica 2",
@@ -170,24 +170,25 @@ def display_typology_tab(container, df: pd.DataFrame):
         "AREA AMMINISTRATIVA": "Area Amministrativa",
         "COMUNE DI ACERNO": "Comune di Acerno"
     }
-    desired_order = ["AREA TECNICA 1", "AREA TECNICA 2", "AREA VIGILANZA", "AREA AMMINISTRATIVA", "COMUNE DI ACERNO"]
 
-    # Determina i mittenti presenti nei dati
+    # Ottieni i mittenti presenti nel dataframe e rimuovi "TOTALE"
     existing_senders = set(df["mittente"].unique()) - {"TOTALE"}
-    active = [sender for sender in desired_order if sender in existing_senders]
+
+    # Seleziona quelli che corrispondono ai mittenti mappati
+    active = [s for s in active_mapping if s in existing_senders]
     inactive = list(existing_senders - set(active))  # Mittenti non nella lista principale
 
-    # Lista opzioni per la multiselect
+    # Lista finale per la multiselect
     available_senders = [active_mapping[s] for s in active] + (["Altri"] if inactive else [])
 
-    # Multiselect con tutti i mittenti pre-selezionati
+    # Multiselect con TUTTI i mittenti pre-selezionati
     selected_senders = st.multiselect(
         "Filtra per mittente:", 
         available_senders, 
-        default=available_senders  # Qui sta la modifica chiave!
+        default=available_senders  # Attiva tutti di default!
     )
 
-    # Mappatura inversa per il filtro sui dati
+    # Mappatura inversa per il filtro
     selected_senders_mapped = [s for s, mapped in active_mapping.items() if mapped in selected_senders]
     if "Altri" in selected_senders:
         selected_senders_mapped += inactive
@@ -202,6 +203,7 @@ def display_typology_tab(container, df: pd.DataFrame):
         st_echarts(options=chart_config, height="500px")
     else:
         st.warning("⚠️ Nessun dato disponibile per i mittenti selezionati.")
+
         
 # ---------------------- FUNZIONE PRINCIPALE ----------------------
 
