@@ -377,6 +377,70 @@ def display_typology_tab(container, df: pd.DataFrame):
         else:
             st.warning("⚠️ Nessun dato disponibile per le tipologie selezionate.")
 
+# -----------------------------------------------------------------
+
+def display_ritardi_tab(container, df):
+    """
+    Calcola e visualizza la tabella con i ritardi medi di pubblicazione per mittente,
+    includendo una tabella separata delle pubblicazioni escluse.
+    """
+    df_delays, df_missing = analyze_publication_delays(df)
+    
+    # Se non esiste una colonna che identifica univocamente la pubblicazione, usiamo l'indice
+    if "numero_pubblicazione" not in df_delays.columns:
+        df_delays = df_delays.reset_index().rename(columns={"index": "numero_pubblicazione"})
+    
+    # Aggregazione per mittente:
+    aggregated = df_delays.groupby("mittente").agg(
+         ritardo_medio=('ritardo_pubblicazione', 'mean'),
+         numero_pubblicazioni_totali=('ritardo_pubblicazione', 'count'),
+         ritardo_massimo=('ritardo_pubblicazione', 'max')
+    ).reset_index()
+    
+    # Per ogni mittente, individuiamo il record con il ritardo massimo e ne estraiamo il numero della pubblicazione
+    max_idx = df_delays.groupby("mittente")["ritardo_pubblicazione"].idxmax()
+    max_publications = df_delays.loc[max_idx, ["mittente", "numero_pubblicazione"]].rename(
+         columns={"numero_pubblicazione": "pub_max_ritardo"}
+    )
+    
+    performance = aggregated.merge(max_publications, on="mittente", how="left")
+    performance["ritardo_medio"] = performance["ritardo_medio"].round(0).astype(int)
+
+    performance = performance.sort_values("ritardo_medio", ascending=False)
+    
+    # Rinominiamo le colonne per maggiore chiarezza
+    performance = performance.rename(columns={
+         "mittente": "Mittente",
+         "ritardo_medio": "Ritardo medio",
+         "ritardo_massimo": "Ritardo massimo",
+         "numero_pubblicazioni_totali": "Pubblicazioni totali",
+         "pub_max_ritardo": "Pubblicazione max ritardo"
+    })
+    
+    # Mostriamo la tabella dei ritardi medi
+    st.markdown("**Analisi dei ritardi per mittente**")
+    #container.write("# Analisi dei ritardi per mittente:")
+    container.dataframe(performance, use_container_width=True)
+    
+     # Visualizziamo la tabella delle pubblicazioni escluse
+    if not df_missing.empty:
+        st.markdown("**Pubblicazioni senza la data registro**")
+
+        # container.write("# Pubblicazioni senza la data registro:")
+        df_missing_copy = df_missing.copy()
+        df_missing_copy = df_missing_copy.rename(columns={
+            "numero_pubblicazione": "Numero",
+            "mittente": "Mittente",
+            "oggetto_atto": "Oggetto",
+            "data_inizio_pubblicazione": "Data Pubblicazione"
+        })
+        # Formatto la colonna Data Pubblicazione nel formato gg-mm-aaaa
+        df_missing_copy["Data Pubblicazione"] = pd.to_datetime(
+            df_missing_copy["Data Pubblicazione"], errors="coerce"
+        ).dt.strftime("%d-%m-%Y")
+        
+        container.dataframe(df_missing_copy, use_container_width=True)
+
         
 # ---------------------- FUNZIONE PRINCIPALE ----------------------
 
