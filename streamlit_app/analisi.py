@@ -159,13 +159,10 @@ def display_temporal_tab(container, df: pd.DataFrame):
 # ------------------------Tipologie & Mittenti----------------------------
 
 def display_typology_tab(container, df: pd.DataFrame):
-    """
-    Visualizza la tab Tipologie & Mittenti con il grafico a ciambella e il filtro per mittente.
-    """
-    # Creazione radio button per selezionare la visualizzazione
-    selected_view = st.radio("Seleziona la visualizzazione:", ["Tipologie Atto"], horizontal=True)
+    """Visualizza la tab Tipologie & Mittenti con il grafico a ciambella e il filtro per mittente."""
+    st.subheader("Tipologie di Atto Pubblicate")
 
-    # Definizione della mappatura per i 5 mittenti principali (stessa logica della prima tab)
+    # Definizione della mappatura per i 5 mittenti principali
     active_mapping = {
         "AREA TECNICA 1": "Area Tecnica 1",
         "AREA TECNICA 2": "Area Tecnica 2",
@@ -173,25 +170,24 @@ def display_typology_tab(container, df: pd.DataFrame):
         "AREA AMMINISTRATIVA": "Area Amministrativa",
         "COMUNE DI ACERNO": "Comune di Acerno"
     }
-    
     desired_order = ["AREA TECNICA 1", "AREA TECNICA 2", "AREA VIGILANZA", "AREA AMMINISTRATIVA", "COMUNE DI ACERNO"]
 
     # Determina i mittenti presenti nei dati
     existing_senders = set(df["mittente"].unique()) - {"TOTALE"}
-
-    # Seleziona quelli che corrispondono ai mittenti attivi desiderati
     active = [sender for sender in desired_order if sender in existing_senders]
+    inactive = list(existing_senders - set(active))  # Mittenti non nella lista principale
 
-    # Tutti gli altri saranno accorpati in "ALTRI"
-    inactive = list(existing_senders - set(active))
-
-    # Costruzione della lista per la multiselect
+    # Lista opzioni per la multiselect
     available_senders = [active_mapping[s] for s in active] + (["Altri"] if inactive else [])
 
-    # Multiselect con tutti i mittenti tranne "TOTALE"
-    selected_senders = st.multiselect("Filtra per mittente:", available_senders, default=available_senders)
+    # Multiselect con tutti i mittenti pre-selezionati
+    selected_senders = st.multiselect(
+        "Filtra per mittente:", 
+        available_senders, 
+        default=available_senders  # Qui sta la modifica chiave!
+    )
 
-    # Ricostruzione dei mittenti selezionati nel formato originale per il filtro
+    # Mappatura inversa per il filtro sui dati
     selected_senders_mapped = [s for s, mapped in active_mapping.items() if mapped in selected_senders]
     if "Altri" in selected_senders:
         selected_senders_mapped += inactive
@@ -199,11 +195,13 @@ def display_typology_tab(container, df: pd.DataFrame):
     # Filtraggio del dataframe
     filtered_df = df[df["mittente"].isin(selected_senders_mapped)]
 
-    # Generazione del grafico
-    if selected_view == "Tipologie Atto":
+    # Generazione del grafico solo se ci sono dati filtrati
+    if not filtered_df.empty:
         chart_data = prepare_typology_data(filtered_df)
         chart_config = create_doughnut_chart(chart_data)
         st_echarts(options=chart_config, height="500px")
+    else:
+        st.warning("⚠️ Nessun dato disponibile per i mittenti selezionati.")
         
 # ---------------------- FUNZIONE PRINCIPALE ----------------------
 
