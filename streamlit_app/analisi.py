@@ -99,7 +99,7 @@ def create_doughnut_chart(dataset: pd.DataFrame) -> dict:
     """
     Crea la configurazione del grafico a ciambella.
     """
-    data = [{"value": row["count"], "name": row["tipologia"]} for _, row in dataset.iterrows()]
+    data = [{"value": row["count"], "name": row["tipo_atto"]} for _, row in dataset.iterrows()]
 
     return {
         "tooltip": {"trigger": "item"},
@@ -151,7 +151,7 @@ def display_temporal_tab(container, df: pd.DataFrame):
 
     with st.container():
         try:
-            st_echarts(options=schede[selected_key], key=selected_key)
+            st_echarts(options=schede[selected_key], key=selected_key, height="500px")
         except Exception as e:
             st.error("Errore durante il caricamento del grafico.")
             st.exception(e)
@@ -165,15 +165,39 @@ def display_typology_tab(container, df: pd.DataFrame):
     # Creazione radio button per selezionare la visualizzazione
     selected_view = st.radio("Seleziona la visualizzazione:", ["Tipologie Atto"], horizontal=True)
 
-    # Preparazione dei dati per la tipologia
-    typology_data = prepare_typology_data(df)
+    # Definizione della mappatura per i 5 mittenti principali (stessa logica della prima tab)
+    active_mapping = {
+        "AREA TECNICA 1": "Area Tecnica 1",
+        "AREA TECNICA 2": "Area Tecnica 2",
+        "AREA VIGILANZA": "Area Vigilanza",
+        "AREA AMMINISTRATIVA": "Area Amministrativa",
+        "COMUNE DI ACERNO": "Comune di Acerno"
+    }
+    
+    desired_order = ["AREA TECNICA 1", "AREA TECNICA 2", "AREA VIGILANZA", "AREA AMMINISTRATIVA", "COMUNE DI ACERNO"]
 
-    # Filtri per mittente
-    available_senders = sorted(df["mittente"].unique().tolist())  # Prende tutti i mittenti
+    # Determina i mittenti presenti nei dati
+    existing_senders = set(df["mittente"].unique()) - {"TOTALE"}
+
+    # Seleziona quelli che corrispondono ai mittenti attivi desiderati
+    active = [sender for sender in desired_order if sender in existing_senders]
+
+    # Tutti gli altri saranno accorpati in "ALTRI"
+    inactive = list(existing_senders - set(active))
+
+    # Costruzione della lista per la multiselect
+    available_senders = [active_mapping[s] for s in active] + (["Altri"] if inactive else [])
+
+    # Multiselect con tutti i mittenti tranne "TOTALE"
     selected_senders = st.multiselect("Filtra per mittente:", available_senders, default=available_senders)
 
-    # Filtro del dataframe
-    filtered_df = df[df["mittente"].isin(selected_senders)]
+    # Ricostruzione dei mittenti selezionati nel formato originale per il filtro
+    selected_senders_mapped = [s for s, mapped in active_mapping.items() if mapped in selected_senders]
+    if "Altri" in selected_senders:
+        selected_senders_mapped += inactive
+
+    # Filtraggio del dataframe
+    filtered_df = df[df["mittente"].isin(selected_senders_mapped)]
 
     # Generazione del grafico
     if selected_view == "Tipologie Atto":
