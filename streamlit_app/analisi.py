@@ -58,12 +58,16 @@ def prepare_time_series_data_by_sender(df: pd.DataFrame) -> tuple[pd.DataFrame, 
 # ------------------------Tipologie & Mittenti----------------------------
 
 def prepare_typology_data(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Prepara i dati per il grafico a ciambella delle tipologie di atto pubblicate.
-    """
+    """Prepara i dati per il grafico a ciambella delle tipologie di atto pubblicate."""
     typology_counts = df["tipo_atto"].value_counts().reset_index()
     typology_counts.columns = ["tipo_atto", "count"]
     return typology_counts
+
+def prepare_mittente_data(df: pd.DataFrame) -> pd.DataFrame:
+    """Prepara i dati per il grafico a ciambella dei mittenti."""
+    mittente_counts = df["mittente"].value_counts().reset_index()
+    mittente_counts.columns = ["mittente", "count"]
+    return mittente_counts
     
 # ---------------------- CONFIGURAZIONE DEI GRAFICI ----------------------
 
@@ -96,17 +100,14 @@ def crea_config_chart(title: str, dataset: pd.DataFrame, selected_cols: list) ->
 # ------------------------Tipologie & Mittenti----------------------------
 
 def create_doughnut_chart(dataset: pd.DataFrame) -> dict:
-    """
-    Crea la configurazione del grafico a ciambella.
-    """
-    data = [{"value": row["count"], "name": row["tipo_atto"]} for _, row in dataset.iterrows()]
-
+    """Crea la configurazione del grafico a ciambella (doughnut)."""
+    data = [{"value": row["count"], "name": row[0]} for _, row in dataset.iterrows()]
     return {
         "tooltip": {"trigger": "item"},
         "legend": {"top": "5%", "left": "center"},
         "series": [
             {
-                "name": "Tipologie Atto",
+                "name": "Distribuzione",
                 "type": "pie",
                 "radius": ["40%", "70%"],
                 "avoidLabelOverlap": False,
@@ -124,7 +125,7 @@ def create_doughnut_chart(dataset: pd.DataFrame) -> dict:
             }
         ],
     }
-
+    
 # ---------------------- VISUALIZZAZIONE ----------------------
 
 def display_temporal_tab(container, df: pd.DataFrame):
@@ -160,56 +161,80 @@ def display_temporal_tab(container, df: pd.DataFrame):
 # ------------------------Tipologie & Mittenti----------------------------
 
 def display_typology_tab(container, df: pd.DataFrame):
-    """Visualizza la tab Tipologie & Mittenti con il grafico a ciambella e il filtro per mittente."""
-    st.subheader("Tipologie di Atto Pubblicate")
+    """Visualizza la tab Tipologie & Mittenti con due modalità:
+       1. Tipologie: grafico a ciambella delle tipologie di atto (filtrato per mittente).
+       2. Mittenti: grafico a ciambella dei mittenti (filtrato per tipologia di atto)."""
 
-    # Mappatura dei mittenti (i df hanno i mittenti in uppercase)
-    active_mapping = {
-        "AREA TECNICA 1": "Area Tecnica 1",
-        "AREA TECNICA 2": "Area Tecnica 2",
-        "AREA VIGILANZA": "Area Vigilanza",
-        "AREA AMMINISTRATIVA": "Area Amministrativa",
-        "COMUNE DI ACERNO": "Comune di Acerno"
-    }
+    # Radio button per selezionare la visualizzazione
+    view_option = st.radio("Filtra per:", 
+                           ["Tipologie", "Mittenti"], horizontal=True)
 
-    # Ottieni i mittenti presenti nel dataframe e rimuovi "TOTALE"
-    existing_senders = set(df["mittente"].unique()) - {"TOTALE"}
+    if view_option == "Tipologie":
+        # Mappatura dei mittenti (i df hanno i mittenti in uppercase)
+        active_mapping = {
+            "AREA TECNICA 1": "Area Tecnica 1",
+            "AREA TECNICA 2": "Area Tecnica 2",
+            "AREA VIGILANZA": "Area Vigilanza",
+            "AREA AMMINISTRATIVA": "Area Amministrativa",
+            "COMUNE DI ACERNO": "Comune di Acerno"
+        }
+        # Ottieni i mittenti presenti nel dataframe (escludendo "TOTALE")
+        existing_senders = set(df["mittente"].unique()) - {"TOTALE"}
+        # Mittenti "attivi" in base alla mappatura
+        active = [s for s in active_mapping if s in existing_senders]
+        # Gli altri mittenti (non mappati)
+        inactive = list(existing_senders - set(active))
+        # Lista finale per la multiselect: i mittenti mappati + "Altri" se presenti
+        available_senders = [active_mapping[s] for s in active] + (["Altri"] if inactive else [])
 
-    # Seleziona quelli presenti nella mappatura (ordinati come da mappatura)
-    active = [s for s in active_mapping if s in existing_senders]
-    inactive = list(existing_senders - set(active))  # mittenti non in active_mapping
+        # Inizializza lo stato se non esiste
+        if "selected_senders" not in st.session_state:
+            st.session_state.selected_senders = available_senders
 
-    # Lista finale per la multiselect: i mittenti mappati + "Altri" se ce ne sono
-    available_senders = [active_mapping[s] for s in active] + (["Altri"] if inactive else [])
+        # Multiselect per i mittenti
+        selected_senders = st.multiselect(
+            "Filtra per mittente:", 
+            available_senders, 
+            key="selected_senders"
+        )
+        if not selected_senders:
+            selected_senders = available_senders
 
-    # Inizializza lo stato del widget se non presente
-    if "selected_senders" not in st.session_state:
-        st.session_state.selected_senders = available_senders
+        # Mappatura inversa: da nomi visualizzati ai nomi originali
+        selected_senders_mapped = [s for s, mapped in active_mapping.items() if mapped in selected_senders]
+        if "Altri" in selected_senders:
+            selected_senders_mapped += inactive
 
-    # Se l'utente non ha ancora selezionato nulla, forziamo la selezione di default
-    selected_senders = st.multiselect(
-        "Filtra per mittente:",
-        available_senders,
-        key="selected_senders"
-    )
-    if not selected_senders:
-        selected_senders = available_senders
+        # Filtraggio del dataframe
+        filtered_df = df[df["mittente"].isin(selected_senders_mapped)]
+        if not filtered_df.empty:
+            chart_data = prepare_typology_data(filtered_df)
+            chart_config = create_doughnut_chart(chart_data)
+            st_echarts(options=chart_config, height="500px")
+        else:
+            st.warning("⚠️ Nessun dato disponibile per i mittenti selezionati.")
 
-    # Mappatura inversa: convertiamo i nomi visualizzati in quelli originali
-    selected_senders_mapped = [s for s, mapped in active_mapping.items() if mapped in selected_senders]
-    if "Altri" in selected_senders:
-        selected_senders_mapped += inactive
-
-    # Filtraggio del dataframe
-    filtered_df = df[df["mittente"].isin(selected_senders_mapped)]
-
-    # Generazione del grafico solo se ci sono dati filtrati
-    if not filtered_df.empty:
-        chart_data = prepare_typology_data(filtered_df)
-        chart_config = create_doughnut_chart(chart_data)
-        st_echarts(options=chart_config, height="500px")
-    else:
-        st.warning("⚠️ Nessun dato disponibile per i mittenti selezionati.")
+    elif view_option == "Mittenti":
+        # In questo caso il filtro è sulle tipologie di atto
+        available_tipologie = sorted(df["tipo_atto"].unique())
+        if "selected_tipologie" not in st.session_state:
+            st.session_state.selected_tipologie = available_tipologie
+        selected_tipologie = st.multiselect(
+            "Filtra per tipologia di atto:", 
+            available_tipologie, 
+            key="selected_tipologie"
+        )
+        if not selected_tipologie:
+            selected_tipologie = available_tipologie
+        # Filtra il dataframe in base alle tipologie selezionate
+        filtered_df = df[df["tipo_atto"].isin(selected_tipologie)]
+        if not filtered_df.empty:
+            # Prepara i dati aggregati per i mittenti
+            chart_data = prepare_mittente_data(filtered_df)
+            chart_config = create_doughnut_chart(chart_data)
+            st_echarts(options=chart_config, height="500px")
+        else:
+            st.warning("⚠️ Nessun dato disponibile per le tipologie selezionate.")
 
         
 # ---------------------- FUNZIONE PRINCIPALE ----------------------
