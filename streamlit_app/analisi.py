@@ -131,11 +131,6 @@ def display_temporal_tab(container, df: pd.DataFrame):
     """
     Visualizza i grafici temporali con possibilità di filtrare i dati tramite una multiselect.
     """
-    daily_data, cumulative_data = prepare_time_series_data_by_sender(df)
-    # Escludiamo "data" per la multiselect (assicurandoci di mantenerla sempre)
-    available_cols = daily_data.columns.tolist()[1:]
-    selected_cols = st.multiselect("Seleziona i dati da visualizzare:", available_cols, default=available_cols)
-    selected_cols.insert(0, "data")
 
     schede = {
         "andamento_giornaliero": crea_config_chart("Andamento giornaliero", daily_data[selected_cols], selected_cols),
@@ -148,6 +143,12 @@ def display_temporal_tab(container, df: pd.DataFrame):
     }
     selected_label = st.radio("Seleziona il grafico", list(tab_labels.keys()), horizontal=True)
     selected_key = tab_labels[selected_label]
+
+    daily_data, cumulative_data = prepare_time_series_data_by_sender(df)
+    # Escludiamo "data" per la multiselect (assicurandoci di mantenerla sempre)
+    available_cols = daily_data.columns.tolist()[1:]
+    selected_cols = st.multiselect("Seleziona i dati da visualizzare:", available_cols, default=available_cols)
+    selected_cols.insert(0, "data")
 
     with st.container():
         try:
