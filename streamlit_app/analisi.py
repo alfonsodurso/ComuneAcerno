@@ -189,7 +189,6 @@ def display_typology_tab(container, df: pd.DataFrame):
     selected_senders = st.multiselect(
         "Filtra per mittente:", 
         available_senders, 
-        default=st.session_state.selected_senders,  # Prende dallo stato
         key="selected_senders"
     )
 
