@@ -124,7 +124,12 @@ def crea_config_chart(title: str, dataset: pd.DataFrame, selected_cols: list) ->
 
 def create_doughnut_chart(dataset: pd.DataFrame) -> dict:
     """Crea la configurazione del grafico a ciambella (doughnut)."""
-    data = [{"value": row["count"], "name": row[0]} for _, row in dataset.iterrows()]
+    if "tipo_atto" in dataset.columns and "count" in dataset.columns:
+        data = [{"name": row["tipo_atto"], "value": row["count"]} for _, row in dataset.iterrows()]
+    elif "label" in dataset.columns and "value" in dataset.columns:
+        data = [{"name": row["label"], "value": row["value"]} for _, row in dataset.iterrows()]
+    else:
+        data = [{"name": row[0], "value": row[1]} for _, row in dataset.iterrows()]
     return {
         "tooltip": {"trigger": "item"},
         "legend": {"top": "5%", "left": "center"},
