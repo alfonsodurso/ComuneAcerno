@@ -91,6 +91,55 @@ def prepare_mittente_data_with_altri(df: pd.DataFrame) -> pd.DataFrame:
         data_list.append(("Altri", others_count))
     # Converte in DataFrame con colonne 'label' e 'value'
     return pd.DataFrame(data_list, columns=["label", "value"])
+
+# ------------------------------------------------------------------------
+
+def analyze_publication_delays(df):
+    """
+    Calcola il ritardo di pubblicazione in giorni lavorativi tra 'data_registro_generale'
+    e 'data_inizio_pubblicazione', escludendo le pubblicazioni senza 'data_registro_generale'.
+    Restituisce un DataFrame con i ritardi calcolati e uno con le pubblicazioni escluse.
+    """
+    # Pulizia: convertiamo stringhe vuote in NaN per facilitare il parsing delle date
+    df["data_registro_generale"] = df["data_registro_generale"].replace("", np.nan)
+    df["data_inizio_pubblicazione"] = df["data_inizio_pubblicazione"].replace("", np.nan)
+
+    # Separiamo le pubblicazioni senza "data_registro_generale"
+    df_missing = df[df["data_registro_generale"].isna()][
+        ["numero_pubblicazione", "mittente", "oggetto_atto", "data_inizio_pubblicazione"]
+    ]
+    
+    # Filtriamo solo le righe con entrambe le date presenti
+    df = df.dropna(subset=["data_registro_generale", "data_inizio_pubblicazione"]).copy()
+    
+    # Conversione in datetime con gestione degli errori
+    df["data_registro_generale"] = pd.to_datetime(df["data_registro_generale"], errors="coerce")
+    df["data_inizio_pubblicazione"] = pd.to_datetime(df["data_inizio_pubblicazione"], errors="coerce")
+    
+    # Rimuoviamo eventuali righe dove la conversione ha fallito (date ancora NaT)
+    df = df.dropna(subset=["data_registro_generale", "data_inizio_pubblicazione"]).copy()
+    
+    # Conversione a datetime64[D] per compatibilità con np.busday_count
+    start_dates = df["data_registro_generale"].values.astype("datetime64[D]")
+    end_dates = df["data_inizio_pubblicazione"].values.astype("datetime64[D]")
+    
+    # Calcolo del ritardo in giorni lavorativi:
+    # np.busday_count conta esclusivamente il giorno finale; per includerlo aggiungiamo 1 giorno e poi sottraiamo 1
+    df["ritardo_pubblicazione"] = np.busday_count(start_dates, end_dates + np.timedelta64(1, "D")) - 1
+    df["ritardo_pubblicazione"] = df["ritardo_pubblicazione"].clip(lower=0)
+    
+    return df, df_missing
+
+def analyze_mittenti_performance(df):
+    """
+    Analizza il ritardo medio di pubblicazione per ogni mittente.
+    Restituisce un DataFrame con il mittente e il ritardo medio ordinato in modo decrescente.
+    (Questa funzione viene ora sostituita dall'aggregazione presente in display_ritardi_tab.)
+    """
+    performance = df.groupby("mittente")["ritardo_pubblicazione"].mean().reset_index()
+    performance.columns = ["Mittente", "Ritardo medio"]
+    performance = performance.sort_values(by="Ritardo medio", ascending=False)
+    return performance
     
 # ---------------------- CONFIGURAZIONE DEI GRAFICI ----------------------
 
@@ -153,6 +202,70 @@ def create_doughnut_chart(dataset: pd.DataFrame) -> dict:
             }
         ],
     }
+
+# -------------------------------------------------------------
+
+def display_ritardi_tab(container, df):
+    """
+    Calcola e visualizza la tabella con i ritardi medi di pubblicazione per mittente,
+    includendo una tabella separata delle pubblicazioni escluse.
+    """
+    df_delays, df_missing = analyze_publication_delays(df)
+    
+    # Se non esiste una colonna che identifica univocamente la pubblicazione, usiamo l'indice
+    if "numero_pubblicazione" not in df_delays.columns:
+        df_delays = df_delays.reset_index().rename(columns={"index": "numero_pubblicazione"})
+    
+    # Aggregazione per mittente:
+    aggregated = df_delays.groupby("mittente").agg(
+         ritardo_medio=('ritardo_pubblicazione', 'mean'),
+         numero_pubblicazioni_totali=('ritardo_pubblicazione', 'count'),
+         ritardo_massimo=('ritardo_pubblicazione', 'max')
+    ).reset_index()
+    
+    # Per ogni mittente, individuiamo il record con il ritardo massimo e ne estraiamo il numero della pubblicazione
+    max_idx = df_delays.groupby("mittente")["ritardo_pubblicazione"].idxmax()
+    max_publications = df_delays.loc[max_idx, ["mittente", "numero_pubblicazione"]].rename(
+         columns={"numero_pubblicazione": "pub_max_ritardo"}
+    )
+    
+    performance = aggregated.merge(max_publications, on="mittente", how="left")
+    performance["ritardo_medio"] = performance["ritardo_medio"].round(0).astype(int)
+
+    performance = performance.sort_values("ritardo_medio", ascending=False)
+    
+    # Rinominiamo le colonne per maggiore chiarezza
+    performance = performance.rename(columns={
+         "mittente": "Mittente",
+         "ritardo_medio": "Ritardo medio",
+         "ritardo_massimo": "Ritardo massimo",
+         "numero_pubblicazioni_totali": "Pubblicazioni totali",
+         "pub_max_ritardo": "Pubblicazione max ritardo"
+    })
+    
+    # Mostriamo la tabella dei ritardi medi
+    st.markdown("**Analisi dei ritardi per mittente**")
+    #container.write("# Analisi dei ritardi per mittente:")
+    container.dataframe(performance, use_container_width=True)
+    
+     # Visualizziamo la tabella delle pubblicazioni escluse
+    if not df_missing.empty:
+        st.markdown("**Pubblicazioni senza la data registro**")
+
+        # container.write("# Pubblicazioni senza la data registro:")
+        df_missing_copy = df_missing.copy()
+        df_missing_copy = df_missing_copy.rename(columns={
+            "numero_pubblicazione": "Numero",
+            "mittente": "Mittente",
+            "oggetto_atto": "Oggetto",
+            "data_inizio_pubblicazione": "Data Pubblicazione"
+        })
+        # Formatto la colonna Data Pubblicazione nel formato gg-mm-aaaa
+        df_missing_copy["Data Pubblicazione"] = pd.to_datetime(
+            df_missing_copy["Data Pubblicazione"], errors="coerce"
+        ).dt.strftime("%d-%m-%Y")
+        
+        container.dataframe(df_missing_copy, use_container_width=True)
     
 # ---------------------- VISUALIZZAZIONE ----------------------
 
@@ -278,6 +391,8 @@ def page_analisi(df: pd.DataFrame):
         display_temporal_tab(tab_temporale, df)
     with tab_tipologie:
         display_typology_tab(tab_tipologie, df)
+    with tab_ritadi:
+        display_ritardi_tab(tab_ritardi, df)
 
 if __name__ == "__main__":
     page_analisi(df_example)
