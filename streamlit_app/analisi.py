@@ -455,7 +455,7 @@ def page_analisi(df: pd.DataFrame):
         display_temporal_tab(tab_temporale, df)
     with tab_tipologie:
         display_typology_tab(tab_tipologie, df)
-    with tab_ritadi:
+    with tab_ritardi:
         display_ritardi_tab(tab_ritardi, df)
 
 if __name__ == "__main__":
