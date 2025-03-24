@@ -57,13 +57,14 @@ def prepare_time_series_data_by_sender(df: pd.DataFrame) -> tuple[pd.DataFrame, 
 
 # ------------------------Tipologie & Mittenti----------------------------
 
-def prepare_tipo_atto_data(df: pd.DataFrame) -> list:
+def prepare_typology_data(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Prepara i dati per la distribuzione delle tipologie di atto pubblicate.
+    Prepara i dati per il grafico a ciambella delle tipologie di atto pubblicate.
     """
-    tipo_counts = df["tipo_atto"].value_counts().to_dict()
-    return [{"value": count, "name": tipo} for tipo, count in tipo_counts.items()]
-
+    typology_counts = df["tipologia"].value_counts().reset_index()
+    typology_counts.columns = ["tipologia", "count"]
+    return typology_counts
+    
 # ---------------------- CONFIGURAZIONE DEI GRAFICI ----------------------
 
 def crea_config_chart(title: str, dataset: pd.DataFrame, selected_cols: list) -> dict:
@@ -94,10 +95,12 @@ def crea_config_chart(title: str, dataset: pd.DataFrame, selected_cols: list) ->
 
 # ------------------------Tipologie & Mittenti----------------------------
 
-def crea_doughnut_chart(data: list) -> dict:
+def create_doughnut_chart(dataset: pd.DataFrame) -> dict:
     """
-    Configura il grafico a ciambella (doughnut chart) per la distribuzione delle tipologie di atto.
+    Crea la configurazione del grafico a ciambella.
     """
+    data = [{"value": row["count"], "name": row["tipologia"]} for _, row in dataset.iterrows()]
+
     return {
         "tooltip": {"trigger": "item"},
         "legend": {"top": "5%", "left": "center"},
@@ -155,26 +158,29 @@ def display_temporal_tab(container, df: pd.DataFrame):
 
 # ------------------------Tipologie & Mittenti----------------------------
 
-def display_tipologie_mittenti_tab(container, df: pd.DataFrame):
+def display_typology_tab(container, df: pd.DataFrame):
     """
-    Visualizza la scheda Tipologie & Mittenti con la selezione delle tipologie di atto e il grafico a ciambella.
+    Visualizza la tab Tipologie & Mittenti con il grafico a ciambella e il filtro per mittente.
     """
-    with container:
-        # Selezione della visualizzazione
-        selected_view = st.radio("Seleziona la visualizzazione:", ["Tipologie Atto"], horizontal=True)
+    # Creazione radio button per selezionare la visualizzazione
+    selected_view = st.radio("Seleziona la visualizzazione:", ["Tipologie Atto"], horizontal=True)
 
-        # Filtriamo i dati in base alla multiselect
-        available_types = df["tipo_atto"].unique().tolist()
-        selected_types = st.multiselect("Filtra per tipologia di atto:", available_types, default=available_types)
-        filtered_df = df[df["tipo_atto"].isin(selected_types)]
+    # Preparazione dei dati per la tipologia
+    typology_data = prepare_typology_data(df)
 
-        if selected_view == "Tipologie Atto":
-            tipo_data = prepare_tipo_atto_data(filtered_df)
-            if tipo_data:
-                st_echarts(options=crea_doughnut_chart(tipo_data), height="500px")
-            else:
-                st.warning("Nessun dato disponibile per la selezione attuale.")
+    # Filtri per mittente
+    available_senders = sorted(df["mittente"].unique().tolist())  # Prende tutti i mittenti
+    selected_senders = st.multiselect("Filtra per mittente:", available_senders, default=available_senders)
 
+    # Filtro del dataframe
+    filtered_df = df[df["mittente"].isin(selected_senders)]
+
+    # Generazione del grafico
+    if selected_view == "Tipologie Atto":
+        chart_data = prepare_typology_data(filtered_df)
+        chart_config = create_doughnut_chart(chart_data)
+        st_echarts(options=chart_config, height="500px")
+        
 # ---------------------- FUNZIONE PRINCIPALE ----------------------
 
 def page_analisi(df: pd.DataFrame):
@@ -187,7 +193,7 @@ def page_analisi(df: pd.DataFrame):
     with tab_temporale:
         display_temporal_tab(tab_temporale, df)
     with tab_tipologie:
-        display_tipologie_mittenti_tab(tab_tipologie, df)
+        display_typology_tab(tab_tipologie, df)
 
 if __name__ == "__main__":
     page_analisi(df_example)
