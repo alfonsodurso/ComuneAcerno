@@ -63,11 +63,34 @@ def prepare_typology_data(df: pd.DataFrame) -> pd.DataFrame:
     typology_counts.columns = ["tipo_atto", "count"]
     return typology_counts
 
-def prepare_mittente_data(df: pd.DataFrame) -> pd.DataFrame:
-    """Prepara i dati per il grafico a ciambella dei mittenti."""
-    mittente_counts = df["mittente"].value_counts().reset_index()
-    mittente_counts.columns = ["mittente", "count"]
-    return mittente_counts
+def prepare_mittente_data_with_altri(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Prepara i dati per il grafico a ciambella dei mittenti, aggregando in "Altri"
+    quelli non presenti nella mappatura dei mittenti principali.
+    """
+    # Definizione della mappatura dei mittenti principali
+    active_mapping = {
+        "AREA TECNICA 1": "Area Tecnica 1",
+        "AREA TECNICA 2": "Area Tecnica 2",
+        "AREA VIGILANZA": "Area Vigilanza",
+        "AREA AMMINISTRATIVA": "Area Amministrativa",
+        "COMUNE DI ACERNO": "Comune di Acerno"
+    }
+    desired_order = list(active_mapping.keys())
+    counts = df["mittente"].value_counts().to_dict()
+
+    # Dati per i mittenti "attivi"
+    data_list = []
+    for sender in desired_order:
+        cnt = counts.get(sender, 0)
+        if cnt > 0:
+            data_list.append((active_mapping[sender], cnt))
+    # Somma dei mittenti non mappati
+    others_count = sum(cnt for sender, cnt in counts.items() if sender not in desired_order)
+    if others_count > 0:
+        data_list.append(("Altri", others_count))
+    # Converte in DataFrame con colonne 'label' e 'value'
+    return pd.DataFrame(data_list, columns=["label", "value"])
     
 # ---------------------- CONFIGURAZIONE DEI GRAFICI ----------------------
 
@@ -166,7 +189,7 @@ def display_typology_tab(container, df: pd.DataFrame):
        2. Mittenti: grafico a ciambella dei mittenti (filtrato per tipologia di atto)."""
 
     # Radio button per selezionare la visualizzazione
-    view_option = st.radio("Filtra per:", 
+    view_option = st.radio("Visualizza per:", 
                            ["Tipologie", "Mittenti"], horizontal=True)
 
     if view_option == "Tipologie":
@@ -230,7 +253,7 @@ def display_typology_tab(container, df: pd.DataFrame):
         filtered_df = df[df["tipo_atto"].isin(selected_tipologie)]
         if not filtered_df.empty:
             # Prepara i dati aggregati per i mittenti
-            chart_data = prepare_mittente_data(filtered_df)
+            chart_data = prepare_mittente_data_with_altri(filtered_df)
             chart_config = create_doughnut_chart(chart_data)
             st_echarts(options=chart_config, height="500px")
         else:
