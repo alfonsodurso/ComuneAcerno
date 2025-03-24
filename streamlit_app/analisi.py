@@ -4,76 +4,80 @@ from streamlit_echarts import st_echarts
 
 # ---------------------- FUNZIONE DI PREPARAZIONE DATI ----------------------
 
-def prepara_dati_temporali_per_mittente(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
+def prepare_time_series_data_by_sender(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
     Prepara i dati temporali aggregati per data e mittente.
     I mittenti nel df sono in uppercase.
     """
+    # Converte la data di pubblicazione e filtra eventuali errori
     df_copy = df.copy()
     df_copy["data_inizio_pubblicazione"] = pd.to_datetime(df_copy["data_inizio_pubblicazione"], errors="coerce")
     df_copy = df_copy.dropna(subset=["data_inizio_pubblicazione"])
     df_copy["data"] = df_copy["data_inizio_pubblicazione"].dt.date
 
+    # Crea una tabella pivot che raggruppa per data e mittente
     pivot = df_copy.pivot_table(index="data", columns="mittente", aggfunc="size", fill_value=0).sort_index()
-    pivot["TOTAL"] = pivot.sum(axis=1)
-    pivot = pivot.applymap(int)  # converte in tipo int Python
 
-    mapping_attivi = {
+    # Calcola il totale (TOTALE) per ogni data
+    pivot["TOTAL"] = pivot.sum(axis=1)
+    pivot = pivot.applymap(int)  # assicura che siano tipi Python (evita numpy.int64)
+
+    # Mappatura per i mittenti principali (assumendo che nel df i nomi siano in uppercase)
+    active_mapping = {
         "AREA TECNICA 1": "Area Tecnica 1",
         "AREA TECNICA 2": "Area Tecnica 2",
         "AREA VIGILANZA": "Area Vigilanza",
         "AREA AMMINISTRATIVA": "Area Amministrativa",
         "COMUNE DI ACERNO": "Comune di Acerno"
     }
-    ordine_desiderato = ["AREA TECNICA 1", "AREA TECNICA 2", "AREA VIGILANZA", "AREA AMMINISTRATIVA", "COMUNE DI ACERNO"]
+    desired_order = ["AREA TECNICA 1", "AREA TECNICA 2", "AREA VIGILANZA", "AREA AMMINISTRATIVA", "COMUNE DI ACERNO"]
 
-    mittenti_presenti = set(pivot.columns) - {"TOTAL"}
-    attivi = [sender for sender in ordine_desiderato if sender in mittenti_presenti]
-    inattivi = list(mittenti_presenti - set(attivi))
+    existing_senders = set(pivot.columns) - {"TOTAL"}
+    active = [sender for sender in desired_order if sender in existing_senders]
+    inactive = list(existing_senders - set(active))
 
-    pivot["ALTRI"] = pivot[inattivi].sum(axis=1) if inattivi else 0
+    pivot["ALTRI"] = pivot[inactive].sum(axis=1) if inactive else 0
 
-    diz_rename = {"TOTAL": "TOTALE", "ALTRI": "Altri"}
-    for sender in attivi:
-        diz_rename[sender] = mapping_attivi[sender]
+    rename_dict = {"TOTAL": "TOTALE", "ALTRI": "Altri"}
+    for sender in active:
+        rename_dict[sender] = active_mapping[sender]
 
-    ordine_finale = ["data", "TOTALE"] + [mapping_attivi[s] for s in ordine_desiderato if s in attivi] + ["Altri"]
+    final_order = ["data", "TOTALE"] + [active_mapping[s] for s in desired_order if s in active] + ["Altri"]
 
-    dati_giornalieri = pivot.reset_index().rename(columns=diz_rename)
-    dati_giornalieri["data"] = dati_giornalieri["data"].apply(lambda d: d.strftime("%d-%m-%Y"))
-    dati_giornalieri = dati_giornalieri[ordine_finale]
+    daily_dataset = pivot.reset_index().rename(columns=rename_dict)
+    daily_dataset["data"] = daily_dataset["data"].apply(lambda d: d.strftime("%d-%m-%Y"))
+    daily_dataset = daily_dataset[final_order]
 
-    dati_cumulativi = dati_giornalieri.copy()
-    for col in ordine_finale:
+    cumulative_dataset = daily_dataset.copy()
+    for col in final_order:
         if col != "data":
-            dati_cumulativi[col] = dati_cumulativi[col].cumsum()
+            cumulative_dataset[col] = cumulative_dataset[col].cumsum()
 
-    return dati_giornalieri, dati_cumulativi
+    return daily_dataset, cumulative_dataset
 
-def prepara_dati_tipo_atto(df: pd.DataFrame) -> pd.DataFrame:
+# ------------------------Tipologie & Mittenti----------------------------
+
+def prepare_typology_data(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Prepara i dati per il grafico a ciambella dei tipi di atto pubblicati.
+    Prepara i dati per il grafico a ciambella delle tipologie di atto pubblicate.
     """
-    conteggi = df["tipo_atto"].value_counts().reset_index()
-    conteggi.columns = ["tipo_atto", "conteggio"]
-    return conteggi
-
+    typology_counts = df["tipo_atto"].value_counts().reset_index()
+    typology_counts.columns = ["tipo_atto", "count"]
+    return typology_counts
+    
 # ---------------------- CONFIGURAZIONE DEI GRAFICI ----------------------
 
-def crea_configurazione_grafico(titolo: str, dataset: pd.DataFrame, colonne_selezionate: list) -> dict:
+def crea_config_chart(title: str, dataset: pd.DataFrame, selected_cols: list) -> dict:
     """
     Crea la configurazione per un grafico lineare ECharts.
     """
     source = dataset.values.tolist()
-    source = [
-        [cell.strftime("%d-%m-%Y") if hasattr(cell, "strftime") else cell for cell in riga]
-        for riga in source
-    ]
+    source = [[cell.strftime("%d-%m-%Y") if hasattr(cell, "strftime") else cell for cell in row] for row in source]
     return {
         "animationDuration": 500,
         "dataset": [{
             "id": "dataset_raw",
-            "dimensions": colonne_selezionate,
+            "dimensions": selected_cols,
             "source": source
         }],
         "tooltip": {"trigger": "axis"},
@@ -84,22 +88,25 @@ def crea_configurazione_grafico(titolo: str, dataset: pd.DataFrame, colonne_sele
             "name": col,
             "encode": {"x": "data", "y": col},
             "smooth": True
-        } for col in colonne_selezionate[1:]],
+        } for col in selected_cols[1:]],
         "labelLayout": {"moveOverlap": "shiftX"},
         "emphasis": {"focus": "series"},
     }
 
-def crea_grafico_ciambella(dataset: pd.DataFrame) -> dict:
+# ------------------------Tipologie & Mittenti----------------------------
+
+def create_doughnut_chart(dataset: pd.DataFrame) -> dict:
     """
     Crea la configurazione del grafico a ciambella.
     """
-    dati = [{"value": row["conteggio"], "name": row["tipo_atto"]} for _, row in dataset.iterrows()]
+    data = [{"value": row["count"], "name": row["tipologia"]} for _, row in dataset.iterrows()]
+
     return {
         "tooltip": {"trigger": "item"},
         "legend": {"top": "5%", "left": "center"},
         "series": [
             {
-                "name": "Tipi di Atto",
+                "name": "Tipologie Atto",
                 "type": "pie",
                 "radius": ["40%", "70%"],
                 "avoidLabelOverlap": False,
@@ -113,73 +120,80 @@ def crea_grafico_ciambella(dataset: pd.DataFrame) -> dict:
                     "label": {"show": True, "fontSize": "20", "fontWeight": "bold"}
                 },
                 "labelLine": {"show": False},
-                "data": dati,
+                "data": data,
             }
         ],
     }
 
 # ---------------------- VISUALIZZAZIONE ----------------------
 
-def visualizza_tab_temporale(container, df: pd.DataFrame):
+def display_temporal_tab(container, df: pd.DataFrame):
     """
     Visualizza i grafici temporali con possibilità di filtrare i dati tramite una multiselect.
     """
-    dati_giornalieri, dati_cumulativi = prepara_dati_temporali_per_mittente(df)
-    colonne_disponibili = dati_giornalieri.columns.tolist()[1:]
-    colonne_selezionate = st.multiselect("Seleziona i dati da visualizzare:", colonne_disponibili, default=colonne_disponibili)
-    colonne_selezionate.insert(0, "data")
+    daily_data, cumulative_data = prepare_time_series_data_by_sender(df)
+    # Escludiamo "data" per la multiselect (assicurandoci di mantenerla sempre)
+    available_cols = daily_data.columns.tolist()[1:]
+    selected_cols = st.multiselect("Seleziona i dati da visualizzare:", available_cols, default=available_cols)
+    selected_cols.insert(0, "data")
 
-    configurazioni = {
-        "andamento_giornaliero": crea_configurazione_grafico("Andamento Giornaliero", dati_giornalieri[colonne_selezionate], colonne_selezionate),
-        "andamento_cumulato": crea_configurazione_grafico("Andamento Cumulato", dati_cumulativi[colonne_selezionate], colonne_selezionate),
+    schede = {
+        "andamento_giornaliero": crea_config_chart("Andamento giornaliero", daily_data[selected_cols], selected_cols),
+        "andamento_cumulato": crea_config_chart("Andamento cumulato", cumulative_data[selected_cols], selected_cols),
     }
 
-    tab_label = {
+    tab_labels = {
         "Andamento Giornaliero": "andamento_giornaliero",
         "Andamento Cumulato": "andamento_cumulato",
     }
-    scelta_label = st.radio("Seleziona il grafico", list(tab_label.keys()), horizontal=True)
-    chiave_scelta = tab_label[scelta_label]
+    selected_label = st.radio("Seleziona il grafico", list(tab_labels.keys()), horizontal=True)
+    selected_key = tab_labels[selected_label]
 
     with st.container():
         try:
-            st_echarts(options=configurazioni[chiave_scelta], key=chiave_scelta)
+            st_echarts(options=schede[selected_key], key=selected_key)
         except Exception as e:
             st.error("Errore durante il caricamento del grafico.")
             st.exception(e)
 
-def visualizza_tab_tipo_atto(container, df: pd.DataFrame):
+# ------------------------Tipologie & Mittenti----------------------------
+
+def display_typology_tab(container, df: pd.DataFrame):
     """
-    Visualizza la tab 'Tipi di Atto & Mittenti' con il grafico a ciambella e il filtro per mittente.
+    Visualizza la tab Tipologie & Mittenti con il grafico a ciambella e il filtro per mittente.
     """
-    opzione_visualizzazione = st.radio("Seleziona la visualizzazione:", ["Tipi di Atto"], horizontal=True)
-    dati_tipo_atto = prepara_dati_tipo_atto(df)
+    # Creazione radio button per selezionare la visualizzazione
+    selected_view = st.radio("Seleziona la visualizzazione:", ["Tipologie Atto"], horizontal=True)
 
-    mittenti_disponibili = sorted(df["mittente"].unique().tolist())
-    mittenti_selezionati = st.multiselect("Filtra per mittente:", mittenti_disponibili, default=mittenti_disponibili)
+    # Preparazione dei dati per la tipologia
+    typology_data = prepare_typology_data(df)
 
-    df_filtrato = df[df["mittente"].isin(mittenti_selezionati)]
+    # Filtri per mittente
+    available_senders = sorted(df["mittente"].unique().tolist())  # Prende tutti i mittenti
+    selected_senders = st.multiselect("Filtra per mittente:", available_senders, default=available_senders)
 
-    if opzione_visualizzazione == "Tipi di Atto":
-        dati_grafico = prepara_dati_tipo_atto(df_filtrato)
-        config_grafico = crea_grafico_ciambella(dati_grafico)
-        st_echarts(options=config_grafico, height="500px")
+    # Filtro del dataframe
+    filtered_df = df[df["mittente"].isin(selected_senders)]
 
+    # Generazione del grafico
+    if selected_view == "Tipologie Atto":
+        chart_data = prepare_typology_data(filtered_df)
+        chart_config = create_doughnut_chart(chart_data)
+        st_echarts(options=chart_config, height="500px")
+        
 # ---------------------- FUNZIONE PRINCIPALE ----------------------
 
-def pagina_analisi(df: pd.DataFrame):
+def page_analisi(df: pd.DataFrame):
     st.header("📊 ANALISI")
-    tab_temporale, tab_tipo_atto, tab_ritardi = st.tabs([
+    tab_temporale, tab_tipologie, tab_ritardi = st.tabs([
         "📆 Andamento Temporale",
-        "📋 Tipi di Atto & Mittenti",
+        "📋 Tipologie & Mittenti",
         "⏳ Ritardi"
     ])
     with tab_temporale:
-        visualizza_tab_temporale(tab_temporale, df)
-    with tab_tipo_atto:
-        visualizza_tab_tipo_atto(tab_tipo_atto, df)
-    # Il tab "Ritardi" potrà essere implementato in futuro
+        display_temporal_tab(tab_temporale, df)
+    with tab_tipologie:
+        display_typology_tab(tab_tipologie, df)
 
 if __name__ == "__main__":
-    # Assicurarsi di avere un DataFrame "df" valido.
-    pagina_analisi(df)
+    page_analisi(df_example)
