@@ -181,11 +181,16 @@ def display_typology_tab(container, df: pd.DataFrame):
     # Lista finale per la multiselect
     available_senders = [active_mapping[s] for s in active] + (["Altri"] if inactive else [])
 
-    # Multiselect con TUTTI i mittenti pre-selezionati
+    # Inizializza lo stato della selezione (serve per il primo caricamento)
+    if "selected_senders" not in st.session_state:
+        st.session_state.selected_senders = available_senders  # Attiva tutti di default!
+
+    # Multiselect con i valori salvati in sessione
     selected_senders = st.multiselect(
         "Filtra per mittente:", 
         available_senders, 
-        default=available_senders  # Attiva tutti di default!
+        default=st.session_state.selected_senders,  # Prende dallo stato
+        key="selected_senders"
     )
 
     # Mappatura inversa per il filtro
@@ -196,13 +201,13 @@ def display_typology_tab(container, df: pd.DataFrame):
     # Filtraggio del dataframe
     filtered_df = df[df["mittente"].isin(selected_senders_mapped)]
 
-    # Generazione del grafico solo se ci sono dati filtrati
-    if not filtered_df.empty:
+    # ⚡ Forzare il primo rendering del grafico senza bisogno di modificare la multiselect
+    if filtered_df.empty:
+        st.warning("⚠️ Nessun dato disponibile per i mittenti selezionati.")
+    else:
         chart_data = prepare_typology_data(filtered_df)
         chart_config = create_doughnut_chart(chart_data)
         st_echarts(options=chart_config, height="500px")
-    else:
-        st.warning("⚠️ Nessun dato disponibile per i mittenti selezionati.")
 
         
 # ---------------------- FUNZIONE PRINCIPALE ----------------------
