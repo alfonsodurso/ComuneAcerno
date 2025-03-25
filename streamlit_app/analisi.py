@@ -201,9 +201,11 @@ def create_doughnut_chart(dataset: pd.DataFrame) -> dict:
                     "borderColor": "#fff",
                     "borderWidth": 2,
                 },
-                "label": {"show": False, "position": "center"},
+                "label": {"show": True, 
+                          "position": "center",
+                         "formatter": "Pubblicazioni",},
                 "emphasis": {
-                    "label": {"show": True, "fontSize": "10", "fontWeight": "bold"}
+                    "label": {"show": True, "fontSize": "12"}
                 },
                 "labelLine": {"show": False},
                 "data": data,
