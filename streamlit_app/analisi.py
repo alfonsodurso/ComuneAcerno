@@ -188,7 +188,6 @@ def create_doughnut_chart(dataset: pd.DataFrame) -> dict:
     else:
         data = [{"name": row[0], "value": row[1]} for _, row in dataset.iterrows()]
     return {
-        "animationDuration": 500,
         "tooltip": {"trigger": "item"},
         "legend": {"top": "0%", "left": "center"},
         "series": [
@@ -259,7 +258,7 @@ def display_tipologie_tab(container, df: pd.DataFrame):
     (se presente, proveniente dalla prima tab "Analisi temporale") e, in ogni caso, la visualizzazione 
     può essere affinata tramite la legenda del grafico.
     """
-    view_option = st.radio("Visualizza per:", ["Mittenti", "Tipologie"], horizontal=True, index=1)
+    view_option = st.radio("Visualizza per:", ["Mittenti", "Tipologie"], horizontal=True, index=0)
     
     if view_option == "Mittenti":
         # Definiamo la mappatura attiva per i mittenti
@@ -271,7 +270,6 @@ def display_tipologie_tab(container, df: pd.DataFrame):
             "COMUNE DI ACERNO": "Comune di Acerno"
         }
         # Se esiste una selezione nella prima tab, la usiamo; altrimenti usiamo tutti i mittenti attivi
-        default_senders = list(active_mapping.values())
         selected_senders = st.session_state.get("selected_senders", ["Area Tecnica 1", "Area Tecnica 2", "Area Vigilanza", "Area Amministrativa", "Comune di Acerno"])
 
         # Prepara i dati aggregati per mittente
