@@ -5,16 +5,6 @@ from streamlit_echarts import st_echarts
 
 # ---------------------- FUNZIONE DI PREPARAZIONE DATI ----------------------
 
-# Inizializzazione globale della variabile in session_state
-if "selected_senders" not in st.session_state:
-    st.session_state["selected_senders"] = [
-        "Area Tecnica 1", 
-        "Area Tecnica 2", 
-        "Area Vigilanza", 
-        "Area Amministrativa", 
-        "Comune di Acerno"
-    ]
-
 def prepare_time_series_data_by_sender(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
     Prepara i dati temporali aggregati per data e mittente.
@@ -269,7 +259,7 @@ def display_tipologie_tab(container, df: pd.DataFrame):
     (se presente, proveniente dalla prima tab "Analisi temporale") e, in ogni caso, la visualizzazione 
     può essere affinata tramite la legenda del grafico.
     """
-    view_option = st.radio("Visualizza per:", ["Mittenti", "Tipologie"], horizontal=True, index=0)
+    view_option = st.radio("Visualizza per:", ["Mittenti", "Tipologie"], horizontal=True, index=1)
     
     if view_option == "Mittenti":
         # Definiamo la mappatura attiva per i mittenti
@@ -283,7 +273,7 @@ def display_tipologie_tab(container, df: pd.DataFrame):
         # Se esiste una selezione nella prima tab, la usiamo; altrimenti usiamo tutti i mittenti attivi
         default_senders = list(active_mapping.values())
         selected_senders = st.session_state.get("selected_senders", ["Area Tecnica 1", "Area Tecnica 2", "Area Vigilanza", "Area Amministrativa", "Comune di Acerno"])
-        st.write(st.session_state["selected_senders"])
+
         # Prepara i dati aggregati per mittente
         chart_data = prepare_mittenti_count(df, selected_senders)
     
