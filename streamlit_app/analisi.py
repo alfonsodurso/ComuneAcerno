@@ -138,7 +138,15 @@ def crea_config_chart(title: str, dataset: pd.DataFrame, selected_cols: list) ->
     """
     source = dataset.values.tolist()
     source = [[cell.strftime("%d-%m-%Y") if hasattr(cell, "strftime") else cell for cell in row] for row in source]
-    
+
+    series = [{
+        "type": "line",
+        "name": col,
+        "encode": {"x": "data", "y": col},
+        "smooth": True,
+        "legendHoverLink": True  # Permette di filtrare tramite la legenda
+    } for col in selected_cols[1:]]  # Non includiamo "data" nei grafici
+
     return {
         "animationDuration": 500,
         "dataset": [{
