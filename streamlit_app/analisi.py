@@ -306,6 +306,7 @@ def page_analisi(df: pd.DataFrame):
     with tab_temporale:
         display_temporal_tab(tab_temporale, df)
     with tab_tipologie:
+        st.experimental_rerun()
         display_tipologie_tab(tab_tipologie, df)
     """
     with tab_ritardi:
