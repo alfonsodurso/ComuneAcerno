@@ -15,6 +15,8 @@ if "selected_senders" not in st.session_state:
         "Comune di Acerno"
     ]
 
+    st.experimental_rerun()
+
 def prepare_time_series_data_by_sender(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
     Prepara i dati temporali aggregati per data e mittente.
@@ -198,6 +200,7 @@ def create_doughnut_chart(dataset: pd.DataFrame) -> dict:
     else:
         data = [{"name": row[0], "value": row[1]} for _, row in dataset.iterrows()]
     return {
+        "animationDuration": 500,
         "tooltip": {"trigger": "item"},
         "legend": {"top": "0%", "left": "center"},
         "series": [
@@ -306,7 +309,6 @@ def page_analisi(df: pd.DataFrame):
     with tab_temporale:
         display_temporal_tab(tab_temporale, df)
     with tab_tipologie:
-        st.experimental_rerun()
         display_tipologie_tab(tab_tipologie, df)
     """
     with tab_ritardi:
