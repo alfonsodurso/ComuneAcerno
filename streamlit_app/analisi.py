@@ -255,7 +255,9 @@ def display_ritardi_tab(container, df):
 # ---------------------- VISUALIZZAZIONE ----------------------
 
 def display_temporal_tab(container, df: pd.DataFrame):
-
+    """
+    Visualizza i grafici temporali. La multiselect è rimossa e il filtro dei dati è tramite la legenda.
+    """
     daily_data, cumulative_data = prepare_time_series_data_by_sender(df)
 
     # Grafico "Totale" separato
@@ -266,29 +268,33 @@ def display_temporal_tab(container, df: pd.DataFrame):
     available_cols = daily_data.columns.tolist()[1:]  # Escludiamo "data"
     selected_cols = ["data"] + available_cols  # Aggiungiamo "data" come prima colonna per entrambi i grafici
 
+    # Creazione dei grafici per mittenti
+    sender_daily_chart = crea_config_chart("Andamento Mittenti Giornaliero", daily_data[selected_cols], selected_cols)
+    sender_cumulative_chart = crea_config_chart("Andamento Mittenti Cumulato", cumulative_data[selected_cols], selected_cols)
+
+    # Struttura dei tab per i grafici
     schede = {
-        "andamento_giornaliero": crea_config_chart("Andamento Giornaliero", daily_data[selected_cols], selected_cols),
-        "andamento_cumulato": crea_config_chart("Andamento Cumulato", cumulative_data[selected_cols], selected_cols),
+        "andamento_totale": {"giornaliero": total_daily_chart, "cumulato": total_cumulative_chart},
+        "andamento_mittenti": {"giornaliero": sender_daily_chart, "cumulato": sender_cumulative_chart}
     }
 
-    tab_labels = {
-        "Andamento Giornaliero": "andamento_giornaliero",
-        "Andamento Cumulato": "andamento_cumulato",
-    }
-    selected_label = st.radio("Seleziona il grafico", list(tab_labels.keys()), horizontal=True)
-    selected_key = tab_labels[selected_label]
+    # Selezione del radiobutton per il grafico
+    selected_label = st.radio("Seleziona il grafico", ["Andamento Totale", "Andamento Mittenti"], horizontal=True)
 
     with st.container():
-        try:
-            # Mostriamo prima il grafico totale separato
-            st_echarts(options=total_daily_chart, key="total_daily_chart", height="500px")
-            st_echarts(options=total_cumulative_chart, key="total_cumulative_chart", height="500px")
+        if selected_label == "Andamento Totale":
+            # Mostriamo i grafici dell'andamento totale
+            st.subheader("Andamento Totale Giornaliero")
+            st_echarts(options=schede["andamento_totale"]["giornaliero"], key="total_daily_chart", height="500px")
+            st.subheader("Andamento Totale Cumulato")
+            st_echarts(options=schede["andamento_totale"]["cumulato"], key="total_cumulative_chart", height="500px")
+        elif selected_label == "Andamento Mittenti":
+            # Mostriamo i grafici per i vari mittenti
+            st.subheader("Andamento Mittenti Giornaliero")
+            st_echarts(options=schede["andamento_mittenti"]["giornaliero"], key="sender_daily_chart", height="500px")
+            st.subheader("Andamento Mittenti Cumulato")
+            st_echarts(options=schede["andamento_mittenti"]["cumulato"], key="sender_cumulative_chart", height="500px")
 
-            # Poi mostriamo il grafico selezionato
-            st_echarts(options=schede[selected_key], key=selected_key, height="500px")
-        except Exception as e:
-            st.error("Errore durante il caricamento del grafico.")
-            st.exception(e)
 """
 
 # ------------------------Tipologie & Mittenti----------------------------
