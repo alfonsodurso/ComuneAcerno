@@ -53,18 +53,15 @@ def prepare_time_series_data_by_sender(df: pd.DataFrame) -> tuple[pd.DataFrame, 
 
     return daily_dataset, cumulative_dataset
 
-"""
 # ------------------------Tipologie & Mittenti----------------------------
 
-def prepare_typology_data(df: pd.DataFrame) -> pd.DataFrame:
-
-    typology_counts = df["tipo_atto"].value_counts().reset_index()
-    typology_counts.columns = ["tipo_atto", "count"]
-    return typology_counts
-
-def prepare_mittente_data_with_altri(df: pd.DataFrame) -> pd.DataFrame:
-
-    # Definizione della mappatura dei mittenti principali
+def prepare_mittenti_count(df: pd.DataFrame, selected_senders: list) -> pd.DataFrame:
+    """
+    Prepara il DataFrame contenente il conteggio delle pubblicazioni per ogni mittente.
+    I mittenti sono mappati tramite la variabile active_mapping.
+    Vengono considerati solo i mittenti il cui nome mappato è presente in selected_senders.
+    """
+    # Mappatura dei mittenti principali
     active_mapping = {
         "AREA TECNICA 1": "Area Tecnica 1",
         "AREA TECNICA 2": "Area Tecnica 2",
@@ -72,22 +69,32 @@ def prepare_mittente_data_with_altri(df: pd.DataFrame) -> pd.DataFrame:
         "AREA AMMINISTRATIVA": "Area Amministrativa",
         "COMUNE DI ACERNO": "Comune di Acerno"
     }
-    desired_order = list(active_mapping.keys())
-    counts = df["mittente"].value_counts().to_dict()
+    
+    # Copia per non modificare l'originale
+    df_copy = df.copy()
+    
+    # Mappiamo i mittenti; quelli non presenti nella mappatura saranno etichettati come "Altri"
+    df_copy["sender_mapped"] = df_copy["mittente"].apply(lambda s: active_mapping.get(s, "Altri"))
+    
+    # Filtriamo solo i mittenti che sono stati selezionati (se non presenti in session_state, usiamo tutti)
+    filtered_df = df_copy[df_copy["sender_mapped"].isin(selected_senders)]
+    
+    # Calcoliamo il conteggio per ciascun mittente
+    counts = filtered_df["sender_mapped"].value_counts().reset_index()
+    counts.columns = ["label", "value"]
+    
+    return counts
 
-    # Dati per i mittenti "attivi"
-    data_list = []
-    for sender in desired_order:
-        cnt = counts.get(sender, 0)
-        if cnt > 0:
-            data_list.append((active_mapping[sender], cnt))
-    # Somma dei mittenti non mappati
-    others_count = sum(cnt for sender, cnt in counts.items() if sender not in desired_order)
-    if others_count > 0:
-        data_list.append(("Altri", others_count))
-    # Converte in DataFrame con colonne 'label' e 'value'
-    return pd.DataFrame(data_list, columns=["label", "value"])
+def prepare_tipologie_count(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Prepara il DataFrame contenente il conteggio delle pubblicazioni per ciascuna tipologia.
+    """
+    counts = df["tipo_atto"].value_counts().reset_index()
+    counts.columns = ["label", "value"]
+    return counts
 
+
+"""
 # ------------------------------------------------------------------------
 
 def analyze_publication_delays(df):
@@ -170,42 +177,46 @@ def crea_config_chart(title: str, dataset: pd.DataFrame, selected_cols: list) ->
         "emphasis": {"focus": "series"},
     }
 
-
-"""
 # ------------------------Tipologie & Mittenti----------------------------
 
-def create_doughnut_chart(dataset: pd.DataFrame) -> dict:
-
-    if "tipo_atto" in dataset.columns and "count" in dataset.columns:
-        data = [{"name": row["tipo_atto"], "value": row["count"]} for _, row in dataset.iterrows()]
-    elif "label" in dataset.columns and "value" in dataset.columns:
-        data = [{"name": row["label"], "value": row["value"]} for _, row in dataset.iterrows()]
-    else:
-        data = [{"name": row[0], "value": row[1]} for _, row in dataset.iterrows()]
-    return {
-        "tooltip": {"trigger": "item"},
-        "legend": {"top": "5%", "left": "center"},
-        "series": [
-            {
-                "name": "Distribuzione",
-                "type": "pie",
-                "radius": ["40%", "70%"],
-                "avoidLabelOverlap": False,
-                "itemStyle": {
-                    "borderRadius": 10,
-                    "borderColor": "#fff",
-                    "borderWidth": 2,
-                },
-                "label": {"show": False, "position": "center"},
-                "emphasis": {
-                    "label": {"show": True, "fontSize": "20", "fontWeight": "bold"}
-                },
-                "labelLine": {"show": False},
-                "data": data,
-            }
-        ],
-    }
-
+def display_tipologie_tab(container, df: pd.DataFrame):
+    """
+    Visualizza la tab "Tipologie" con due radiobutton:
+     - "Mittenti": mostra il numero di pubblicazioni per mittente
+     - "Tipologie": mostra il numero di pubblicazioni per tipologia
+    Non viene usato alcun multiselect; il filtro sui mittenti avviene tramite la variabile di sessione 
+    (se presente, proveniente dalla prima tab "Analisi temporale") e, in ogni caso, la visualizzazione 
+    può essere affinata tramite la legenda del grafico.
+    """
+    view_option = st.radio("Visualizza per:", ["Mittenti", "Tipologie"], horizontal=True)
+    
+    if view_option == "Mittenti":
+        # Definiamo la mappatura attiva per i mittenti
+        active_mapping = {
+            "AREA TECNICA 1": "Area Tecnica 1",
+            "AREA TECNICA 2": "Area Tecnica 2",
+            "AREA VIGILANZA": "Area Vigilanza",
+            "AREA AMMINISTRATIVA": "Area Amministrativa",
+            "COMUNE DI ACERNO": "Comune di Acerno"
+        }
+        # Se esiste una selezione nella prima tab, la usiamo; altrimenti usiamo tutti i mittenti attivi
+        default_senders = list(active_mapping.values())
+        selected_senders = st.session_state.get("selected_senders", default_senders)
+        
+        # Prepara i dati aggregati per mittente
+        chart_data = prepare_mittenti_count(df, selected_senders)
+        st.markdown("**Numero di pubblicazioni per mittente**")
+    
+    elif view_option == "Tipologie":
+        # Prepara i dati aggregati per tipologia
+        chart_data = prepare_tipologie_count(df)
+        st.markdown("**Numero di pubblicazioni per tipologia**")
+    
+    # Crea la configurazione del grafico a torta (doughnut) e lo visualizza
+    chart_config = create_doughnut_chart(chart_data)
+    st_echarts(options=chart_config, height="400px")
+    
+"""
 # -------------------------------------------------------------
 
 def display_ritardi_tab(container, df):
