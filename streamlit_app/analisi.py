@@ -275,12 +275,10 @@ def display_tipologie_tab(container, df: pd.DataFrame):
         
         # Prepara i dati aggregati per mittente
         chart_data = prepare_mittenti_count(df, selected_senders)
-        st.markdown("**Numero di pubblicazioni per mittente**")
     
     elif view_option == "Tipologie":
         # Prepara i dati aggregati per tipologia
         chart_data = prepare_tipologie_count(df)
-        st.markdown("**Numero di pubblicazioni per tipologia**")
     
     # Crea la configurazione del grafico a torta (doughnut) e lo visualizza
     chart_config = create_doughnut_chart(chart_data)
