@@ -277,7 +277,8 @@ def display_ritardi_tab(container, df):
         ).dt.strftime("%d-%m-%Y")
         
         container.dataframe(df_missing_copy, use_container_width=True)
-"""    
+"""
+
 # ---------------------- VISUALIZZAZIONE ----------------------
 
 def display_temporal_tab(container, df: pd.DataFrame):
@@ -310,8 +311,6 @@ def display_temporal_tab(container, df: pd.DataFrame):
             # Mostriamo i grafici per l'andamento cumulato
             st_echarts(options=sender_cumulative_chart, key="sender_cumulative_chart", height="400px")
             st_echarts(options=total_cumulative_chart, key="total_cumulative_chart", height="400px")
-
-"""
 
 # ------------------------Tipologie & Mittenti----------------------------
 
@@ -387,7 +386,7 @@ def display_typology_tab(container, df: pd.DataFrame):
             st_echarts(options=chart_config, height="500px")
         else:
             st.warning("⚠️ Nessun dato disponibile per le tipologie selezionate.")
-
+"""
 # -----------------------------------------------------------------
 
 def display_ritardi_tab(container, df):
@@ -461,9 +460,9 @@ def page_analisi(df: pd.DataFrame):
     ])
     with tab_temporale:
         display_temporal_tab(tab_temporale, df)
-    """
     with tab_tipologie:
         display_typology_tab(tab_tipologie, df)
+    """
     with tab_ritardi:
         display_ritardi_tab(tab_ritardi, df)
     """
