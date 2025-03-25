@@ -15,8 +15,6 @@ if "selected_senders" not in st.session_state:
         "Comune di Acerno"
     ]
 
-    st.experimental_rerun()
-
 def prepare_time_series_data_by_sender(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
     Prepara i dati temporali aggregati per data e mittente.
