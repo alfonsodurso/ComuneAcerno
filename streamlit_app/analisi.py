@@ -132,7 +132,10 @@ def analyze_mittenti_performance(df):
 # ---------------------- CONFIGURAZIONE DEI GRAFICI ----------------------
 
 def crea_config_chart(title: str, dataset: pd.DataFrame, selected_cols: list) -> dict:
-
+    """
+    Crea la configurazione per un grafico lineare ECharts.
+    Ora senza la multiselect, filtro tramite la legenda.
+    """
     source = dataset.values.tolist()
     source = [[cell.strftime("%d-%m-%Y") if hasattr(cell, "strftime") else cell for cell in row] for row in source]
     
@@ -156,6 +159,8 @@ def crea_config_chart(title: str, dataset: pd.DataFrame, selected_cols: list) ->
         "labelLayout": {"moveOverlap": "shiftX"},
         "emphasis": {"focus": "series"},
     }
+
+
 """
 # ------------------------Tipologie & Mittenti----------------------------
 
