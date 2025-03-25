@@ -149,13 +149,15 @@ def crea_config_chart(title: str, dataset: pd.DataFrame, selected_cols: list) ->
         "tooltip": {"trigger": "axis"},
         "xAxis": {"type": "category"},
         "yAxis": {},
-        "series": [{
-            "type": "line",
-            "name": col,
-            "encode": {"x": "data", "y": col},
-            "smooth": True,
-            "legendHoverLink": True  # Permette di filtrare tramite la legenda
-        } for col in selected_cols[1:]],  # Non includiamo "data" nei grafici
+        "series": series,
+        "legend": {
+            "data": selected_cols[1:],  # La legenda mostra i mittenti e il Totale
+            "selected": {col: True for col in selected_cols[1:]},  # Tutti i mittenti sono selezionati di default
+            "orient": "horizontal",
+            "top": "top"
+        },
+        "labelLayout": {"moveOverlap": "shiftX"},
+        "emphasis": {"focus": "series"},
         "labelLayout": {"moveOverlap": "shiftX"},
         "emphasis": {"focus": "series"},
     }
