@@ -57,16 +57,13 @@ def prepare_time_series_data_by_sender(df: pd.DataFrame) -> tuple[pd.DataFrame, 
 # ------------------------Tipologie & Mittenti----------------------------
 
 def prepare_typology_data(df: pd.DataFrame) -> pd.DataFrame:
-    """Prepara i dati per il grafico a ciambella delle tipologie di atto pubblicate."""
+
     typology_counts = df["tipo_atto"].value_counts().reset_index()
     typology_counts.columns = ["tipo_atto", "count"]
     return typology_counts
 
 def prepare_mittente_data_with_altri(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Prepara i dati per il grafico a ciambella dei mittenti, aggregando in "Altri"
-    quelli non presenti nella mappatura dei mittenti principali.
-    """
+
     # Definizione della mappatura dei mittenti principali
     active_mapping = {
         "AREA TECNICA 1": "Area Tecnica 1",
@@ -94,11 +91,7 @@ def prepare_mittente_data_with_altri(df: pd.DataFrame) -> pd.DataFrame:
 # ------------------------------------------------------------------------
 
 def analyze_publication_delays(df):
-    """
-    Calcola il ritardo di pubblicazione in giorni lavorativi tra 'data_registro_generale'
-    e 'data_inizio_pubblicazione', escludendo le pubblicazioni senza 'data_registro_generale'.
-    Restituisce un DataFrame con i ritardi calcolati e uno con le pubblicazioni escluse.
-    """
+
     # Pulizia: convertiamo stringhe vuote in NaN per facilitare il parsing delle date
     df["data_registro_generale"] = df["data_registro_generale"].replace("", np.nan)
     df["data_inizio_pubblicazione"] = df["data_inizio_pubblicazione"].replace("", np.nan)
@@ -130,11 +123,7 @@ def analyze_publication_delays(df):
     return df, df_missing
 
 def analyze_mittenti_performance(df):
-    """
-    Analizza il ritardo medio di pubblicazione per ogni mittente.
-    Restituisce un DataFrame con il mittente e il ritardo medio ordinato in modo decrescente.
-    (Questa funzione viene ora sostituita dall'aggregazione presente in display_ritardi_tab.)
-    """
+
     performance = df.groupby("mittente")["ritardo_pubblicazione"].mean().reset_index()
     performance.columns = ["Mittente", "Ritardo medio"]
     performance = performance.sort_values(by="Ritardo medio", ascending=False)
@@ -143,10 +132,7 @@ def analyze_mittenti_performance(df):
 # ---------------------- CONFIGURAZIONE DEI GRAFICI ----------------------
 
 def crea_config_chart(title: str, dataset: pd.DataFrame, selected_cols: list) -> dict:
-    """
-    Crea la configurazione per un grafico lineare ECharts.
-    Ora senza la multiselect, filtro tramite la legenda.
-    """
+
     source = dataset.values.tolist()
     source = [[cell.strftime("%d-%m-%Y") if hasattr(cell, "strftime") else cell for cell in row] for row in source]
     
@@ -174,7 +160,7 @@ def crea_config_chart(title: str, dataset: pd.DataFrame, selected_cols: list) ->
 # ------------------------Tipologie & Mittenti----------------------------
 
 def create_doughnut_chart(dataset: pd.DataFrame) -> dict:
-    """Crea la configurazione del grafico a ciambella (doughnut)."""
+
     if "tipo_atto" in dataset.columns and "count" in dataset.columns:
         data = [{"name": row["tipo_atto"], "value": row["count"]} for _, row in dataset.iterrows()]
     elif "label" in dataset.columns and "value" in dataset.columns:
@@ -208,10 +194,7 @@ def create_doughnut_chart(dataset: pd.DataFrame) -> dict:
 # -------------------------------------------------------------
 
 def display_ritardi_tab(container, df):
-    """
-    Calcola e visualizza la tabella con i ritardi medi di pubblicazione per mittente,
-    includendo una tabella separata delle pubblicazioni escluse.
-    """
+
     df_delays, df_missing = analyze_publication_delays(df)
     
     # Se non esiste una colonna che identifica univocamente la pubblicazione, usiamo l'indice
@@ -272,9 +255,7 @@ def display_ritardi_tab(container, df):
 # ---------------------- VISUALIZZAZIONE ----------------------
 
 def display_temporal_tab(container, df: pd.DataFrame):
-    """
-    Visualizza i grafici temporali. La multiselect è rimossa e il filtro dei dati è tramite la legenda.
-    """
+
     daily_data, cumulative_data = prepare_time_series_data_by_sender(df)
 
     # Grafico "Totale" separato
@@ -313,9 +294,6 @@ def display_temporal_tab(container, df: pd.DataFrame):
 # ------------------------Tipologie & Mittenti----------------------------
 
 def display_typology_tab(container, df: pd.DataFrame):
-    """Visualizza la tab Tipologie & Mittenti con due modalità:
-       1. Tipologie: grafico a ciambella delle tipologie di atto (filtrato per mittente).
-       2. Mittenti: grafico a ciambella dei mittenti (filtrato per tipologia di atto)."""
 
     # Radio button per selezionare la visualizzazione
     view_option = st.radio("Visualizza per:", 
@@ -391,10 +369,7 @@ def display_typology_tab(container, df: pd.DataFrame):
 # -----------------------------------------------------------------
 
 def display_ritardi_tab(container, df):
-    """
-    Calcola e visualizza la tabella con i ritardi medi di pubblicazione per mittente,
-    includendo una tabella separata delle pubblicazioni escluse.
-    """
+
     df_delays, df_missing = analyze_publication_delays(df)
     
     # Se non esiste una colonna che identifica univocamente la pubblicazione, usiamo l'indice
