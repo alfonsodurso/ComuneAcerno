@@ -314,14 +314,19 @@ def display_temporal_tab(container, df: pd.DataFrame):
 
 # ------------------------Tipologie & Mittenti----------------------------
 
-def display_typology_tab(container, df: pd.DataFrame):
-
-    # Radio button per selezionare la visualizzazione
-    view_option = st.radio("Visualizza per:", 
-                           ["Tipologie", "Mittenti"], horizontal=True)
-
-    if view_option == "Tipologie":
-        # Mappatura dei mittenti (i df hanno i mittenti in uppercase)
+def display_tipologie_tab(container, df: pd.DataFrame):
+    """
+    Visualizza la tab "Tipologie" con due radiobutton:
+     - "Mittenti": mostra il numero di pubblicazioni per mittente
+     - "Tipologie": mostra il numero di pubblicazioni per tipologia
+    Non viene usato alcun multiselect; il filtro sui mittenti avviene tramite la variabile di sessione 
+    (se presente, proveniente dalla prima tab "Analisi temporale") e, in ogni caso, la visualizzazione 
+    può essere affinata tramite la legenda del grafico.
+    """
+    view_option = st.radio("Visualizza per:", ["Mittenti", "Tipologie"], horizontal=True)
+    
+    if view_option == "Mittenti":
+        # Definiamo la mappatura attiva per i mittenti
         active_mapping = {
             "AREA TECNICA 1": "Area Tecnica 1",
             "AREA TECNICA 2": "Area Tecnica 2",
@@ -329,63 +334,23 @@ def display_typology_tab(container, df: pd.DataFrame):
             "AREA AMMINISTRATIVA": "Area Amministrativa",
             "COMUNE DI ACERNO": "Comune di Acerno"
         }
-        # Ottieni i mittenti presenti nel dataframe (escludendo "TOTALE")
-        existing_senders = set(df["mittente"].unique()) - {"TOTALE"}
-        # Mittenti "attivi" in base alla mappatura
-        active = [s for s in active_mapping if s in existing_senders]
-        # Gli altri mittenti (non mappati)
-        inactive = list(existing_senders - set(active))
-        # Lista finale per la multiselect: i mittenti mappati + "Altri" se presenti
-        available_senders = [active_mapping[s] for s in active] + (["Altri"] if inactive else [])
-
-        # Inizializza lo stato se non esiste
-        if "selected_senders" not in st.session_state:
-            st.session_state.selected_senders = available_senders
-
-        # Multiselect per i mittenti
-        selected_senders = st.multiselect(
-            "Filtra per mittente:", 
-            available_senders, 
-            key="selected_senders"
-        )
-        if not selected_senders:
-            selected_senders = available_senders
-
-        # Mappatura inversa: da nomi visualizzati ai nomi originali
-        selected_senders_mapped = [s for s, mapped in active_mapping.items() if mapped in selected_senders]
-        if "Altri" in selected_senders:
-            selected_senders_mapped += inactive
-
-        # Filtraggio del dataframe
-        filtered_df = df[df["mittente"].isin(selected_senders_mapped)]
-        if not filtered_df.empty:
-            chart_data = prepare_typology_data(filtered_df)
-            chart_config = create_doughnut_chart(chart_data)
-            st_echarts(options=chart_config, height="500px")
-        else:
-            st.warning("⚠️ Nessun dato disponibile per i mittenti selezionati.")
-
-    elif view_option == "Mittenti":
-        # In questo caso il filtro è sulle tipologie di atto
-        available_tipologie = sorted(df["tipo_atto"].unique())
-        if "selected_tipologie" not in st.session_state:
-            st.session_state.selected_tipologie = available_tipologie
-        selected_tipologie = st.multiselect(
-            "Filtra per tipologia di atto:", 
-            available_tipologie, 
-            key="selected_tipologie"
-        )
-        if not selected_tipologie:
-            selected_tipologie = available_tipologie
-        # Filtra il dataframe in base alle tipologie selezionate
-        filtered_df = df[df["tipo_atto"].isin(selected_tipologie)]
-        if not filtered_df.empty:
-            # Prepara i dati aggregati per i mittenti
-            chart_data = prepare_mittente_data_with_altri(filtered_df)
-            chart_config = create_doughnut_chart(chart_data)
-            st_echarts(options=chart_config, height="500px")
-        else:
-            st.warning("⚠️ Nessun dato disponibile per le tipologie selezionate.")
+        # Se esiste una selezione nella prima tab, la usiamo; altrimenti usiamo tutti i mittenti attivi
+        default_senders = list(active_mapping.values())
+        selected_senders = st.session_state.get("selected_senders", default_senders)
+        
+        # Prepara i dati aggregati per mittente
+        chart_data = prepare_mittenti_count(df, selected_senders)
+        st.markdown("**Numero di pubblicazioni per mittente**")
+    
+    elif view_option == "Tipologie":
+        # Prepara i dati aggregati per tipologia
+        chart_data = prepare_tipologie_count(df)
+        st.markdown("**Numero di pubblicazioni per tipologia**")
+    
+    # Crea la configurazione del grafico a torta (doughnut) e lo visualizza
+    chart_config = create_doughnut_chart(chart_data)
+    st_echarts(options=chart_config, height="400px")
+    
 """
 # -----------------------------------------------------------------
 
@@ -461,7 +426,7 @@ def page_analisi(df: pd.DataFrame):
     with tab_temporale:
         display_temporal_tab(tab_temporale, df)
     with tab_tipologie:
-        display_typology_tab(tab_tipologie, df)
+        display_tipologie_tab(tab_tipologie, df)
     """
     with tab_ritardi:
         display_ritardi_tab(tab_ritardi, df)
