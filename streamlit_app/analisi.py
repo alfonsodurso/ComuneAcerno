@@ -189,7 +189,7 @@ def create_doughnut_chart(dataset: pd.DataFrame) -> dict:
         data = [{"name": row[0], "value": row[1]} for _, row in dataset.iterrows()]
     return {
         "tooltip": {"trigger": "item"},
-        "legend": {"top": "5%", "left": "center"},
+        "legend": {"top": "15%", "left": "center"},
         "series": [
             {
                 "name": "Distribuzione",
@@ -258,7 +258,7 @@ def display_tipologie_tab(container, df: pd.DataFrame):
     (se presente, proveniente dalla prima tab "Analisi temporale") e, in ogni caso, la visualizzazione 
     può essere affinata tramite la legenda del grafico.
     """
-    view_option = st.radio("Visualizza per:", ["Mittenti", "Tipologie"], horizontal=True)
+    view_option = st.radio("Visualizza per:", ["Mittenti", "Tipologie"], horizontal=True, index=0)
     
     if view_option == "Mittenti":
         # Definiamo la mappatura attiva per i mittenti
