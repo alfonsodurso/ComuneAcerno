@@ -293,16 +293,12 @@ def display_temporal_tab(container, df: pd.DataFrame):
     with st.container():
         if selected_label == "Andamento giornaliero":
             # Mostriamo i grafici per l'andamento giornaliero
-            st.subheader("Andamento Giornaliero per Mittenti")
-            st_echarts(options=sender_daily_chart, key="sender_daily_chart", height="500px")
-            st.subheader("Andamento Giornaliero Totale")
-            st_echarts(options=total_daily_chart, key="total_daily_chart", height="500px")
+            st_echarts(options=sender_daily_chart, key="sender_daily_chart", height="400px")
+            st_echarts(options=total_daily_chart, key="total_daily_chart", height="400px")
         elif selected_label == "Andamento cumulato":
             # Mostriamo i grafici per l'andamento cumulato
-            st.subheader("Andamento Cumulato per Mittenti")
-            st_echarts(options=sender_cumulative_chart, key="sender_cumulative_chart", height="500px")
-            st.subheader("Andamento Cumulato Totale")
-            st_echarts(options=total_cumulative_chart, key="total_cumulative_chart", height="500px")
+            st_echarts(options=sender_cumulative_chart, key="sender_cumulative_chart", height="400px")
+            st_echarts(options=total_cumulative_chart, key="total_cumulative_chart", height="400px")
 
 """
 
