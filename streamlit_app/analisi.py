@@ -8,7 +8,7 @@ from streamlit_echarts import st_echarts
 def prepare_time_series_data_by_sender(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
     Prepara i dati temporali aggregati per data e mittente.
-    Considera solo i mittenti definiti nel dizionario, escludendo quelli che non sono nel set.
+    Considera solo i mittenti definiti nel mapping.
     """
     # Converte la data di pubblicazione e filtra eventuali errori
     df_copy = df.copy()
@@ -40,7 +40,7 @@ def prepare_time_series_data_by_sender(df: pd.DataFrame) -> tuple[pd.DataFrame, 
         rename_dict[sender] = active_mapping[sender]
 
     # Ordina i dati come specificato
-    final_order = ["data", "TOTALE"] + [active_mapping[s] for s in active_mapping]
+    final_order = ["data"] + [active_mapping[s] for s in active_mapping] + ["TOTALE"]
 
     daily_dataset = pivot.reset_index().rename(columns=rename_dict)
     daily_dataset["data"] = daily_dataset["data"].apply(lambda d: d.strftime("%d-%m-%Y"))
@@ -265,40 +265,34 @@ def display_temporal_tab(container, df: pd.DataFrame):
     """
     daily_data, cumulative_data = prepare_time_series_data_by_sender(df)
 
-    # Grafico "Totale" separato
+    # Grafico solo per Totale (senza mittenti)
     total_daily_chart = crea_config_chart("Andamento Totale Giornaliero", daily_data[["data", "TOTALE"]], ["data", "TOTALE"])
     total_cumulative_chart = crea_config_chart("Andamento Totale Cumulato", cumulative_data[["data", "TOTALE"]], ["data", "TOTALE"])
 
-    # Configurazione per il grafico giornaliero e cumulato dei mittenti
-    available_cols = daily_data.columns.tolist()[1:]  # Escludiamo "data"
+    # Grafico diversificato per mittente (senza il Totale)
+    available_cols = daily_data.columns.tolist()[1:-1]  # Escludiamo "data" e "TOTALE"
     selected_cols = ["data"] + available_cols  # Aggiungiamo "data" come prima colonna per entrambi i grafici
 
     # Creazione dei grafici per mittenti
     sender_daily_chart = crea_config_chart("Andamento Mittenti Giornaliero", daily_data[selected_cols], selected_cols)
     sender_cumulative_chart = crea_config_chart("Andamento Mittenti Cumulato", cumulative_data[selected_cols], selected_cols)
 
-    # Struttura dei tab per i grafici
-    schede = {
-        "andamento_totale": {"giornaliero": total_daily_chart, "cumulato": total_cumulative_chart},
-        "andamento_mittenti": {"giornaliero": sender_daily_chart, "cumulato": sender_cumulative_chart}
-    }
-
     # Selezione del radiobutton per il grafico
-    selected_label = st.radio("Seleziona il grafico", ["Andamento Totale", "Andamento Mittenti"], horizontal=True)
+    selected_label = st.radio("Seleziona l'andamento", ["Andamento giornaliero", "Andamento cumulato"], horizontal=True)
 
     with st.container():
-        if selected_label == "Andamento Totale":
-            # Mostriamo i grafici dell'andamento totale
-            st.subheader("Andamento Totale Giornaliero")
-            st_echarts(options=schede["andamento_totale"]["giornaliero"], key="total_daily_chart", height="500px")
-            st.subheader("Andamento Totale Cumulato")
-            st_echarts(options=schede["andamento_totale"]["cumulato"], key="total_cumulative_chart", height="500px")
-        elif selected_label == "Andamento Mittenti":
-            # Mostriamo i grafici per i vari mittenti
-            st.subheader("Andamento Mittenti Giornaliero")
-            st_echarts(options=schede["andamento_mittenti"]["giornaliero"], key="sender_daily_chart", height="500px")
-            st.subheader("Andamento Mittenti Cumulato")
-            st_echarts(options=schede["andamento_mittenti"]["cumulato"], key="sender_cumulative_chart", height="500px")
+        if selected_label == "Andamento giornaliero":
+            # Mostriamo i grafici per l'andamento giornaliero
+            st.subheader("Andamento Giornaliero per Mittenti")
+            st_echarts(options=sender_daily_chart, key="sender_daily_chart", height="500px")
+            st.subheader("Andamento Giornaliero Totale")
+            st_echarts(options=total_daily_chart, key="total_daily_chart", height="500px")
+        elif selected_label == "Andamento cumulato":
+            # Mostriamo i grafici per l'andamento cumulato
+            st.subheader("Andamento Cumulato per Mittenti")
+            st_echarts(options=sender_cumulative_chart, key="sender_cumulative_chart", height="500px")
+            st.subheader("Andamento Cumulato Totale")
+            st_echarts(options=total_cumulative_chart, key="total_cumulative_chart", height="500px")
 
 """
 
