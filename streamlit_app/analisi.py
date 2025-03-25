@@ -8,13 +8,25 @@ from streamlit_echarts import st_echarts
 def prepare_time_series_data_by_sender(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
     Prepara i dati temporali aggregati per data e mittente.
-    I mittenti nel df sono in uppercase.
+    Considera solo i mittenti definiti nel dizionario, escludendo quelli che non sono nel set.
     """
     # Converte la data di pubblicazione e filtra eventuali errori
     df_copy = df.copy()
     df_copy["data_inizio_pubblicazione"] = pd.to_datetime(df_copy["data_inizio_pubblicazione"], errors="coerce")
     df_copy = df_copy.dropna(subset=["data_inizio_pubblicazione"])
     df_copy["data"] = df_copy["data_inizio_pubblicazione"].dt.date
+
+    # Definiamo i mittenti attivi da considerare
+    active_mapping = {
+        "AREA TECNICA 1": "Area Tecnica 1",
+        "AREA TECNICA 2": "Area Tecnica 2",
+        "AREA VIGILANZA": "Area Vigilanza",
+        "AREA AMMINISTRATIVA": "Area Amministrativa",
+        "COMUNE DI ACERNO": "Comune di Acerno"
+    }
+
+    # Filtriamo i dati per includere solo i mittenti definiti
+    df_copy = df_copy[df_copy["mittente"].isin(active_mapping.keys())]
 
     # Crea una tabella pivot che raggruppa per data e mittente
     pivot = df_copy.pivot_table(index="data", columns="mittente", aggfunc="size", fill_value=0).sort_index()
@@ -23,27 +35,12 @@ def prepare_time_series_data_by_sender(df: pd.DataFrame) -> tuple[pd.DataFrame, 
     pivot["TOTAL"] = pivot.sum(axis=1)
     pivot = pivot.applymap(int)  # assicura che siano tipi Python (evita numpy.int64)
 
-    # Mappatura per i mittenti principali (assumendo che nel df i nomi siano in uppercase)
-    active_mapping = {
-        "AREA TECNICA 1": "Area Tecnica 1",
-        "AREA TECNICA 2": "Area Tecnica 2",
-        "AREA VIGILANZA": "Area Vigilanza",
-        "AREA AMMINISTRATIVA": "Area Amministrativa",
-        "COMUNE DI ACERNO": "Comune di Acerno"
-    }
-    desired_order = ["AREA TECNICA 1", "AREA TECNICA 2", "AREA VIGILANZA", "AREA AMMINISTRATIVA", "COMUNE DI ACERNO"]
-
-    existing_senders = set(pivot.columns) - {"TOTAL"}
-    active = [sender for sender in desired_order if sender in existing_senders]
-    inactive = list(existing_senders - set(active))
-
-    pivot["ALTRI"] = pivot[inactive].sum(axis=1) if inactive else 0
-
-    rename_dict = {"TOTAL": "TOTALE", "ALTRI": "Altri"}
-    for sender in active:
+    rename_dict = {"TOTAL": "TOTALE"}
+    for sender in active_mapping:
         rename_dict[sender] = active_mapping[sender]
 
-    final_order = ["data", "TOTALE"] + [active_mapping[s] for s in desired_order if s in active] + ["Altri"]
+    # Ordina i dati come specificato
+    final_order = ["data", "TOTALE"] + [active_mapping[s] for s in active_mapping]
 
     daily_dataset = pivot.reset_index().rename(columns=rename_dict)
     daily_dataset["data"] = daily_dataset["data"].apply(lambda d: d.strftime("%d-%m-%Y"))
@@ -56,6 +53,7 @@ def prepare_time_series_data_by_sender(df: pd.DataFrame) -> tuple[pd.DataFrame, 
 
     return daily_dataset, cumulative_dataset
 
+"""
 # ------------------------Tipologie & Mittenti----------------------------
 
 def prepare_typology_data(df: pd.DataFrame) -> pd.DataFrame:
@@ -141,15 +139,17 @@ def analyze_mittenti_performance(df):
     performance.columns = ["Mittente", "Ritardo medio"]
     performance = performance.sort_values(by="Ritardo medio", ascending=False)
     return performance
-    
+"""
 # ---------------------- CONFIGURAZIONE DEI GRAFICI ----------------------
 
 def crea_config_chart(title: str, dataset: pd.DataFrame, selected_cols: list) -> dict:
     """
     Crea la configurazione per un grafico lineare ECharts.
+    Ora senza la multiselect, filtro tramite la legenda.
     """
     source = dataset.values.tolist()
     source = [[cell.strftime("%d-%m-%Y") if hasattr(cell, "strftime") else cell for cell in row] for row in source]
+    
     return {
         "animationDuration": 500,
         "dataset": [{
@@ -164,12 +164,13 @@ def crea_config_chart(title: str, dataset: pd.DataFrame, selected_cols: list) ->
             "type": "line",
             "name": col,
             "encode": {"x": "data", "y": col},
-            "smooth": True
-        } for col in selected_cols[1:]],
+            "smooth": True,
+            "legendHoverLink": True  # Permette di filtrare tramite la legenda
+        } for col in selected_cols[1:]],  # Non includiamo "data" nei grafici
         "labelLayout": {"moveOverlap": "shiftX"},
         "emphasis": {"focus": "series"},
     }
-
+"""
 # ------------------------Tipologie & Mittenti----------------------------
 
 def create_doughnut_chart(dataset: pd.DataFrame) -> dict:
@@ -267,23 +268,26 @@ def display_ritardi_tab(container, df):
         ).dt.strftime("%d-%m-%Y")
         
         container.dataframe(df_missing_copy, use_container_width=True)
-    
+"""    
 # ---------------------- VISUALIZZAZIONE ----------------------
 
 def display_temporal_tab(container, df: pd.DataFrame):
     """
-    Visualizza i grafici temporali con possibilità di filtrare i dati tramite una multiselect.
+    Visualizza i grafici temporali. La multiselect è rimossa e il filtro dei dati è tramite la legenda.
     """
-    
     daily_data, cumulative_data = prepare_time_series_data_by_sender(df)
-    # Escludiamo "data" per la multiselect (assicurandoci di mantenerla sempre)
-    available_cols = daily_data.columns.tolist()[1:]
-    selected_cols = st.multiselect("Seleziona i dati da visualizzare:", available_cols, default=available_cols)
-    selected_cols.insert(0, "data")
+
+    # Grafico "Totale" separato
+    total_daily_chart = crea_config_chart("Andamento Totale Giornaliero", daily_data[["data", "TOTALE"]], ["data", "TOTALE"])
+    total_cumulative_chart = crea_config_chart("Andamento Totale Cumulato", cumulative_data[["data", "TOTALE"]], ["data", "TOTALE"])
+
+    # Configurazione per il grafico giornaliero e cumulato dei mittenti
+    available_cols = daily_data.columns.tolist()[1:]  # Escludiamo "data"
+    selected_cols = ["data"] + available_cols  # Aggiungiamo "data" come prima colonna per entrambi i grafici
 
     schede = {
-        "andamento_giornaliero": crea_config_chart("Andamento giornaliero", daily_data[selected_cols], selected_cols),
-        "andamento_cumulato": crea_config_chart("Andamento cumulato", cumulative_data[selected_cols], selected_cols),
+        "andamento_giornaliero": crea_config_chart("Andamento Giornaliero", daily_data[selected_cols], selected_cols),
+        "andamento_cumulato": crea_config_chart("Andamento Cumulato", cumulative_data[selected_cols], selected_cols),
     }
 
     tab_labels = {
@@ -295,10 +299,16 @@ def display_temporal_tab(container, df: pd.DataFrame):
 
     with st.container():
         try:
+            # Mostriamo prima il grafico totale separato
+            st_echarts(options=total_daily_chart, key="total_daily_chart", height="500px")
+            st_echarts(options=total_cumulative_chart, key="total_cumulative_chart", height="500px")
+
+            # Poi mostriamo il grafico selezionato
             st_echarts(options=schede[selected_key], key=selected_key, height="500px")
         except Exception as e:
             st.error("Errore durante il caricamento del grafico.")
             st.exception(e)
+"""
 
 # ------------------------Tipologie & Mittenti----------------------------
 
@@ -441,7 +451,7 @@ def display_ritardi_tab(container, df):
         ).dt.strftime("%d-%m-%Y")
         
         container.dataframe(df_missing_copy, use_container_width=True)
-
+"""
         
 # ---------------------- FUNZIONE PRINCIPALE ----------------------
 
@@ -454,10 +464,11 @@ def page_analisi(df: pd.DataFrame):
     ])
     with tab_temporale:
         display_temporal_tab(tab_temporale, df)
+    """
     with tab_tipologie:
         display_typology_tab(tab_tipologie, df)
     with tab_ritardi:
         display_ritardi_tab(tab_ritardi, df)
+    """
 
-if __name__ == "__main__":
-    page_analisi(df_example)
+
