@@ -285,7 +285,7 @@ def display_tipologie_tab(container, df: pd.DataFrame):
         # Se esiste una selezione nella prima tab, la usiamo; altrimenti usiamo tutti i mittenti attivi
         default_senders = list(active_mapping.values())
         selected_senders = st.session_state.get("selected_senders", ["Area Tecnica 1", "Area Tecnica 2", "Area Vigilanza", "Area Amministrativa", "Comune di Acerno"])
-
+        st.write(st.session_state["selected_senders"])
         # Prepara i dati aggregati per mittente
         chart_data = prepare_mittenti_count(df, selected_senders)
     
