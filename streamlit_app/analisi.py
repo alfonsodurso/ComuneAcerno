@@ -203,7 +203,7 @@ def create_doughnut_chart(dataset: pd.DataFrame) -> dict:
                 },
                 "label": {"show": False, "position": "center"},
                 "emphasis": {
-                    "label": {"show": True, "fontSize": "20", "fontWeight": "bold"}
+                    "label": {"show": True, "fontSize": "10", "fontWeight": "bold"}
                 },
                 "labelLine": {"show": False},
                 "data": data,
