@@ -5,8 +5,15 @@ from streamlit_echarts import st_echarts
 
 # ---------------------- FUNZIONE DI PREPARAZIONE DATI ----------------------
 
+# Inizializzazione globale della variabile in session_state
 if "selected_senders" not in st.session_state:
-    st.session_state["selected_senders"] = ["Area Tecnica 1", "Area Tecnica 2", "Area Vigilanza", "Area Amministrativa", "Comune di Acerno"]
+    st.session_state["selected_senders"] = [
+        "Area Tecnica 1", 
+        "Area Tecnica 2", 
+        "Area Vigilanza", 
+        "Area Amministrativa", 
+        "Comune di Acerno"
+    ]
 
 def prepare_time_series_data_by_sender(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
