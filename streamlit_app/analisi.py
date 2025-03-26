@@ -114,7 +114,7 @@ def prepare_ritardi_metrics(df: pd.DataFrame, mapping: dict = ACTIVE_MAPPING) ->
     
     max_counts = df_copy.groupby("sender_mapped").apply(count_max_delay).reset_index(name="pubblicazioni_max_ritardo")
     result = pd.merge(agg, max_counts, on="sender_mapped")
-    result["ritardo_medio"] = result["ritardo_medio"].round(2)
+    result["ritardo_medio"] = result["ritardo_medio"].round(0)
     
     # Ordina per ritardo medio decrescente
     result = result.sort_values(by="ritardo_medio", ascending=False)
@@ -201,17 +201,25 @@ def create_scatter_chart_ritardi(data: pd.DataFrame) -> dict:
     con asse X: ritardo medio e asse Y: ritardo massimo.
     """
     scatter_data = []
-    for sender, row in data.iterrows():
+    for row in data.iterrows():
         scatter_data.append({
-            "name": sender,
+            "name": row["sender_mapped"],
             "value": [row["ritardo_medio"], row["ritardo_massimo"]],
-            "symbolSize": max(10, min(50, row["totale_pubblicazioni"] * 2))
+            "symbolSize": max(10, min(50, row["totale_pubblicazioni"] * 2)),
+            "totale_pubblicazioni": row["totale_pubblicazioni"],
+            "ritardo_medio": row["ritardo_medio"],
+            "ritardo_massimo": row["ritardo_massimo"]
         })
     
     return {
         "tooltip": {
             "trigger": "item",
-            "formatter": "{b}<br/>Ritardo Medio: {c0}<br/>Ritardo Massimo: {c1}"
+            "formatter": (
+                "{b}<br/>"
+                "Numero pubblicazioni: {c3}<br/>"
+                "Ritardo medio: {c2}<br/>"
+                "Ritardo massimo: {c1}"
+            )
         },
         "xAxis": {
             "name": "Ritardo medio",
@@ -226,7 +234,7 @@ def create_scatter_chart_ritardi(data: pd.DataFrame) -> dict:
             "type": "scatter"
         }]
     }
-
+    
 def create_combo_chart_ritardi(data: pd.DataFrame) -> dict:
     """
     Crea la configurazione per un grafico combinato con barre (ritardo medio) e linea (ritardo massimo).
