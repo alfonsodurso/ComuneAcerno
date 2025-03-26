@@ -336,7 +336,7 @@ def display_ritardi_tab(container, df: pd.DataFrame):
         
         # Prepara i dati
         metrics_df = prepare_ritardi_metrics(df)
-        st.dataframe(metrics_df.style.hide_index())
+        metrics_df.style.hide_index()
         
         # Per rinominare correttamente, resettiamo l'indice e rinominiamo la colonna
         metrics_df = metrics_df.rename(columns={
