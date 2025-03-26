@@ -340,7 +340,7 @@ def display_ritardi_tab(container, df: pd.DataFrame):
 
         # Rinominiamo le colonne per maggiore chiarezza
         metrics_df = metrics_df.rename(columns={
-         "mittente": "Mittente",
+         "sender_mapped": "Mittente",
          "ritardo_medio": "Ritardo medio",
          "ritardo_massimo": "Ritardo massimo",
          "numero_pubblicazioni_totali": "Pubblicazioni totali",
