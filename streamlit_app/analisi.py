@@ -114,7 +114,7 @@ def prepare_ritardi_metrics(df: pd.DataFrame, mapping: dict = ACTIVE_MAPPING) ->
     
     max_counts = df_copy.groupby("sender_mapped").apply(count_max_delay).reset_index(name="pubblicazioni_max_ritardo")
     result = pd.merge(agg, max_counts, on="sender_mapped")
-    result["ritardo_medio"] = result["ritardo_medio"].round(0)
+    result["ritardo_medio"] = result["ritardo_medio"].round(0).astype(int)
     
     # Ordina per ritardo medio decrescente
     result = result.sort_values(by="ritardo_medio", ascending=False)
