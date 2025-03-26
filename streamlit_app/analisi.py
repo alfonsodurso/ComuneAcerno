@@ -201,11 +201,11 @@ def create_scatter_chart_ritardi(data: pd.DataFrame) -> dict:
     con asse X: ritardo medio e asse Y: ritardo massimo.
     """
     scatter_data = []
-    for row in data.iterrows():
+    for _, row in data.iterrows():  # Qui ignoro l'indice con "_"
         scatter_data.append({
             "name": row["sender_mapped"],
             "value": [row["ritardo_medio"], row["ritardo_massimo"]],
-            "symbolSize": max(10, min(50, row["totale_pubblicazioni"] * 2)),
+            "symbolSize": max(10, min(50, row["totale_pubblicazioni"] * 2)),  # Controllo dimensione simbolo
             "totale_pubblicazioni": row["totale_pubblicazioni"],
             "ritardo_medio": row["ritardo_medio"],
             "ritardo_massimo": row["ritardo_massimo"]
@@ -216,8 +216,8 @@ def create_scatter_chart_ritardi(data: pd.DataFrame) -> dict:
             "trigger": "item",
             "formatter": (
                 "{b}<br/>"
-                "Numero pubblicazioni: {c3}<br/>"
-                "Ritardo medio: {c2}<br/>"
+                "Numero pubblicazioni: {c2}<br/>"  # Corretto l'ordine
+                "Ritardo medio: {c0}<br/>"
                 "Ritardo massimo: {c1}"
             )
         },
