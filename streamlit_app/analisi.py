@@ -233,7 +233,7 @@ def display_tipologie_tab(container, df: pd.DataFrame):
       - "Mittenti": visualizza il numero di pubblicazioni per mittente (filtrabili tramite session_state)
       - "Tipologie": visualizza il numero di pubblicazioni per tipologia
     """
-    with container:
+    with st.container():
         view_option = st.radio(
             "Visualizza per:",
             ["Mittenti", "Tipologie"],
