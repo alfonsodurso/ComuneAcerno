@@ -227,7 +227,7 @@ def display_temporal_tab(container, df: pd.DataFrame):
 
 # ------------------------Tipologie & Mittenti----------------------------
 
-def display_tipologie_tab(df: pd.DataFrame):
+def display_tipologie_tab(container, df: pd.DataFrame):
     """
     Visualizza la tab "Tipologie & Mittenti" con una scelta tramite radio button:
       - "Mittenti": visualizza il numero di pubblicazioni per mittente (filtrabili tramite session_state)
