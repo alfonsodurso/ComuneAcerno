@@ -201,25 +201,27 @@ def create_scatter_chart_ritardi(data: pd.DataFrame) -> dict:
     con asse X: ritardo medio e asse Y: ritardo massimo.
     """
     scatter_data = []
-    for _, row in data.iterrows():  # Qui ignoro l'indice con "_"
+    for _, row in data.iterrows():
         scatter_data.append({
             "name": row["sender_mapped"],
             "value": [row["ritardo_medio"], row["ritardo_massimo"]],
-            "symbolSize": max(10, min(50, row["totale_pubblicazioni"] * 2)),  # Controllo dimensione simbolo
-            "totale_pubblicazioni": row["totale_pubblicazioni"],
-            "ritardo_medio": row["ritardo_medio"],
-            "ritardo_massimo": row["ritardo_massimo"]
+            "symbolSize": max(10, min(50, row["totale_pubblicazioni"] * 2)),
+            "totale_pubblicazioni": row["totale_pubblicazioni"],  # Aggiunto per tooltip
+            "ritardo_medio": row["ritardo_medio"],  # Aggiunto per tooltip
+            "ritardo_massimo": row["ritardo_massimo"]  # Aggiunto per tooltip
         })
     
     return {
         "tooltip": {
             "trigger": "item",
-            "formatter": (
-                "{b}<br/>"
-                "Numero pubblicazioni: {c2}<br/>"  # Corretto l'ordine
-                "Ritardo medio: {c0}<br/>"
-                "Ritardo massimo: {c1}"
-            )
+            "formatter": """
+                function (params) {
+                    return params.data.name + "<br/>" +
+                           "Numero pubblicazioni: " + params.data.totale_pubblicazioni + "<br/>" +
+                           "Ritardo medio: " + params.data.ritardo_medio + "<br/>" +
+                           "Ritardo massimo: " + params.data.ritardo_massimo;
+                }
+            """
         },
         "xAxis": {
             "name": "Ritardo medio",
@@ -234,6 +236,7 @@ def create_scatter_chart_ritardi(data: pd.DataFrame) -> dict:
             "type": "scatter"
         }]
     }
+
     
 def create_combo_chart_ritardi(data: pd.DataFrame) -> dict:
     """
