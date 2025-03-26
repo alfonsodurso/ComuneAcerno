@@ -274,14 +274,14 @@ def display_temporal_tab(container, df: pd.DataFrame):
     sender_cumulative_chart = crea_config_chart("Andamento Mittenti Cumulato", cumulative_data[selected_cols], selected_cols)
 
     # Selezione del radiobutton per il grafico
-    selected_label = st.radio("Seleziona l'andamento", ["Andamento giornaliero", "Andamento cumulato"], horizontal=True)
+    selected_label = st.radio("Seleziona l'andamento:", ["Giornaliero", "Cumulato"], horizontal=True)
 
     with st.container():
-        if selected_label == "Andamento giornaliero":
+        if selected_label == "Giornaliero":
             # Mostriamo i grafici per l'andamento giornaliero
             st_echarts(options=sender_daily_chart, key="sender_daily_chart", height="400px")
             st_echarts(options=total_daily_chart, key="total_daily_chart", height="400px")
-        elif selected_label == "Andamento cumulato":
+        elif selected_label == "Cumulato":
             # Mostriamo i grafici per l'andamento cumulato
             st_echarts(options=sender_cumulative_chart, key="sender_cumulative_chart", height="400px")
             st_echarts(options=total_cumulative_chart, key="total_cumulative_chart", height="400px")
@@ -295,13 +295,7 @@ def display_tipologie_tab(container, df: pd.DataFrame):
       - "Tipologie": visualizza il numero di pubblicazioni per tipologia
     """
     with st.container():
-        view_option = st.radio(
-            "Visualizza per:",
-            ["Mittenti", "Tipologie"],
-            horizontal=True,
-            index=0,
-            key="tipologie_radio"
-        )
+        view_option = st.radio("Visualizza per:", ["Mittenti", "Tipologie"], horizontal=True)
     
         if view_option == "Mittenti":
             selected_senders = st.session_state.get("selected_senders", list(ACTIVE_MAPPING.values()))
@@ -322,15 +316,10 @@ def display_ritardi_tab(container, df: pd.DataFrame):
       - Il grafico combinato (combo chart).
     Con un radiobutton per selezionare "Tabella" o "Grafici".
     """
-    with st.container:
+    with st.container():
         
         # Radiobutton per scegliere la visualizzazione
-        view_option = st.radio(
-            "Visualizza:",
-            ["Tabella", "Grafico"],
-            horizontal=True,
-            key="ritardi_view"
-        )
+        view_option = st.radio("Visualizza:", ["Tabella", "Grafico"], horizontal=True)
         
         # Prepara i dati
         metrics_df = prepare_ritardi_metrics(df)
