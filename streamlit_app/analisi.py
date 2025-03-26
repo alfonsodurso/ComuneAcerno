@@ -309,7 +309,7 @@ def display_ritardi_tab(container, df: pd.DataFrame):
         # Radiobutton per scegliere la visualizzazione
         view_option = st.radio(
             "Visualizza:",
-            ["Tabella", "Grafici"],
+            ["Tabella", "Grafico"],
             horizontal=True,
             key="ritardi_view"
         )
@@ -328,9 +328,7 @@ def display_ritardi_tab(container, df: pd.DataFrame):
             })
             st.dataframe(metrics_df.style.hide())
         else:  # "Grafici"
-            scatter_chart_config = create_scatter_chart_ritardi(metrics_df)
             combo_chart_config = create_combo_chart_ritardi(metrics_df)
-            st_echarts(options=scatter_chart_config, height="400px", key="ritardi_scatter_chart")
             st_echarts(options=combo_chart_config, height="400px", key="ritardi_combo_chart")
 
 # ---------------------- FUNZIONE PRINCIPALE ----------------------
