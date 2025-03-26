@@ -199,7 +199,7 @@ def create_combo_chart_ritardi(data: pd.DataFrame) -> dict:
     """
     Crea la configurazione per un grafico combinato con barre (ritardo medio) e linea (ritardo massimo).
     """
-    mittenti = list(data.index)
+    mittenti = data["sender_mapped"].tolist()
     ritardi_medi = data["ritardo_medio"].tolist()
     ritardi_massimi = data["ritardo_massimo"].tolist()
     pubblicazioni = data["totale_pubblicazioni"].tolist()  # Assicurati che esista questa colonna
@@ -211,7 +211,7 @@ def create_combo_chart_ritardi(data: pd.DataFrame) -> dict:
                 "type": "shadow"
             },
             "formatter": (
-                "{b}<br/>"
+                "b>{b}</b><br/>"
                 "Numero pubblicazioni: {c0}<br/>"
                 "Ritardo medio: {c1}<br/>"
                 "Ritardo massimo: {c2}"
@@ -226,19 +226,16 @@ def create_combo_chart_ritardi(data: pd.DataFrame) -> dict:
                 "type": "bar",
                 "data": pubblicazioni,
                 "yAxisIndex": 0,  # Indica che usa lo stesso asse Y
-                "itemStyle": {"color": "#5470C6"}
             },
             {
                 "name": "Ritardo medio",
-                "type": "bar",
+                "type": "line",
                 "data": ritardi_medi,
-                "itemStyle": {"color": "#EE6666"}
             },
             {
                 "name": "Ritardo massimo",
                 "type": "line",
                 "data": ritardi_massimi,
-                "itemStyle": {"color": "#91CC75"},
                 "smooth": True
             }
         ]
