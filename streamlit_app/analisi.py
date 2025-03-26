@@ -179,7 +179,6 @@ def create_doughnut_chart(data_df: pd.DataFrame) -> dict:
         "tooltip": {"trigger": "item"},
         "legend": {"top": "0%", "left": "center"},
         "series": [{
-            "name": "Pubblicazioni",
             "type": "pie",
             "radius": ["40%", "70%"],
             "avoidLabelOverlap": False,
@@ -228,23 +227,29 @@ def display_temporal_tab(container, df: pd.DataFrame):
 
 # ------------------------Tipologie & Mittenti----------------------------
 
-def display_tipologie_tab(container, df: pd.DataFrame):
+def display_tipologie_tab(df: pd.DataFrame):
     """
     Visualizza la tab "Tipologie & Mittenti" con una scelta tramite radio button:
       - "Mittenti": visualizza il numero di pubblicazioni per mittente (filtrabili tramite session_state)
       - "Tipologie": visualizza il numero di pubblicazioni per tipologia
     """
-    view_option = st.radio("Visualizza per:", ["Mittenti", "Tipologie"], horizontal=True, index=0)
+    with container:
+        view_option = st.radio(
+            "Visualizza per:",
+            ["Mittenti", "Tipologie"],
+            horizontal=True,
+            index=0,
+            key="tipologie_radio"
+        )
     
     if view_option == "Mittenti":
-        # Usa i mittenti selezionati dalla session_state oppure tutti quelli definiti nella mappatura
         selected_senders = st.session_state.get("selected_senders", list(ACTIVE_MAPPING.values()))
         chart_data = prepare_mittenti_count(df, selected_senders)
     else:  # "Tipologie"
         chart_data = prepare_tipologie_count(df)
     
     chart_config = create_doughnut_chart(chart_data)
-    st_echarts(options=chart_config, height="400px")
+    st_echarts(options=chart_config, height="400px", key="echarts_tipologie")
 
         
 # ---------------------- FUNZIONE PRINCIPALE ----------------------
