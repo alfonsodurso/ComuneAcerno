@@ -337,7 +337,7 @@ def display_ritardi_tab(container, df: pd.DataFrame):
         
         # Prepara i dati
         metrics_df = prepare_ritardi_metrics(df)
-        
+        """
         # Per rinominare correttamente, resettiamo l'indice e rinominiamo la colonna
         metrics_df = metrics_df.rename(columns={
             "sender_mapped": "Mittente",
@@ -345,7 +345,7 @@ def display_ritardi_tab(container, df: pd.DataFrame):
             "ritardo_massimo": "Ritardo massimo",
             "totale_pubblicazioni": "Pubblicazioni",
             "pubblicazioni_max_ritardo": "Pubb. max ritardo"
-        })
+        })"""
             
         if view_option == "Tabella":
             st.dataframe(metrics_df.style.hide())
