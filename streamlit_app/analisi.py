@@ -347,7 +347,7 @@ def display_ritardi_tab(container, df: pd.DataFrame):
         })
             
         if view_option == "Tabella":
-            st.dataframe(metrics_df.style.hide_index()
+            st.dataframe(metrics_df.style.hide_index())
         else:  # "Grafici"
             scatter_chart_config = create_scatter_chart_ritardi(metrics_df.set_index("Mittente"))
             st_echarts(options=scatter_chart_config, height="400px", key="ritardi_scatter_chart")
