@@ -244,12 +244,12 @@ def create_combo_chart_ritardi(data: pd.DataFrame) -> dict:
         "yAxis": {"type": "value", "name": "Giorni"},
         "series": [
             {
-                "name": "Ritardo Medio",
+                "name": "Ritardo medio",
                 "type": "bar",
                 "data": ritardi_medi,
             },
             {
-                "name": "Ritardo Massimo",
+                "name": "Ritardo massimo",
                 "type": "line",
                 "data": ritardi_massimi,
                 "itemStyle": {"color": "#91CC75"},
@@ -326,7 +326,14 @@ def display_ritardi_tab(container, df: pd.DataFrame):
       - Il grafico a dispersione (scatter plot).
       - Il grafico combinato (combo chart).
     """
-    with container:
+    with st.container():
+        # Radiobutton per scegliere la visualizzazione
+        view_option = st.radio(
+            "Visualizza:",
+            ["Tabella", "Grafici"],
+            horizontal=True,
+            key="ritardi_view"
+        )
         
         # Prepara i dati
         metrics_df = prepare_ritardi_metrics(df)
@@ -339,14 +346,6 @@ def display_ritardi_tab(container, df: pd.DataFrame):
          "numero_pubblicazioni_totali": "Pubblicazioni totali",
          "pub_max_ritardo": "Pubblicazioni max ritardo"
         })
-
-        # Radiobutton per scegliere la visualizzazione
-        view_option = st.radio(
-            "Visualizza:",
-            ["Tabella", "Grafici"],
-            horizontal=True,
-            key="ritardi_view"
-        )
             
         if view_option == "Tabella":
             st.dataframe(metrics_df)
