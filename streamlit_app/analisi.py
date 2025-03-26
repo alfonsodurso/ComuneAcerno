@@ -217,7 +217,7 @@ def create_combo_chart_ritardi(data: pd.DataFrame) -> dict:
                 "Ritardo massimo: {c2}"
             )
         },  # <-- Aggiunta della virgola qui
-        "legend": {"data": ["Numero pubblicazioni", "Ritardo medio", "Ritardo massimo"]},
+        "legend": {"data": ["Ritardo medio", "Ritardo massimo", "Pubblicazioni"]},
         "xAxis": {"type": "category", "data": mittenti},
         "yAxis": {"type": "value"},
         "series": [
