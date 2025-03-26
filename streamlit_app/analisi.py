@@ -14,6 +14,15 @@ ACTIVE_MAPPING = {
     "COMUNE DI ACERNO": "Comune di Acerno"
 }
 
+# Definisci i colori per ciascun mittente
+SENDER_COLORS = {
+    "Area Tecnica 1": "#5470C6",
+    "Area Tecnica 2": "#91CC75",
+    "Area Vigilanza": "#FAC858",
+    "Area Amministrativa": "#EE6666",
+    "Comune di Acerno": "#73C0DE"
+}
+
 def prepare_time_series_data_by_sender(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
     Prepara i dati temporali aggregati per data e mittente.
@@ -79,88 +88,56 @@ def prepare_tipologie_count(df: pd.DataFrame) -> pd.DataFrame:
 def prepare_ritardi_metrics(df: pd.DataFrame, mapping: dict = ACTIVE_MAPPING) -> pd.DataFrame:
     """
     Prepara una tabella con per ogni mittente:
-      - ritardo medio (in giorni)
-      - ritardo massimo (in giorni)
-      - totale delle pubblicazioni
-      - numero di pubblicazioni che hanno raggiunto il ritardo massimo
+      - Ritardo medio (in giorni)
+      - Ritardo massimo (in giorni)
+      - Totale delle pubblicazioni
+      - Numero di pubblicazioni che hanno raggiunto il ritardo massimo
     La tabella viene ordinata in ordine decrescente in base al ritardo medio.
     """
-    # Crea una copia e converte le date
     df_copy = df.copy()
     df_copy["data_registro_generale"] = pd.to_datetime(df_copy["data_registro_generale"], errors="coerce")
     df_copy["data_inizio_pubblicazione"] = pd.to_datetime(df_copy["data_inizio_pubblicazione"], errors="coerce")
-    
-    # Rimuove eventuali righe con date mancanti
     df_copy = df_copy.dropna(subset=["data_registro_generale", "data_inizio_pubblicazione"])
     
     # Calcola il ritardo in giorni
     df_copy["ritardo"] = (df_copy["data_inizio_pubblicazione"] - df_copy["data_registro_generale"]).dt.days
     
-    # Applica il mapping dei mittenti e filtra solo quelli definiti
+    # Applica il mapping e filtra solo i mittenti definiti
     df_copy["sender_mapped"] = df_copy["mittente"].apply(lambda s: mapping.get(s, "Altri"))
     df_copy = df_copy[df_copy["mittente"].isin(mapping.keys())]
     
-    # Raggruppa per mittente e calcola ritardo medio, ritardo massimo e totale pubblicazioni
+    # Raggruppa per mittente e calcola i valori
     agg = df_copy.groupby("sender_mapped")["ritardo"].agg(["mean", "max", "count"]).reset_index()
-    agg = agg.rename(columns={"mean": "ritardo_medio", "max": "ritardo_massimo", "count": "totale_pubblicazioni"})
+    agg = agg.rename(columns={
+        "mean": "ritardo_medio", 
+        "max": "ritardo_massimo", 
+        "count": "totale_pubblicazioni"
+    })
     
-    # Conta quante pubblicazioni raggiungono il ritardo massimo per ogni mittente
+    # (Calcolo opzionale: numero di pubblicazioni con ritardo massimo)
     def count_max_delay(sub_df):
         max_delay = sub_df["ritardo"].max()
         return (sub_df["ritardo"] == max_delay).sum()
     
     max_counts = df_copy.groupby("sender_mapped").apply(count_max_delay).reset_index(name="pubblicazioni_max_ritardo")
-    
-    # Unisce i due dataframe
     result = pd.merge(agg, max_counts, on="sender_mapped")
     
-    # Ordina in base al ritardo medio decrescente
+    # Ordina per ritardo medio decrescente
     result = result.sort_values(by="ritardo_medio", ascending=False)
     
-    return result
-
-"""
-# ------------------------------------------------------------------------
-
-def analyze_publication_delays(df):
-
-    # Pulizia: convertiamo stringhe vuote in NaN per facilitare il parsing delle date
-    df["data_registro_generale"] = df["data_registro_generale"].replace("", np.nan)
-    df["data_inizio_pubblicazione"] = df["data_inizio_pubblicazione"].replace("", np.nan)
-
-    # Separiamo le pubblicazioni senza "data_registro_generale"
-    df_missing = df[df["data_registro_generale"].isna()][
-        ["numero_pubblicazione", "mittente", "oggetto_atto", "data_inizio_pubblicazione"]
-    ]
+    # Seleziona le colonne da mostrare: usiamo il totale pubblicazioni come "Pubblicazioni"
+    # result = result[["sender_mapped", "ritardo_medio", "ritardo_massimo", "totale_pubblicazioni"]]
     
-    # Filtriamo solo le righe con entrambe le date presenti
-    df = df.dropna(subset=["data_registro_generale", "data_inizio_pubblicazione"]).copy()
+    # Imposta "sender_mapped" come indice (così non compare come colonna a parte)
+    result = result.set_index("sender_mapped")
     
-    # Conversione in datetime con gestione degli errori
-    df["data_registro_generale"] = pd.to_datetime(df["data_registro_generale"], errors="coerce")
-    df["data_inizio_pubblicazione"] = pd.to_datetime(df["data_inizio_pubblicazione"], errors="coerce")
-    
-    # Rimuoviamo eventuali righe dove la conversione ha fallito (date ancora NaT)
-    df = df.dropna(subset=["data_registro_generale", "data_inizio_pubblicazione"]).copy()
-    
-    # Conversione a datetime64[D] per compatibilità con np.busday_count
-    start_dates = df["data_registro_generale"].values.astype("datetime64[D]")
-    end_dates = df["data_inizio_pubblicazione"].values.astype("datetime64[D]")
-    
-    # Calcolo del ritardo in giorni lavorativi:
-    # np.busday_count conta esclusivamente il giorno finale; per includerlo aggiungiamo 1 giorno e poi sottraiamo 1
-    df["ritardo_pubblicazione"] = np.busday_count(start_dates, end_dates + np.timedelta64(1, "D")) - 1
-    df["ritardo_pubblicazione"] = df["ritardo_pubblicazione"].clip(lower=0)
-    
-    return df, df_missing
-
-def analyze_mittenti_performance(df):
-
-    performance = df.groupby("mittente")["ritardo_pubblicazione"].mean().reset_index()
-    performance.columns = ["Mittente", "Ritardo medio"]
-    performance = performance.sort_values(by="Ritardo medio", ascending=False)
-    return performance
-"""
+    # Rinomina le colonne
+    result = result.rename(columns={
+        "ritardo_medio": "Ritardo medio (GG)",
+        "ritardo_massimo": "Ritardo massimo (GG)",
+        "totale_pubblicazioni": "Pubblicazioni",
+        "pubblicazioni_max_ritardo": "Pubb. con ritardo max"        
+    })
 
 # ---------------------- CONFIGURAZIONE DEI GRAFICI ----------------------
 
@@ -238,17 +215,18 @@ def create_doughnut_chart(data_df: pd.DataFrame) -> dict:
 
 def create_scatter_chart_ritardi(data: pd.DataFrame) -> dict:
     """
-    Crea la configurazione per un grafico a dispersione (scatter plot) che mostra,
-    per ogni mittente, il ritardo medio (asse X) e il ritardo massimo (asse Y).
+    Crea la configurazione per uno scatter plot in cui ogni punto rappresenta un mittente,
+    con asse X: ritardo medio e asse Y: ritardo massimo, e con colore specifico per mittente.
     """
-    scatter_data = [
-        {
-            "name": row["sender_mapped"],
-            "value": [row["ritardo_medio"], row["ritardo_massimo"]],
-            "symbolSize": max(10, min(50, row["totale_pubblicazioni"] * 2))
-        }
-        for _, row in data.iterrows()
-    ]
+    # Per ciascun mittente, prepariamo il dato assegnando il colore corrispondente
+    scatter_data = []
+    for sender, row in data.iterrows():
+        scatter_data.append({
+            "name": sender,
+            "value": [row["Ritardo medio (GG)"], row["Ritardo massimo (GG)"]],
+            "symbolSize": max(10, min(50, row["Pubblicazioni"] * 2)),
+            "itemStyle": {"color": SENDER_COLORS.get(sender, "#000000")}
+        })
     
     return {
         "tooltip": {
@@ -265,19 +243,17 @@ def create_scatter_chart_ritardi(data: pd.DataFrame) -> dict:
         },
         "series": [{
             "data": scatter_data,
-            "type": "scatter",
-            "itemStyle": {"color": "#5470C6"}
+            "type": "scatter"
         }]
     }
 
 def create_combo_chart_ritardi(data: pd.DataFrame) -> dict:
     """
-    Crea la configurazione per un grafico combinato (combo chart) che mostra,
-    per ogni mittente (asse X), il ritardo medio come barre e il ritardo massimo come linea.
+    Crea la configurazione per un grafico combinato con barre (ritardo medio) e linea (ritardo massimo).
     """
-    mittenti = data["sender_mapped"].tolist()
-    ritardi_medi = data["ritardo_medio"].tolist()
-    ritardi_massimi = data["ritardo_massimo"].tolist()
+    mittenti = list(data.index)
+    ritardi_medi = data["Ritardo medio (GG)"].tolist()
+    ritardi_massimi = data["Ritardo massimo (GG)"].tolist()
     
     return {
         "tooltip": {"trigger": "axis"},
@@ -289,7 +265,7 @@ def create_combo_chart_ritardi(data: pd.DataFrame) -> dict:
                 "name": "Ritardo Medio",
                 "type": "bar",
                 "data": ritardi_medi,
-                "itemStyle": {"color": "#5470C6"}
+                "itemStyle": {"color": SENDER_COLORS.get(sender, "#000000")}
             },
             {
                 "name": "Ritardo Massimo",
@@ -300,7 +276,6 @@ def create_combo_chart_ritardi(data: pd.DataFrame) -> dict:
             }
         ]
     }
-
 # ---------------------- VISUALIZZAZIONE ----------------------
 
 def display_temporal_tab(container, df: pd.DataFrame):
