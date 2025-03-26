@@ -310,6 +310,9 @@ def display_tipologie_tab(container, df: pd.DataFrame):
         chart_data = prepare_tipologie_count(df)
     
     chart_config = create_doughnut_chart(chart_data)
+    if not chart_data:
+        st.warning("I dati per il grafico sono vuoti!")
+    return
     st_echarts(options=chart_config, height="400px", key="echarts_tipologie")
 
 # -----------------------------------------------------------------
