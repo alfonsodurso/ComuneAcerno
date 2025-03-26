@@ -336,7 +336,6 @@ def display_ritardi_tab(container, df: pd.DataFrame):
         
         # Prepara i dati
         metrics_df = prepare_ritardi_metrics(df)
-        metrics_df.style.hide_index()
         
         # Per rinominare correttamente, resettiamo l'indice e rinominiamo la colonna
         metrics_df = metrics_df.rename(columns={
@@ -348,13 +347,10 @@ def display_ritardi_tab(container, df: pd.DataFrame):
         })
             
         if view_option == "Tabella":
-            st.dataframe(metrics_df)
+            st.dataframe(metrics_df.style.hide_index()
         else:  # "Grafici"
-            st.markdown("### Scatter Plot: Ritardo Medio vs Ritardo Massimo")
             scatter_chart_config = create_scatter_chart_ritardi(metrics_df.set_index("Mittente"))
             st_echarts(options=scatter_chart_config, height="400px", key="ritardi_scatter_chart")
-            
-            st.markdown("### Combo Chart: Ritardo Medio e Ritardo Massimo per Mittente")
             combo_chart_config = create_combo_chart_ritardi(metrics_df.set_index("Mittente"))
             st_echarts(options=combo_chart_config, height="400px", key="ritardi_combo_chart")
 
