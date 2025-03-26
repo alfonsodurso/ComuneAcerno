@@ -14,15 +14,6 @@ ACTIVE_MAPPING = {
     "COMUNE DI ACERNO": "Comune di Acerno"
 }
 
-# Definisci i colori per ciascun mittente
-SENDER_COLORS = {
-    "Area Tecnica 1": "#5470C6",
-    "Area Tecnica 2": "#91CC75",
-    "Area Vigilanza": "#FAC858",
-    "Area Amministrativa": "#EE6666",
-    "Comune di Acerno": "#73C0DE"
-}
-
 def prepare_time_series_data_by_sender(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
     Prepara i dati temporali aggregati per data e mittente.
@@ -85,6 +76,8 @@ def prepare_tipologie_count(df: pd.DataFrame) -> pd.DataFrame:
     counts.columns = ["label", "value"]
     return counts
 
+# ------------------------Ritardi----------------------------
+
 def prepare_ritardi_metrics(df: pd.DataFrame, mapping: dict = ACTIVE_MAPPING) -> pd.DataFrame:
     """
     Prepara una tabella con per ogni mittente:
@@ -125,19 +118,9 @@ def prepare_ritardi_metrics(df: pd.DataFrame, mapping: dict = ACTIVE_MAPPING) ->
     # Ordina per ritardo medio decrescente
     result = result.sort_values(by="ritardo_medio", ascending=False)
     
-    # Seleziona le colonne da mostrare: usiamo il totale pubblicazioni come "Pubblicazioni"
-    # result = result[["sender_mapped", "ritardo_medio", "ritardo_massimo", "totale_pubblicazioni"]]
-    
     # Imposta "sender_mapped" come indice (così non compare come colonna a parte)
     result = result.set_index("sender_mapped")
-    
-    # Rinomina le colonne
-    result = result.rename(columns={
-        "ritardo_medio": "Ritardo medio (GG)",
-        "ritardo_massimo": "Ritardo massimo (GG)",
-        "totale_pubblicazioni": "Pubblicazioni",
-        "pubblicazioni_max_ritardo": "Pubb. con ritardo max"        
-    })
+
 
 # ---------------------- CONFIGURAZIONE DEI GRAFICI ----------------------
 
@@ -211,7 +194,7 @@ def create_doughnut_chart(data_df: pd.DataFrame) -> dict:
     }
     return chart_config
     
-# -------------------------------------------------------------
+# ------------------------Ritardi----------------------------
 
 def create_scatter_chart_ritardi(data: pd.DataFrame) -> dict:
     """
@@ -223,9 +206,8 @@ def create_scatter_chart_ritardi(data: pd.DataFrame) -> dict:
     for sender, row in data.iterrows():
         scatter_data.append({
             "name": sender,
-            "value": [row["Ritardo medio (GG)"], row["Ritardo massimo (GG)"]],
-            "symbolSize": max(10, min(50, row["Pubblicazioni"] * 2)),
-            "itemStyle": {"color": SENDER_COLORS.get(sender, "#000000")}
+            "value": [row["ritardo_medio"], row["ritardo_massimo"]],
+            "symbolSize": max(10, min(50, row["totale_pubblicazioni"] * 2))
         })
     
     return {
@@ -234,11 +216,11 @@ def create_scatter_chart_ritardi(data: pd.DataFrame) -> dict:
             "formatter": "{b}<br/>Ritardo Medio: {c0}<br/>Ritardo Massimo: {c1}"
         },
         "xAxis": {
-            "name": "Ritardo Medio (giorni)",
+            "name": "Ritardo medio",
             "type": "value"
         },
         "yAxis": {
-            "name": "Ritardo Massimo (giorni)",
+            "name": "Ritardo massimo",
             "type": "value"
         },
         "series": [{
@@ -252,12 +234,12 @@ def create_combo_chart_ritardi(data: pd.DataFrame) -> dict:
     Crea la configurazione per un grafico combinato con barre (ritardo medio) e linea (ritardo massimo).
     """
     mittenti = list(data.index)
-    ritardi_medi = data["Ritardo medio (GG)"].tolist()
-    ritardi_massimi = data["Ritardo massimo (GG)"].tolist()
+    ritardi_medi = data["ritardo_medio"].tolist()
+    ritardi_massimi = data["ritardo_massimo"].tolist()
     
     return {
         "tooltip": {"trigger": "axis"},
-        "legend": {"data": ["Ritardo Medio", "Ritardo Massimo"]},
+        "legend": {"data": ["ritardo_medio", "ritardo_massimo"]},
         "xAxis": {"type": "category", "data": mittenti},
         "yAxis": {"type": "value", "name": "Giorni"},
         "series": [
@@ -265,7 +247,6 @@ def create_combo_chart_ritardi(data: pd.DataFrame) -> dict:
                 "name": "Ritardo Medio",
                 "type": "bar",
                 "data": ritardi_medi,
-                "itemStyle": {"color": SENDER_COLORS.get(sender, "#000000")}
             },
             {
                 "name": "Ritardo Massimo",
@@ -276,6 +257,7 @@ def create_combo_chart_ritardi(data: pd.DataFrame) -> dict:
             }
         ]
     }
+    
 # ---------------------- VISUALIZZAZIONE ----------------------
 
 def display_temporal_tab(container, df: pd.DataFrame):
@@ -345,24 +327,37 @@ def display_ritardi_tab(container, df: pd.DataFrame):
       - Il grafico combinato (combo chart).
     """
     with container:
-        st.subheader("Analisi dei Ritardi")
         
         # Prepara i dati
         metrics_df = prepare_ritardi_metrics(df)
-        
-        # Visualizza la tabella dei ritardi
-        st.dataframe(metrics_df)
-        
-        # Grafico a dispersione
-        st.markdown("### Scatter Plot: Ritardo Medio vs Ritardo Massimo")
-        scatter_chart_config = create_scatter_chart_ritardi(metrics_df)
-        st_echarts(options=scatter_chart_config, height="400px", key="ritardi_scatter_chart")
-        
-        # Grafico combinato (bar + line)
-        st.markdown("### Combo Chart: Ritardo Medio e Ritardo Massimo per Mittente")
-        combo_chart_config = create_combo_chart_ritardi(metrics_df)
-        st_echarts(options=combo_chart_config, height="400px", key="ritardi_combo_chart")
 
+        # Rinominiamo le colonne per maggiore chiarezza
+        metrics_df = metrics_df.rename(columns={
+         "mittente": "Mittente",
+         "ritardo_medio": "Ritardo medio",
+         "ritardo_massimo": "Ritardo massimo",
+         "numero_pubblicazioni_totali": "Pubblicazioni totali",
+         "pub_max_ritardo": "Pubblicazioni max ritardo"
+        })
+
+        # Radiobutton per scegliere la visualizzazione
+        view_option = st.radio(
+            "Visualizza:",
+            ["Tabella", "Grafici"],
+            horizontal=True,
+            key="ritardi_view"
+        )
+            
+        if view_option == "Tabella":
+            st.dataframe(metrics_df)
+        else:  # "Grafici"
+            st.markdown("### Scatter Plot: Ritardo Medio vs Ritardo Massimo")
+            scatter_chart_config = create_scatter_chart_ritardi(metrics_df)
+            st_echarts(options=scatter_chart_config, height="400px", key="ritardi_scatter_chart")
+            
+            st.markdown("### Combo Chart: Ritardo Medio e Ritardo Massimo per Mittente")
+            combo_chart_config = create_combo_chart_ritardi(metrics_df)
+            st_echarts(options=combo_chart_config, height="400px", key="ritardi_combo_chart")
 
 # ---------------------- FUNZIONE PRINCIPALE ----------------------
 
