@@ -118,9 +118,6 @@ def prepare_ritardi_metrics(df: pd.DataFrame, mapping: dict = ACTIVE_MAPPING) ->
     # Ordina per ritardo medio decrescente
     result = result.sort_values(by="ritardo_medio", ascending=False)
     
-    # Imposta "sender_mapped" come indice
-    result = result.set_index("sender_mapped")
-    
     return result
 
 # ---------------------- CONFIGURAZIONE DEI GRAFICI ----------------------
@@ -328,7 +325,6 @@ def display_ritardi_tab(container, df: pd.DataFrame):
     Con un radiobutton per selezionare "Tabella" o "Grafici".
     """
     with container:
-        st.subheader("Analisi dei Ritardi")
         
         # Radiobutton per scegliere la visualizzazione
         view_option = st.radio(
@@ -340,14 +336,15 @@ def display_ritardi_tab(container, df: pd.DataFrame):
         
         # Prepara i dati
         metrics_df = prepare_ritardi_metrics(df)
+        st.dataframe(metrics_df.style.hide_index())
         
         # Per rinominare correttamente, resettiamo l'indice e rinominiamo la colonna
-        metrics_df = metrics_df.reset_index().rename(columns={
+        metrics_df = metrics_df.rename(columns={
             "sender_mapped": "Mittente",
-            "ritardo_medio": "Ritardo medio (GG)",
-            "ritardo_massimo": "Ritardo massimo (GG)",
+            "ritardo_medio": "Ritardo medio",
+            "ritardo_massimo": "Ritardo massimo",
             "totale_pubblicazioni": "Pubblicazioni",
-            "pubblicazioni_max_ritardo": "Pubblicazioni max ritardo"
+            "pubblicazioni_max_ritardo": "Pubb. max ritardo"
         })
             
         if view_option == "Tabella":
