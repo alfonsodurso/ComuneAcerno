@@ -300,6 +300,8 @@ def display_tipologie_tab(container, df: pd.DataFrame):
     
     chart_config = create_doughnut_chart(chart_data)
     st.write(chart_data)
+    st.write("Configurazione grafico:", chart_config)
+
 
     st_echarts(options=chart_config, height="400px", key="echarts_tipologie")
 
