@@ -202,7 +202,8 @@ def create_combo_chart_ritardi(data: pd.DataFrame) -> dict:
     mittenti = list(data.index)
     ritardi_medi = data["ritardo_medio"].tolist()
     ritardi_massimi = data["ritardo_massimo"].tolist()
-    
+    pubblicazioni = data["totale_pubblicazioni"].tolist()  # Assicurati che esista questa colonna
+
     return {
         "tooltip": {
             "trigger": "axis",
@@ -215,15 +216,23 @@ def create_combo_chart_ritardi(data: pd.DataFrame) -> dict:
                 "Ritardo medio: {c1}<br/>"
                 "Ritardo massimo: {c2}"
             )
-        }
-        "legend": {"data": ["Ritardo medio", "Ritardo massimo"]},
+        },  # <-- Aggiunta della virgola qui
+        "legend": {"data": ["Numero pubblicazioni", "Ritardo medio", "Ritardo massimo"]},
         "xAxis": {"type": "category", "data": mittenti},
         "yAxis": {"type": "value", "name": "Giorni"},
         "series": [
             {
+                "name": "Numero pubblicazioni",
+                "type": "bar",
+                "data": pubblicazioni,
+                "yAxisIndex": 0,  # Indica che usa lo stesso asse Y
+                "itemStyle": {"color": "#5470C6"}
+            },
+            {
                 "name": "Ritardo medio",
                 "type": "bar",
                 "data": ritardi_medi,
+                "itemStyle": {"color": "#EE6666"}
             },
             {
                 "name": "Ritardo massimo",
@@ -234,6 +243,7 @@ def create_combo_chart_ritardi(data: pd.DataFrame) -> dict:
             }
         ]
     }
+
     
 # ---------------------- VISUALIZZAZIONE ----------------------
 
