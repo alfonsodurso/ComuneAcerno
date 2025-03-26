@@ -167,8 +167,6 @@ def crea_config_chart(title: str, dataset: pd.DataFrame, selected_cols: list) ->
 def create_doughnut_chart(data_df: pd.DataFrame) -> dict:
     """
     Crea la configurazione per un grafico a torta (doughnut) utilizzando i dati forniti.
-    La funzione gestisce differenti formati di input, verificando la presenza di colonne
-    specifiche.
     """
     if "tipo_atto" in data_df.columns and "count" in data_df.columns:
         data = [{"name": row["tipo_atto"], "value": row["count"]} for _, row in data_df.iterrows()]
@@ -184,9 +182,22 @@ def create_doughnut_chart(data_df: pd.DataFrame) -> dict:
             "type": "pie",
             "radius": ["40%", "70%"],
             "avoidLabelOverlap": False,
-            "itemStyle": {"borderRadius": 10, "borderColor": "#fff", "borderWidth": 2},
-            "label": {"show": True, "position": "center", "formatter": "Pubblicazioni"},
-            "emphasis": {"label": {"show": True, "fontSize": "12"}},
+            "itemStyle": {
+                "borderRadius": 10,
+                "borderColor": "#fff",
+                "borderWidth": 2
+            },
+            "label": {
+                "show": True,
+                "position": "center",
+                "formatter": "Pubblicazioni"
+            },
+            "emphasis": {
+                "label": {
+                    "show": True,
+                    "fontSize": 12
+                }
+            },
             "labelLine": {"show": False},
             "data": data
         }]
@@ -299,10 +310,6 @@ def display_tipologie_tab(container, df: pd.DataFrame):
         chart_data = prepare_tipologie_count(df)
     
     chart_config = create_doughnut_chart(chart_data)
-    st.write(chart_data)
-    st.write("Configurazione grafico:", chart_config)
-
-
     st_echarts(options=chart_config, height="400px", key="echarts_tipologie")
 
 # -----------------------------------------------------------------
