@@ -337,7 +337,7 @@ def display_ritardi_tab(container, df: pd.DataFrame):
         
         # Prepara i dati
         metrics_df = prepare_ritardi_metrics(df)
-        """
+
         # Per rinominare correttamente, resettiamo l'indice e rinominiamo la colonna
         metrics_df = metrics_df.rename(columns={
             "sender_mapped": "Mittente",
@@ -345,11 +345,13 @@ def display_ritardi_tab(container, df: pd.DataFrame):
             "ritardo_massimo": "Ritardo massimo",
             "totale_pubblicazioni": "Pubblicazioni",
             "pubblicazioni_max_ritardo": "Pubb. max ritardo"
-        })"""
+        })
             
         if view_option == "Tabella":
             st.dataframe(metrics_df.style.hide())
         else:  # "Grafici"
+            scatter_chart_config = create_scatter_chart_ritardi(metrics_df)
+            combo_chart_config = create_combo_chart_ritardi(metrics_df)
             st_echarts(options=scatter_chart_config, height="400px", key="ritardi_scatter_chart")
             st_echarts(options=combo_chart_config, height="400px", key="ritardi_combo_chart")
 
