@@ -233,18 +233,18 @@ def create_doughnut_chart(data_df: pd.DataFrame) -> dict:
         }]
     }
     return chart_config
+    
+# -------------------------------------------------------------
 
 def create_scatter_chart_ritardi(data: pd.DataFrame) -> dict:
     """
     Crea la configurazione per un grafico a dispersione (scatter plot) che mostra,
     per ogni mittente, il ritardo medio (asse X) e il ritardo massimo (asse Y).
     """
-    # Prepara i dati per la scatter chart
     scatter_data = [
         {
             "name": row["sender_mapped"],
             "value": [row["ritardo_medio"], row["ritardo_massimo"]],
-            # Puoi anche usare 'symbolSize' per variare la dimensione del punto in base al totale delle pubblicazioni
             "symbolSize": max(10, min(50, row["totale_pubblicazioni"] * 2))
         }
         for _, row in data.iterrows()
@@ -253,7 +253,7 @@ def create_scatter_chart_ritardi(data: pd.DataFrame) -> dict:
     return {
         "tooltip": {
             "trigger": "item",
-            "formatter": lambda params: f"{params['name']}<br/>Ritardo Medio: {params['value'][0]}<br/>Ritardo Massimo: {params['value'][1]}"
+            "formatter": "{b}<br/>Ritardo Medio: {c0}<br/>Ritardo Massimo: {c1}"
         },
         "xAxis": {
             "name": "Ritardo Medio (giorni)",
