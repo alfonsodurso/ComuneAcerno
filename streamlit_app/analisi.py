@@ -114,6 +114,7 @@ def prepare_ritardi_metrics(df: pd.DataFrame, mapping: dict = ACTIVE_MAPPING) ->
     
     max_counts = df_copy.groupby("sender_mapped").apply(count_max_delay).reset_index(name="pubblicazioni_max_ritardo")
     result = pd.merge(agg, max_counts, on="sender_mapped")
+    result["ritardo_medio"] = result["ritardo_medio"].round(2)
     
     # Ordina per ritardo medio decrescente
     result = result.sort_values(by="ritardo_medio", ascending=False)
@@ -349,9 +350,7 @@ def display_ritardi_tab(container, df: pd.DataFrame):
         if view_option == "Tabella":
             st.dataframe(metrics_df.style.hide())
         else:  # "Grafici"
-            scatter_chart_config = create_scatter_chart_ritardi(metrics_df.set_index("Mittente"))
             st_echarts(options=scatter_chart_config, height="400px", key="ritardi_scatter_chart")
-            combo_chart_config = create_combo_chart_ritardi(metrics_df.set_index("Mittente"))
             st_echarts(options=combo_chart_config, height="400px", key="ritardi_combo_chart")
 
 # ---------------------- FUNZIONE PRINCIPALE ----------------------
