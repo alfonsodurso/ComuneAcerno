@@ -76,6 +76,49 @@ def prepare_tipologie_count(df: pd.DataFrame) -> pd.DataFrame:
     counts.columns = ["label", "value"]
     return counts
 
+def prepare_ritardi_metrics(df: pd.DataFrame, mapping: dict = ACTIVE_MAPPING) -> pd.DataFrame:
+    """
+    Prepara una tabella con per ogni mittente:
+      - ritardo medio (in giorni)
+      - ritardo massimo (in giorni)
+      - totale delle pubblicazioni
+      - numero di pubblicazioni che hanno raggiunto il ritardo massimo
+    La tabella viene ordinata in ordine decrescente in base al ritardo medio.
+    """
+    # Crea una copia e converte le date
+    df_copy = df.copy()
+    df_copy["data_registro_generale"] = pd.to_datetime(df_copy["data_registro_generale"], errors="coerce")
+    df_copy["data_inizio_pubblicazione"] = pd.to_datetime(df_copy["data_inizio_pubblicazione"], errors="coerce")
+    
+    # Rimuove eventuali righe con date mancanti
+    df_copy = df_copy.dropna(subset=["data_registro_generale", "data_inizio_pubblicazione"])
+    
+    # Calcola il ritardo in giorni
+    df_copy["ritardo"] = (df_copy["data_inizio_pubblicazione"] - df_copy["data_registro_generale"]).dt.days
+    
+    # Applica il mapping dei mittenti e filtra solo quelli definiti
+    df_copy["sender_mapped"] = df_copy["mittente"].apply(lambda s: mapping.get(s, "Altri"))
+    df_copy = df_copy[df_copy["mittente"].isin(mapping.keys())]
+    
+    # Raggruppa per mittente e calcola ritardo medio, ritardo massimo e totale pubblicazioni
+    agg = df_copy.groupby("sender_mapped")["ritardo"].agg(["mean", "max", "count"]).reset_index()
+    agg = agg.rename(columns={"mean": "ritardo_medio", "max": "ritardo_massimo", "count": "totale_pubblicazioni"})
+    
+    # Conta quante pubblicazioni raggiungono il ritardo massimo per ogni mittente
+    def count_max_delay(sub_df):
+        max_delay = sub_df["ritardo"].max()
+        return (sub_df["ritardo"] == max_delay).sum()
+    
+    max_counts = df_copy.groupby("sender_mapped").apply(count_max_delay).reset_index(name="pubblicazioni_max_ritardo")
+    
+    # Unisce i due dataframe
+    result = pd.merge(agg, max_counts, on="sender_mapped")
+    
+    # Ordina in base al ritardo medio decrescente
+    result = result.sort_values(by="ritardo_medio", ascending=False)
+    
+    return result
+
 """
 # ------------------------------------------------------------------------
 
@@ -191,6 +234,72 @@ def create_doughnut_chart(data_df: pd.DataFrame) -> dict:
     }
     return chart_config
 
+def create_scatter_chart_ritardi(data: pd.DataFrame) -> dict:
+    """
+    Crea la configurazione per un grafico a dispersione (scatter plot) che mostra,
+    per ogni mittente, il ritardo medio (asse X) e il ritardo massimo (asse Y).
+    """
+    # Prepara i dati per la scatter chart
+    scatter_data = [
+        {
+            "name": row["sender_mapped"],
+            "value": [row["ritardo_medio"], row["ritardo_massimo"]],
+            # Puoi anche usare 'symbolSize' per variare la dimensione del punto in base al totale delle pubblicazioni
+            "symbolSize": max(10, min(50, row["totale_pubblicazioni"] * 2))
+        }
+        for _, row in data.iterrows()
+    ]
+    
+    return {
+        "tooltip": {
+            "trigger": "item",
+            "formatter": lambda params: f"{params['name']}<br/>Ritardo Medio: {params['value'][0]}<br/>Ritardo Massimo: {params['value'][1]}"
+        },
+        "xAxis": {
+            "name": "Ritardo Medio (giorni)",
+            "type": "value"
+        },
+        "yAxis": {
+            "name": "Ritardo Massimo (giorni)",
+            "type": "value"
+        },
+        "series": [{
+            "data": scatter_data,
+            "type": "scatter",
+            "itemStyle": {"color": "#5470C6"}
+        }]
+    }
+
+def create_combo_chart_ritardi(data: pd.DataFrame) -> dict:
+    """
+    Crea la configurazione per un grafico combinato (combo chart) che mostra,
+    per ogni mittente (asse X), il ritardo medio come barre e il ritardo massimo come linea.
+    """
+    mittenti = data["sender_mapped"].tolist()
+    ritardi_medi = data["ritardo_medio"].tolist()
+    ritardi_massimi = data["ritardo_massimo"].tolist()
+    
+    return {
+        "tooltip": {"trigger": "axis"},
+        "legend": {"data": ["Ritardo Medio", "Ritardo Massimo"]},
+        "xAxis": {"type": "category", "data": mittenti},
+        "yAxis": {"type": "value", "name": "Giorni"},
+        "series": [
+            {
+                "name": "Ritardo Medio",
+                "type": "bar",
+                "data": ritardi_medi,
+                "itemStyle": {"color": "#5470C6"}
+            },
+            {
+                "name": "Ritardo Massimo",
+                "type": "line",
+                "data": ritardi_massimi,
+                "itemStyle": {"color": "#91CC75"},
+                "smooth": True
+            }
+        ]
+    }
 
 # ---------------------- VISUALIZZAZIONE ----------------------
 
@@ -251,7 +360,35 @@ def display_tipologie_tab(container, df: pd.DataFrame):
     chart_config = create_doughnut_chart(chart_data)
     st_echarts(options=chart_config, height="400px", key="echarts_tipologie")
 
+# -----------------------------------------------------------------
+
+def display_ritardi_tab(container, df: pd.DataFrame):
+    """
+    Visualizza la tab "Ritardi" mostrando:
+      - La tabella ordinata dei ritardi per mittente.
+      - Il grafico a dispersione (scatter plot).
+      - Il grafico combinato (combo chart).
+    """
+    with container:
+        st.subheader("Analisi dei Ritardi")
         
+        # Prepara i dati
+        metrics_df = prepare_ritardi_metrics(df)
+        
+        # Visualizza la tabella dei ritardi
+        st.dataframe(metrics_df)
+        
+        # Grafico a dispersione
+        st.markdown("### Scatter Plot: Ritardo Medio vs Ritardo Massimo")
+        scatter_chart_config = create_scatter_chart_ritardi(metrics_df)
+        st_echarts(options=scatter_chart_config, height="400px", key="ritardi_scatter_chart")
+        
+        # Grafico combinato (bar + line)
+        st.markdown("### Combo Chart: Ritardo Medio e Ritardo Massimo per Mittente")
+        combo_chart_config = create_combo_chart_ritardi(metrics_df)
+        st_echarts(options=combo_chart_config, height="400px", key="ritardi_combo_chart")
+
+
 # ---------------------- FUNZIONE PRINCIPALE ----------------------
 
 def page_analisi(df: pd.DataFrame):
@@ -265,9 +402,7 @@ def page_analisi(df: pd.DataFrame):
         display_temporal_tab(tab_temporale, df)
     with tab_tipologie:
         display_tipologie_tab(tab_tipologie, df)
-    """
     with tab_ritardi:
         display_ritardi_tab(tab_ritardi, df)
-    """
 
 
