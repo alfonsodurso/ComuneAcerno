@@ -303,15 +303,14 @@ def display_tipologie_tab(container, df: pd.DataFrame):
             key="tipologie_radio"
         )
     
-    if view_option == "Mittenti":
-        selected_senders = st.session_state.get("selected_senders", list(ACTIVE_MAPPING.values()))
-        chart_data = prepare_mittenti_count(df, selected_senders)
-    else:  # "Tipologie"
-        chart_data = prepare_tipologie_count(df)
-    
-    chart_config = create_doughnut_chart(chart_data)
-    st_echarts(options=chart_config, height="400px", key="echarts_tipologie")
-    st.experimental_rerun()
+        if view_option == "Mittenti":
+            selected_senders = st.session_state.get("selected_senders", list(ACTIVE_MAPPING.values()))
+            chart_data = prepare_mittenti_count(df, selected_senders)
+        else:  # "Tipologie"
+            chart_data = prepare_tipologie_count(df)
+        
+        chart_config = create_doughnut_chart(chart_data)
+        st_echarts(options=chart_config, height="400px", key="echarts_tipologie")
 
 # -----------------------------------------------------------------
 
@@ -323,7 +322,7 @@ def display_ritardi_tab(container, df: pd.DataFrame):
       - Il grafico combinato (combo chart).
     Con un radiobutton per selezionare "Tabella" o "Grafici".
     """
-    with container:
+    with st.container:
         
         # Radiobutton per scegliere la visualizzazione
         view_option = st.radio(
