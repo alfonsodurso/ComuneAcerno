@@ -306,8 +306,8 @@ def display_tipologie_tab(container, df):
     - Uno per i mittenti.
     """
 
-    print(df.columns)
-
+    st.write(df.columns)
+"""
     # Prepara i dati per il grafico delle Tipologie
     tipologie_data = df.groupby("Tipologia atto").size().reset_index(name="value")
     tipologie_data.rename(columns={"Tipologia": "label"}, inplace=True)
@@ -326,7 +326,7 @@ def display_tipologie_tab(container, df):
     # Mostra il secondo grafico (Mittenti)
     container.st_echarts(options=create_bar_chart(mittenti_data, "Mittenti"), 
                           height="400px", key="bar_chart_mittenti")
-
+"""
 # -----------------------------------------------------------------
 
 def display_ritardi_tab(container, df: pd.DataFrame):
