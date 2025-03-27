@@ -164,15 +164,28 @@ def crea_config_chart(title: str, dataset: pd.DataFrame, selected_cols: list) ->
 
 def create_bar_chart(data_df: pd.DataFrame, chart_title: str) -> dict:
     """
-    Crea una configurazione per un grafico a barre utilizzando i dati forniti.
+    Crea una configurazione per un grafico a barre in cui:
+    - Ogni barra ha un colore differente.
+    - Il tooltip mostra solo il nome della barra e il numero (formato "{b}: {c}").
     """
     categories = data_df["label"].tolist()
     values = data_df["value"].tolist()
+    
+    # Palette di colori per le barre
+    palette = ["#5470c6", "#91cc75", "#fac858", "#ee6666", "#73c0de", "#3ba272", "#fc8452", "#9a60b4", "#ea7ccc"]
+    
+    # Costruisce i dati assegnando ad ogni barra un colore specifico
+    data = []
+    for i, value in enumerate(values):
+        data.append({
+            "value": value,
+            "itemStyle": {"color": palette[i % len(palette)]}
+        })
+    
     option = {
-        "title": {"text": chart_title, "left": "center"},
         "tooltip": {
-            "trigger": "axis",
-            "axisPointer": {"type": "shadow"}
+            "trigger": "item",
+            "formatter": "{b}: {c}"
         },
         "grid": {
             "left": "3%",
@@ -192,7 +205,7 @@ def create_bar_chart(data_df: pd.DataFrame, chart_title: str) -> dict:
             "name": chart_title,
             "type": "bar",
             "barWidth": "60%",
-            "data": values
+            "data": data
         }]
     }
     return option
@@ -281,13 +294,12 @@ def display_temporal_tab(container, df: pd.DataFrame):
 
 # ------------------------Tipologie & Mittenti----------------------------
 
-def display_tipologie_tab(container, df: pd.DataFrame):
+def display_tipologie_tab(df: pd.DataFrame):
     """
-    Visualizza la tab "Tipologie & Mittenti" mostrando due grafici a barre:
-      - Uno per il conteggio dei mittenti
-      - Uno per il conteggio delle tipologie
+    Visualizza la tab "Tipologie & Mittenti" mostrando un grafico a barre.
+    L'utente può scegliere se visualizzare i dati per "Mittenti" o per "Tipologie".
     """
-    view_option = container.radio("Visualizza per:", ["Mittenti", "Tipologie"], horizontal=True)
+    view_option = st.radio("Visualizza per:", ["Mittenti", "Tipologie"], horizontal=True)
     
     if view_option == "Mittenti":
         selected_senders = st.session_state.get("selected_senders", list(ACTIVE_MAPPING.values()))
@@ -297,12 +309,7 @@ def display_tipologie_tab(container, df: pd.DataFrame):
         chart_data = prepare_tipologie_count(df)
         chart_title = "Conteggio per Tipologia"
     
-    container.write("Dati del grafico:")
-    container.write(chart_data)
-    
-    bar_chart_config = create_bar_chart(chart_data, chart_title)
-    st_echarts(options=bar_chart_config, height="400px", key=f"bar_chart_{view_option}")
-
+    st_echarts(options=create_bar_chart(chart_data, chart_title), height="400px", key=f"bar_chart_{view_option}")
 
 
 # -----------------------------------------------------------------
