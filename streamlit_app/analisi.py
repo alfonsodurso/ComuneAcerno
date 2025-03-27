@@ -162,46 +162,40 @@ def crea_config_chart(title: str, dataset: pd.DataFrame, selected_cols: list) ->
 
 # ------------------------Tipologie & Mittenti----------------------------
 
-def create_doughnut_chart(data_df: pd.DataFrame) -> dict:
+def create_bar_chart(data_df: pd.DataFrame, chart_title: str) -> dict:
     """
-    Crea la configurazione per un grafico a torta (doughnut) utilizzando i dati forniti.
+    Crea una configurazione per un grafico a barre utilizzando i dati forniti.
     """
-    # Verifica che il DataFrame abbia le colonne attese
-    if "label" in data_df.columns and "value" in data_df.columns:
-        data = [{"name": row["label"], "value": row["value"]} for _, row in data_df.iterrows()]
-    else:
-        # In caso di struttura diversa, usa i primi due elementi di ogni riga
-        data = [{"name": row[0], "value": row[1]} for _, row in data_df.iterrows()]
-    
-    chart_config = {
-        "tooltip": {"trigger": "item"},
-        "legend": {"top": "0%", "left": "center"},
+    categories = data_df["label"].tolist()
+    values = data_df["value"].tolist()
+    option = {
+        "title": {"text": chart_title, "left": "center"},
+        "tooltip": {
+            "trigger": "axis",
+            "axisPointer": {"type": "shadow"}
+        },
+        "grid": {
+            "left": "3%",
+            "right": "4%",
+            "bottom": "3%",
+            "containLabel": True
+        },
+        "xAxis": [{
+            "type": "category",
+            "data": categories,
+            "axisTick": {"alignWithLabel": True}
+        }],
+        "yAxis": [{
+            "type": "value"
+        }],
         "series": [{
-            "name": "Pubblicazioni",
-            "type": "pie",
-            "radius": ["40%", "70%"],
-            "avoidLabelOverlap": False,
-            "itemStyle": {
-                "borderRadius": 10,
-                "borderColor": "#fff",
-                "borderWidth": 2
-            },
-            "label": {
-                "show": True,
-                "position": "center",
-                "formatter": "Pubblicazioni"
-            },
-            "emphasis": {
-                "label": {
-                    "show": True,
-                    "fontSize": 12
-                }
-            },
-            "labelLine": {"show": False},
-            "data": data
+            "name": chart_title,
+            "type": "bar",
+            "barWidth": "60%",
+            "data": values
         }]
     }
-    return chart_config
+    return option
     
 # ------------------------Ritardi----------------------------
     
@@ -289,23 +283,27 @@ def display_temporal_tab(container, df: pd.DataFrame):
 
 def display_tipologie_tab(container, df: pd.DataFrame):
     """
-    Visualizza la tab "Tipologie & Mittenti" con la possibilità di selezionare tra Mittenti e Tipologie.
+    Visualizza la tab "Tipologie & Mittenti" mostrando due grafici a barre:
+      - Uno per il conteggio dei mittenti
+      - Uno per il conteggio delle tipologie
     """
-    # Se usiamo il container fornito, sfruttiamo direttamente i widget in esso contenuti
+    # Selezione per Mittenti o Tipologie (puoi anche visualizzare entrambi se preferisci)
     view_option = container.radio("Visualizza per:", ["Mittenti", "Tipologie"], horizontal=True)
     
     if view_option == "Mittenti":
-        # Per Mittenti, usiamo eventualmente un filtro in session_state o il mapping di default
         selected_senders = st.session_state.get("selected_senders", list(ACTIVE_MAPPING.values()))
         chart_data = prepare_mittenti_count(df, selected_senders)
+        chart_title = "Conteggio per Mittente"
     else:
         chart_data = prepare_tipologie_count(df)
+        chart_title = "Conteggio per Tipologia"
     
-    # (Facoltativo) Visualizza in debug i dati per il grafico
+    # (Facoltativo) mostra i dati per debug
     container.write("Dati del grafico:", chart_data)
     
-    chart_config = create_doughnut_chart(chart_data)
-    container.st_echarts(options=chart_config, height="400px", key="echarts_tipologie")
+    # Crea la configurazione del grafico a barre
+    bar_chart_config = create_bar_chart(chart_data, chart_title)
+    container.st_echarts(options=bar_chart_config, height="400px", key=f"bar_chart_{view_option}")
 
 # -----------------------------------------------------------------
 
