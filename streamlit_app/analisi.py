@@ -311,10 +311,10 @@ def display_tipologie_tab(container, df: pd.DataFrame):
         if view_option == "Mittenti":
             selected_senders = st.session_state.get("selected_senders", list(ACTIVE_MAPPING.values()))
             chart_data = prepare_mittenti_count(df, selected_senders)
-            chart_title = "Conteggio per Mittente"
+            chart_title = "Mittente"
         else:
             chart_data = prepare_tipologie_count(df)
-            chart_title = "Conteggio per Tipologia"
+            chart_title = "Tipologia"
         
         st_echarts(options=create_bar_chart(chart_data, chart_title), height="400px", key=f"bar_chart_{view_option}")
 
@@ -361,7 +361,7 @@ def page_analisi(df: pd.DataFrame):
     st.header("📊 ANALISI")
     tab_temporale, tab_tipologie, tab_ritardi = st.tabs([
         "📆 Andamento Temporale",
-        "📋 Tipologie & Mittenti",
+        "📋 Mittenti & Tipologie",
         "⏳ Ritardi"
     ])
     with tab_temporale:
