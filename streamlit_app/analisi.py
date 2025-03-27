@@ -185,7 +185,7 @@ def create_bar_chart(data_df: pd.DataFrame, chart_title: str) -> dict:
     option = {
         "tooltip": {
             "trigger": "item",
-            "formatter": "{b}: {c}"
+            "formatter": "{b}: <b>{c}</b>"
         },
         "grid": {
             "left": "3%",
@@ -204,6 +204,8 @@ def create_bar_chart(data_df: pd.DataFrame, chart_title: str) -> dict:
         "series": [{
             "name": chart_title,
             "type": "bar",
+            showBackground: true,
+            backgroundStyle: {color: 'rgba(180, 180, 180, 0.2)'
             "barWidth": "60%",
             "data": data
         }]
