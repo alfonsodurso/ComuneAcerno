@@ -294,12 +294,12 @@ def display_temporal_tab(container, df: pd.DataFrame):
 
 # ------------------------Tipologie & Mittenti----------------------------
 
-def display_tipologie_tab(df: pd.DataFrame):
+def display_tipologie_tab(container, df: pd.DataFrame):
     """
     Visualizza la tab "Tipologie & Mittenti" mostrando un grafico a barre.
     L'utente può scegliere se visualizzare i dati per "Mittenti" o per "Tipologie".
     """
-    view_option = st.radio("Visualizza per:", ["Mittenti", "Tipologie"], horizontal=True)
+    view_option = container.radio("Visualizza per:", ["Mittenti", "Tipologie"], horizontal=True)
     
     if view_option == "Mittenti":
         selected_senders = st.session_state.get("selected_senders", list(ACTIVE_MAPPING.values()))
@@ -309,8 +309,7 @@ def display_tipologie_tab(df: pd.DataFrame):
         chart_data = prepare_tipologie_count(df)
         chart_title = "Conteggio per Tipologia"
     
-    st_echarts(options=create_bar_chart(chart_data, chart_title), height="400px", key=f"bar_chart_{view_option}")
-
+    container.st_echarts(options=create_bar_chart(chart_data, chart_title), height="400px", key=f"bar_chart_{view_option}")
 
 # -----------------------------------------------------------------
 
