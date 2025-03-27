@@ -202,8 +202,7 @@ def create_doughnut_chart(data_df: pd.DataFrame, chart_title: str) -> dict:
             "emphasis": {
                 "label": {
                     "show": True,
-                    "fontSize": 16,
-                    "formatter": "{b}\n{c}"  # Nome e valore quando evidenziato
+                    "fontSize": 12,
                 }
             },
             "labelLine": {"show": False},
