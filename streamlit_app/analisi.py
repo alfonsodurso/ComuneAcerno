@@ -299,23 +299,33 @@ def display_temporal_tab(container, df: pd.DataFrame):
 
 # ------------------------Tipologie & Mittenti----------------------------
 
-def display_tipologie_tab(container, df: pd.DataFrame):
+def display_tipologie_tab(container, df):
     """
-    Visualizza la tab "Tipologie & Mittenti" mostrando un grafico a barre.
-    L'utente può scegliere se visualizzare i dati per "Mittenti" o per "Tipologie".
+    Mostra due grafici a barre nella stessa pagina:
+    - Uno per le tipologie di dati.
+    - Uno per i mittenti.
     """
-    with st.container():
-        view_option = st.radio("Visualizza per:", ["Mittenti", "Tipologie"], horizontal=True)
-        
-        if view_option == "Mittenti":
-            selected_senders = st.session_state.get("selected_senders", list(ACTIVE_MAPPING.values()))
-            chart_data = prepare_mittenti_count(df, selected_senders)
-            chart_title = "Conteggio per Mittente"
-        else:
-            chart_data = prepare_tipologie_count(df)
-            chart_title = "Conteggio per Tipologia"
-        
-        st_echarts(options=create_bar_chart(chart_data, chart_title), height="400px", key=f"bar_chart_{view_option}")
+
+    # Prepara i dati per il grafico delle Tipologie
+    tipologie_data = df.groupby("Tipologia").size().reset_index(name="value")
+    tipologie_data.rename(columns={"Tipologia": "label"}, inplace=True)
+
+    # Prepara i dati per il grafico dei Mittenti
+    mittenti_data = df.groupby("Mittente").size().reset_index(name="value")
+    mittenti_data.rename(columns={"Mittente": "label"}, inplace=True)
+
+    # Mostra il primo grafico (Tipologie)
+    container.subheader("Tipologie")
+    container.st_echarts(options=create_bar_chart(tipologie_data, "Tipologie"), 
+                          height="400px", key="bar_chart_tipologie")
+
+    # Spazio tra i grafici
+    container.markdown("---")
+
+    # Mostra il secondo grafico (Mittenti)
+    container.subheader("Mittenti")
+    container.st_echarts(options=create_bar_chart(mittenti_data, "Mittenti"), 
+                          height="400px", key="bar_chart_mittenti")
 
 # -----------------------------------------------------------------
 
