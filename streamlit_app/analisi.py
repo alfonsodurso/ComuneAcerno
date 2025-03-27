@@ -306,6 +306,8 @@ def display_tipologie_tab(container, df):
     - Uno per i mittenti.
     """
 
+    print(df.columns)
+
     # Prepara i dati per il grafico delle Tipologie
     tipologie_data = df.groupby("Tipologia atto").size().reset_index(name="value")
     tipologie_data.rename(columns={"Tipologia": "label"}, inplace=True)
