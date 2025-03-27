@@ -21,7 +21,7 @@ def prepare_time_series_data_by_sender(df: pd.DataFrame) -> tuple[pd.DataFrame, 
     """
     # Converte la data di pubblicazione e filtra eventuali errori
     df_copy = df.copy()
-    df_copy["data_registro_generale"] = pd.to_datetime(df_copy["data_registro_generale"], dayfirst=True, errors="coerce")
+    df_copy["data_inizio_pubblicazione"] = pd.to_datetime(df_copy["data_inizio_pubblicazione"], errors="coerce")
     df_copy = df_copy.dropna(subset=["data_inizio_pubblicazione"])
     df_copy["data"] = df_copy["data_inizio_pubblicazione"].dt.date
 
@@ -33,7 +33,7 @@ def prepare_time_series_data_by_sender(df: pd.DataFrame) -> tuple[pd.DataFrame, 
 
     # Calcola il totale (TOTALE) per ogni data
     pivot["TOTAL"] = pivot.sum(axis=1)
-    pivot = pivot.astype(int)
+    pivot = pivot.applymap(int)  # assicura che siano tipi Python (evita numpy.int64)
 
     rename_dict = {"TOTAL": "TOTALE"}
     for sender in ACTIVE_MAPPING:
@@ -88,8 +88,8 @@ def prepare_ritardi_metrics(df: pd.DataFrame, mapping: dict = ACTIVE_MAPPING) ->
     La tabella viene ordinata in ordine decrescente in base al ritardo medio.
     """
     df_copy = df.copy()
-    df_copy["data_registro_generale"] = pd.to_datetime(df_copy["data_registro_generale"], dayfirst=True, errors="coerce")
-    df_copy["data_inizio_pubblicazione"] = pd.to_datetime(df_copy["data_inizio_pubblicazione"], dayfirst=True, errors="coerce")
+    df_copy["data_registro_generale"] = pd.to_datetime(df_copy["data_registro_generale"], errors="coerce")
+    df_copy["data_inizio_pubblicazione"] = pd.to_datetime(df_copy["data_inizio_pubblicazione"], errors="coerce")
     df_copy = df_copy.dropna(subset=["data_registro_generale", "data_inizio_pubblicazione"])
     
     # Calcola il ritardo in giorni
@@ -353,5 +353,3 @@ def page_analisi(df: pd.DataFrame):
         display_tipologie_tab(tab_tipologie, df)
     with tab_ritardi:
         display_ritardi_tab(tab_ritardi, df)
-
-
