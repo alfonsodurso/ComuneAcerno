@@ -304,7 +304,7 @@ def display_tipologie_tab(container, df: pd.DataFrame):
     Visualizza la tab "Tipologie & Mittenti" mostrando un grafico a barre.
     L'utente può scegliere se visualizzare i dati per "Mittenti" o per "Tipologie".
     """
-    with st.container:
+    with st.container():
         view_option = st.radio("Visualizza per:", ["Mittenti", "Tipologie"], horizontal=True)
         
         if view_option == "Mittenti":
