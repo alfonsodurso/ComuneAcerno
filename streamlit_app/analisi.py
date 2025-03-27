@@ -167,7 +167,6 @@ def create_bar_chart(data_df: pd.DataFrame, chart_title: str) -> dict:
     Crea una configurazione per un grafico a barre in cui:
     - Ogni barra ha un colore differente.
     - Il tooltip mostra solo il nome della barra e il numero (formato "{b}: {c}").
-    - Viene aggiunta una legenda con le categorie.
     """
     categories = data_df["label"].tolist()
     values = data_df["value"].tolist()
@@ -180,40 +179,30 @@ def create_bar_chart(data_df: pd.DataFrame, chart_title: str) -> dict:
     for i, value in enumerate(values):
         data.append({
             "value": value,
-            "name": categories[i],  # Nome della barra nella legenda
             "itemStyle": {"color": palette[i % len(palette)]}
         })
     
     option = {
         "tooltip": {
             "trigger": "item",
-            "formatter": "{b}: <b>{c}</b>"
+            "formatter": ("Pubblicazioni<br/>",
+                          "{b}: <b>{c}</b>")
         },
         
-        "legend": {
-            "top": "5%",  # Posizione della legenda (puoi personalizzarla)
-            "left": "center",
-            "orient": "horizontal",  # Può essere 'vertical' per metterla di lato
-            "data": categories  # Categorie della legenda
-        },
-
         "grid": {
             "left": "3%",
             "right": "4%",
-            "bottom": "10%",  # Più spazio per la legenda
+            "bottom": "3%",
             "containLabel": True
         },
-
         "xAxis": [{
             "type": "category",
             "data": categories,
             "axisTick": {"alignWithLabel": True}
         }],
-
         "yAxis": [{
             "type": "value"
         }],
-
         "series": [{
             "name": chart_title,
             "type": "bar",
@@ -226,8 +215,6 @@ def create_bar_chart(data_df: pd.DataFrame, chart_title: str) -> dict:
         }]
     }
     return option
-
-
     
 # ------------------------Ritardi----------------------------
     
