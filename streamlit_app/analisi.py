@@ -196,7 +196,6 @@ def create_bar_chart(data_df: pd.DataFrame, chart_title: str) -> dict:
         "xAxis": [{
             "type": "category",
             "data": categories,
-            "axisLabel": {"rotate": 90},
             "axisTick": {"alignWithLabel": True}
         }],
         "yAxis": [{
