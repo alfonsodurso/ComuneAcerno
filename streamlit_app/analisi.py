@@ -307,15 +307,14 @@ def display_tipologie_tab(container, df):
     """
 
     # Prepara i dati per il grafico delle Tipologie
-    tipologie_data = df.groupby("Tipologia").size().reset_index(name="value")
+    tipologie_data = df.groupby("tipo_atto").size().reset_index(name="value")
     tipologie_data.rename(columns={"Tipologia": "label"}, inplace=True)
 
     # Prepara i dati per il grafico dei Mittenti
-    mittenti_data = df.groupby("Mittente").size().reset_index(name="value")
+    mittenti_data = df.groupby("sender_mapped").size().reset_index(name="value")
     mittenti_data.rename(columns={"Mittente": "label"}, inplace=True)
 
     # Mostra il primo grafico (Tipologie)
-    container.subheader("Tipologie")
     container.st_echarts(options=create_bar_chart(tipologie_data, "Tipologie"), 
                           height="400px", key="bar_chart_tipologie")
 
@@ -323,7 +322,6 @@ def display_tipologie_tab(container, df):
     container.markdown("---")
 
     # Mostra il secondo grafico (Mittenti)
-    container.subheader("Mittenti")
     container.st_echarts(options=create_bar_chart(mittenti_data, "Mittenti"), 
                           height="400px", key="bar_chart_mittenti")
 
