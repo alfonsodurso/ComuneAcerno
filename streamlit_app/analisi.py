@@ -305,17 +305,17 @@ def display_tipologie_tab(container, df: pd.DataFrame):
     L'utente può scegliere se visualizzare i dati per "Mittenti" o per "Tipologie".
     """
     with st.container():
-        view_option = st.radio("Visualizza per:", ["Mittenti", "Tipologie"], horizontal=True)
         
-        if view_option == "Mittenti":
-            selected_senders = st.session_state.get("selected_senders", list(ACTIVE_MAPPING.values()))
-            chart_data = prepare_mittenti_count(df, selected_senders)
-            chart_title = "Conteggio per Mittente"
-        else:
-            chart_data = prepare_tipologie_count(df)
-            chart_title = "Conteggio per Tipologia"
-        
-        st_echarts(options=create_bar_chart(chart_data, chart_title), height="400px", key=f"bar_chart_{view_option}")
+         # Grafico per i mittenti
+        selected_senders = list(ACTIVE_MAPPING.values())
+        mittenti_chart_data = prepare_mittenti_count(df, selected_senders)
+        mittenti_chart_title = "Conteggio per Mittente"
+        st_echarts(options=create_bar_chart(mittenti_chart_data, mittenti_chart_title), height="400px", key="bar_chart_mittenti")
+
+        # Grafico per le tipologie
+        tipologie_chart_data = prepare_tipologie_count(df)
+        tipologie_chart_title = "Conteggio per Tipologia"
+        st_echarts(options=create_bar_chart(tipologie_chart_data, tipologie_chart_title), height="400px", key="bar_chart_tipologie")
 
 # -----------------------------------------------------------------
 
