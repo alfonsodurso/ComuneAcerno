@@ -287,7 +287,6 @@ def display_tipologie_tab(container, df: pd.DataFrame):
       - Uno per il conteggio dei mittenti
       - Uno per il conteggio delle tipologie
     """
-    # Selezione per Mittenti o Tipologie (puoi anche visualizzare entrambi se preferisci)
     view_option = container.radio("Visualizza per:", ["Mittenti", "Tipologie"], horizontal=True)
     
     if view_option == "Mittenti":
@@ -298,12 +297,13 @@ def display_tipologie_tab(container, df: pd.DataFrame):
         chart_data = prepare_tipologie_count(df)
         chart_title = "Conteggio per Tipologia"
     
-    # (Facoltativo) mostra i dati per debug
-    container.write("Dati del grafico:", chart_data)
+    # Debug: visualizza i dati del grafico (se necessario)
+    container.write("Dati del grafico:")
+    container.write(chart_data)
     
-    # Crea la configurazione del grafico a barre
     bar_chart_config = create_bar_chart(chart_data, chart_title)
     container.st_echarts(options=bar_chart_config, height="400px", key=f"bar_chart_{view_option}")
+
 
 # -----------------------------------------------------------------
 
