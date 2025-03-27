@@ -162,55 +162,59 @@ def crea_config_chart(title: str, dataset: pd.DataFrame, selected_cols: list) ->
 
 # ------------------------Tipologie & Mittenti----------------------------
 
-def create_doughnut_chart(data_df: pd.DataFrame, chart_title: str) -> dict:
+def create_bar_chart(data_df: pd.DataFrame, chart_title: str) -> dict:
     """
-    Crea la configurazione per un grafico a torta (doughnut) utilizzando i dati forniti.
-    
-    Args:
-        data_df (pd.DataFrame): Il dataframe contenente i dati.
-        chart_title (str): Il titolo centrale del grafico (es. "Mittenti" o "Tipologie").
-    
-    Returns:
-        dict: Configurazione per il grafico ECharts.
+    Crea una configurazione per un grafico a barre in cui:
+    - Ogni barra ha un colore differente.
+    - Il tooltip mostra solo il nome della barra e il numero (formato "{b}: {c}").
     """
-    if "tipo_atto" in data_df.columns and "count" in data_df.columns:
-        data = [{"name": row["tipo_atto"], "value": row["count"]} for _, row in data_df.iterrows()]
-    elif "label" in data_df.columns and "value" in data_df.columns:
-        data = [{"name": row["label"], "value": row["value"]} for _, row in data_df.iterrows()]
-    else:
-        data = [{"name": row[0], "value": row[1]} for _, row in data_df.iterrows()]
-
-    chart_config = {
-        "tooltip": {"trigger": "item"},
-        "legend": {"bottom": "0%", "left": "center"},
+    categories = data_df["label"].tolist()
+    values = data_df["value"].tolist()
+    
+    # Palette di colori per le barre
+    palette = ["#5470c6", "#91cc75", "#fac858", "#ee6666", "#73c0de", "#3ba272", "#fc8452", "#9a60b4", "#ea7ccc"]
+    
+    # Costruisce i dati assegnando ad ogni barra un colore specifico
+    data = []
+    for i, value in enumerate(values):
+        data.append({
+            "value": value,
+            "itemStyle": {"color": palette[i % len(palette)]}
+        })
+    
+    option = {
+        "tooltip": {
+            "trigger": "item",
+            "formatter": "{b}: <b>{c}</b>"
+        },
+        "grid": {
+            "left": "3%",
+            "right": "4%",
+            "bottom": "3%",
+            "containLabel": True
+        },
+        "xAxis": [{
+            "type": "category",
+            "data": categories,
+            "axisTick": {"alignWithLabel": False}
+        }],
+        "yAxis": [{
+            "type": "value"
+        }],
         "series": [{
-            "type": "pie",
-            "radius": ["40%", "70%"],
-            "avoidLabelOverlap": False,
-            "itemStyle": {
-                "borderRadius": 10,
-                "borderColor": "#fff",
-                "borderWidth": 2
+            "name": chart_title,
+            "type": "bar",
+            "showBackground": True,
+            "backgroundStyle": {
+                "color": "rgba(180, 180, 180, 0.2)"
             },
-            "label": {
-                "show": True,
-                "position": "center",
-                "formatter": chart_title,  # Titolo fisso (Mittenti o Tipologie)
-                "fontSize": 14,
-                "fontWeight": "bold"
-            },
-            "emphasis": {
-                "label": {
-                    "show": True,
-                    "fontSize": 12,
-                }
-            },
-            "labelLine": {"show": False},
+            "barWidth": "60%",
             "data": data
         }]
     }
-    return chart_config
+    return option
 
+    
 # ------------------------Ritardi----------------------------
     
 def create_combo_chart_ritardi(data: pd.DataFrame) -> dict:
@@ -258,7 +262,8 @@ def create_combo_chart_ritardi(data: pd.DataFrame) -> dict:
             }
         ]
     }
- 
+
+    
 # ---------------------- VISUALIZZAZIONE ----------------------
 
 def display_temporal_tab(container, df: pd.DataFrame):
@@ -296,22 +301,22 @@ def display_temporal_tab(container, df: pd.DataFrame):
 
 def display_tipologie_tab(container, df: pd.DataFrame):
     """
-    Visualizza la tab "Tipologie & Mittenti" con una scelta tramite radio button:
-      - "Mittenti": visualizza il numero di pubblicazioni per mittente (filtrabili tramite session_state)
-      - "Tipologie": visualizza il numero di pubblicazioni per tipologia
+    Visualizza la tab "Tipologie & Mittenti" con due grafici a barre:
+    - Il primo mostra il conteggio delle pubblicazioni per mittente.
+    - Il secondo mostra il conteggio delle pubblicazioni per tipologia.
     """
     with st.container():
-        selected_senders = st.session_state.get("selected_senders", list(ACTIVE_MAPPING.values()))
-        mittenti_chart_data  = prepare_mittenti_count(df, selected_senders)
-        tipologie_chart_data  = prepare_tipologie_count(df)
         
-        # Creazione e visualizzazione dei grafici a torta
-        mittenti_chart_config = create_doughnut_chart(mittenti_chart_data, "Mittenti")
-        tipologie_chart_config = create_doughnut_chart(tipologie_chart_data, "Tipologie")
-        
-        st_echarts(options=tipologie_chart_config, height="400px", key="echarts_tipologie")
-        st_echarts(options=mittenti_chart_config, height="400px", key="echarts_mittenti")
+        # Grafico per le tipologie
+        tipologie_chart_data = prepare_tipologie_count(df)
+        tipologie_chart_title = "Tipologia"
+        st_echarts(options=create_bar_chart(tipologie_chart_data, tipologie_chart_title), height="400px", key="bar_chart_tipologie")
 
+        # Grafico per i mittenti
+        selected_senders = list(ACTIVE_MAPPING.values())
+        mittenti_chart_data = prepare_mittenti_count(df, selected_senders)
+        mittenti_chart_title = "Mittente"
+        st_echarts(options=create_bar_chart(mittenti_chart_data, mittenti_chart_title), height="400px", key="bar_chart_mittenti")
 
 # -----------------------------------------------------------------
 
