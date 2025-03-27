@@ -297,12 +297,12 @@ def display_tipologie_tab(container, df: pd.DataFrame):
         chart_data = prepare_tipologie_count(df)
         chart_title = "Conteggio per Tipologia"
     
-    # Debug: visualizza i dati del grafico (se necessario)
     container.write("Dati del grafico:")
     container.write(chart_data)
     
     bar_chart_config = create_bar_chart(chart_data, chart_title)
-    container.st_echarts(options=bar_chart_config, height="400px", key=f"bar_chart_{view_option}")
+    st_echarts(options=bar_chart_config, height="400px", key=f"bar_chart_{view_option}")
+
 
 
 # -----------------------------------------------------------------
