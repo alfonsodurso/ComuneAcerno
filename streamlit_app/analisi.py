@@ -162,9 +162,16 @@ def crea_config_chart(title: str, dataset: pd.DataFrame, selected_cols: list) ->
 
 # ------------------------Tipologie & Mittenti----------------------------
 
-def create_doughnut_chart(data_df: pd.DataFrame) -> dict:
+def create_doughnut_chart(data_df: pd.DataFrame, chart_title: str) -> dict:
     """
     Crea la configurazione per un grafico a torta (doughnut) utilizzando i dati forniti.
+    
+    Args:
+        data_df (pd.DataFrame): Il dataframe contenente i dati.
+        chart_title (str): Il titolo centrale del grafico (es. "Mittenti" o "Tipologie").
+    
+    Returns:
+        dict: Configurazione per il grafico ECharts.
     """
     if "tipo_atto" in data_df.columns and "count" in data_df.columns:
         data = [{"name": row["tipo_atto"], "value": row["count"]} for _, row in data_df.iterrows()]
@@ -172,10 +179,10 @@ def create_doughnut_chart(data_df: pd.DataFrame) -> dict:
         data = [{"name": row["label"], "value": row["value"]} for _, row in data_df.iterrows()]
     else:
         data = [{"name": row[0], "value": row[1]} for _, row in data_df.iterrows()]
-    
+
     chart_config = {
         "tooltip": {"trigger": "item"},
-        "legend": {"top": "0%", "left": "center"},
+        "legend": {"bottom": "0%", "left": "center"},
         "series": [{
             "type": "pie",
             "radius": ["40%", "70%"],
@@ -188,12 +195,15 @@ def create_doughnut_chart(data_df: pd.DataFrame) -> dict:
             "label": {
                 "show": True,
                 "position": "center",
-                "formatter": "Pubblicazioni"
+                "formatter": chart_title,  # Titolo fisso (Mittenti o Tipologie)
+                "fontSize": 14,
+                "fontWeight": "bold"
             },
             "emphasis": {
                 "label": {
                     "show": True,
-                    "fontSize": 12
+                    "fontSize": 16,
+                    "formatter": "{b}\n{c}"  # Nome e valore quando evidenziato
                 }
             },
             "labelLine": {"show": False},
@@ -297,11 +307,12 @@ def display_tipologie_tab(container, df: pd.DataFrame):
         tipologie_chart_data  = prepare_tipologie_count(df)
         
         # Creazione e visualizzazione dei grafici a torta
-        mittenti_chart_config = create_doughnut_chart(mittenti_chart_data)
-        tipologie_chart_config = create_doughnut_chart(tipologie_chart_data)
-
-        st_echarts(options=mittenti_chart_config, height="400px", key="echarts_mittenti")
+        mittenti_chart_config = create_doughnut_chart(mittenti_chart_data, "Mittenti")
+        tipologie_chart_config = create_doughnut_chart(tipologie_chart_data, "Tipologie")
+        
         st_echarts(options=tipologie_chart_config, height="400px", key="echarts_tipologie")
+        st_echarts(options=mittenti_chart_config, height="400px", key="echarts_mittenti")
+
 
 # -----------------------------------------------------------------
 
