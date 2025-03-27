@@ -57,9 +57,7 @@ def prepare_time_series_data_by_sender(df: pd.DataFrame) -> tuple[pd.DataFrame, 
 
 def prepare_mittenti_count(df: pd.DataFrame, selected_senders: list, mapping: dict = ACTIVE_MAPPING) -> pd.DataFrame:
     """
-    Prepara un DataFrame contenente il conteggio delle pubblicazioni per ogni mittente.
-    I mittenti sono mappati tramite il dizionario 'mapping'. Vengono considerati solo 
-    i mittenti il cui nome mappato è presente in selected_senders.
+    Prepara un DataFrame con il conteggio delle pubblicazioni per ogni mittente mappato.
     """
     df_copy = df.copy()
     df_copy["sender_mapped"] = df_copy["mittente"].apply(lambda s: mapping.get(s, "Altri"))
@@ -70,7 +68,7 @@ def prepare_mittenti_count(df: pd.DataFrame, selected_senders: list, mapping: di
 
 def prepare_tipologie_count(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Prepara un DataFrame contenente il conteggio delle pubblicazioni per ciascuna tipologia.
+    Prepara un DataFrame con il conteggio delle pubblicazioni per ciascuna tipologia.
     """
     counts = df["tipo_atto"].value_counts().reset_index()
     counts.columns = ["label", "value"]
@@ -167,26 +165,38 @@ def crea_config_chart(title: str, dataset: pd.DataFrame, selected_cols: list) ->
 def create_doughnut_chart(data_df: pd.DataFrame) -> dict:
     """
     Crea la configurazione per un grafico a torta (doughnut) utilizzando i dati forniti.
-    La funzione gestisce differenti formati di input, verificando la presenza di colonne
-    specifiche.
     """
-    if "tipo_atto" in data_df.columns and "count" in data_df.columns:
-        data = [{"name": row["tipo_atto"], "value": row["count"]} for _, row in data_df.iterrows()]
-    elif "label" in data_df.columns and "value" in data_df.columns:
+    # Verifica che il DataFrame abbia le colonne attese
+    if "label" in data_df.columns and "value" in data_df.columns:
         data = [{"name": row["label"], "value": row["value"]} for _, row in data_df.iterrows()]
     else:
+        # In caso di struttura diversa, usa i primi due elementi di ogni riga
         data = [{"name": row[0], "value": row[1]} for _, row in data_df.iterrows()]
     
     chart_config = {
         "tooltip": {"trigger": "item"},
         "legend": {"top": "0%", "left": "center"},
         "series": [{
+            "name": "Pubblicazioni",
             "type": "pie",
             "radius": ["40%", "70%"],
             "avoidLabelOverlap": False,
-            "itemStyle": {"borderRadius": 10, "borderColor": "#fff", "borderWidth": 2},
-            "label": {"show": True, "position": "center", "formatter": "Pubblicazioni"},
-            "emphasis": {"label": {"show": True, "fontSize": "12"}},
+            "itemStyle": {
+                "borderRadius": 10,
+                "borderColor": "#fff",
+                "borderWidth": 2
+            },
+            "label": {
+                "show": True,
+                "position": "center",
+                "formatter": "Pubblicazioni"
+            },
+            "emphasis": {
+                "label": {
+                    "show": True,
+                    "fontSize": 12
+                }
+            },
             "labelLine": {"show": False},
             "data": data
         }]
@@ -279,27 +289,23 @@ def display_temporal_tab(container, df: pd.DataFrame):
 
 def display_tipologie_tab(container, df: pd.DataFrame):
     """
-    Visualizza la tab "Tipologie & Mittenti" con una scelta tramite radio button:
-      - "Mittenti": visualizza il numero di pubblicazioni per mittente (filtrabili tramite session_state)
-      - "Tipologie": visualizza il numero di pubblicazioni per tipologia
+    Visualizza la tab "Tipologie & Mittenti" con la possibilità di selezionare tra Mittenti e Tipologie.
     """
-    with st.container():
-        view_option = st.radio(
-            "Visualizza per:",
-            ["Mittenti", "Tipologie"],
-            horizontal=True,
-            index=0,
-            key="tipologie_radio"
-        )
+    # Se usiamo il container fornito, sfruttiamo direttamente i widget in esso contenuti
+    view_option = container.radio("Visualizza per:", ["Mittenti", "Tipologie"], horizontal=True)
     
     if view_option == "Mittenti":
+        # Per Mittenti, usiamo eventualmente un filtro in session_state o il mapping di default
         selected_senders = st.session_state.get("selected_senders", list(ACTIVE_MAPPING.values()))
         chart_data = prepare_mittenti_count(df, selected_senders)
-    else:  # "Tipologie"
+    else:
         chart_data = prepare_tipologie_count(df)
     
+    # (Facoltativo) Visualizza in debug i dati per il grafico
+    container.write("Dati del grafico:", chart_data)
+    
     chart_config = create_doughnut_chart(chart_data)
-    st_echarts(options=chart_config, height="400px", key="echarts_tipologie")
+    container.st_echarts(options=chart_config, height="400px", key="echarts_tipologie")
 
 # -----------------------------------------------------------------
 
