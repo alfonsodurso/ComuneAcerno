@@ -21,7 +21,7 @@ def prepare_time_series_data_by_sender(df: pd.DataFrame) -> tuple[pd.DataFrame, 
     """
     # Converte la data di pubblicazione e filtra eventuali errori
     df_copy = df.copy()
-    df_copy["data_inizio_pubblicazione"] = pd.to_datetime(df_copy["data_inizio_pubblicazione"], errors="coerce")
+    df_copy["data_inizio_pubblicazione"] = pd.to_datetime(df_copy["data_inizio_pubblicazione"], format="%d/%m/%Y", errors="coerce")
     df_copy = df_copy.dropna(subset=["data_inizio_pubblicazione"])
     df_copy["data"] = df_copy["data_inizio_pubblicazione"].dt.date
 
@@ -33,7 +33,7 @@ def prepare_time_series_data_by_sender(df: pd.DataFrame) -> tuple[pd.DataFrame, 
 
     # Calcola il totale (TOTALE) per ogni data
     pivot["TOTAL"] = pivot.sum(axis=1)
-    pivot = pivot.applymap(int)  # assicura che siano tipi Python (evita numpy.int64)
+    pivot = pivot.astype(int)
 
     rename_dict = {"TOTAL": "TOTALE"}
     for sender in ACTIVE_MAPPING:
