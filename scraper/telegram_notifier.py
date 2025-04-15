@@ -2,12 +2,13 @@ import requests
 from config import TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, TIMEOUT
 
 def escape_markdown(text):
-    """Escape dei caratteri speciali per la formattazione Markdown."""
+    """Escape minimo: scappa solo i caratteri che causano errori in Markdown."""
     if not isinstance(text, str):
         text = str(text)
     
-    special_chars = ['_', '*', '[', ']', '(', ')', '~', '`', '>', '#', '+', '-', '=', '|', '{', '}']
-    for ch in special_chars:
+    # Lista minima dei caratteri da scappare
+    minimal_chars = ['_', '*', '[', ']', '(', ')']
+    for ch in minimal_chars:
         text = text.replace(ch, f"\\{ch}")
     
     return text
