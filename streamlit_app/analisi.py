@@ -176,57 +176,57 @@ def crea_config_chart(title: str, dataset: pd.DataFrame, selected_cols: list) ->
 
 # ------------------------Tipologie & Mittenti----------------------------
 
-def create_bar_chart(data_df: pd.DataFrame, chart_title: str) -> dict:
+def create_doughnut_chart(chart_data, chart_title: str) -> dict:
     """
-    Crea una configurazione per un grafico a barre in cui:
-    - Ogni barra ha un colore differente.
-    - Il tooltip mostra solo il nome della barra e il numero (formato "{b}: {c}").
+    Crea la configurazione per un grafico a "doughnut" (anello) in base ai dati forniti.
+    Ci si aspetta che chart_data sia un dizionario o una Series con chiave=etichetta e valore=conteggio.
     """
-    categories = data_df["label"].tolist()
-    values = data_df["value"].tolist()
+    # Se chart_data è una Series, convertiamo in dizionario
+    if hasattr(chart_data, "to_dict"):
+        data_dict = chart_data.to_dict()
+    elif isinstance(chart_data, dict):
+        data_dict = chart_data
+    else:
+        raise ValueError("Formato dati non supportato, fornire un dizionario o una Series.")
     
-    # Palette di colori per le barre
-    palette = ["#5470c6", "#91cc75", "#fac858", "#ee6666", "#73c0de", "#3ba272", "#fc8452", "#9a60b4", "#ea7ccc"]
-    
-    # Costruisce i dati assegnando ad ogni barra un colore specifico
-    data = []
-    for i, value in enumerate(values):
-        data.append({
-            "value": value,
-            "itemStyle": {"color": palette[i % len(palette)]}
-        })
-    
+    data_list = [{"value": int(v), "name": str(k)} for k, v in data_dict.items()]
+
     option = {
         "tooltip": {
-            "trigger": "item",
-            "formatter": ("Pubblicazioni<br/>",
-                          "{b}: <b>{c}</b>")
+            "trigger": "item"
         },
-        
-        "grid": {
-            "left": "3%",
-            "right": "4%",
-            "bottom": "3%",
-            "containLabel": True
+        "legend": {
+            "top": "5%",
+            "left": "center"
         },
-        "xAxis": [{
-            "type": "category",
-            "data": categories,
-            "axisTick": {"alignWithLabel": True}
-        }],
-        "yAxis": [{
-            "type": "value"
-        }],
-        "series": [{
-            "name": chart_title,
-            "type": "bar",
-            "showBackground": True,
-            "backgroundStyle": {
-                "color": "rgba(180, 180, 180, 0.2)"
-            },
-            "barWidth": "60%",
-            "data": data
-        }]
+        "series": [
+            {
+                "name": chart_title,
+                "type": "pie",
+                "radius": ["40%", "70%"],
+                "avoidLabelOverlap": False,
+                "itemStyle": {
+                    "borderRadius": 10,
+                    "borderColor": "#fff",
+                    "borderWidth": 2
+                },
+                "label": {
+                    "show": False,
+                    "position": "center"
+                },
+                "emphasis": {
+                    "label": {
+                        "show": True,
+                        "fontSize": 40,
+                        "fontWeight": "bold"
+                    }
+                },
+                "labelLine": {
+                    "show": False
+                },
+                "data": data_list
+            }
+        ]
     }
     return option
     
@@ -316,19 +316,22 @@ def display_temporal_tab(container, df: pd.DataFrame):
 
 def display_tipologie_tab(container, df: pd.DataFrame):
     """
-    Visualizza la tab "Tipologie & Mittenti" mostrando due grafici a barre incolonnati:
+    Visualizza la tab "Tipologie & Mittenti" mostrando due grafici a "doughnut" incolonnati:
     uno per "Mittenti" e uno per "Tipologie".
     """
     with st.container():
-        # Dati e grafico per i Mittenti
+        # Prepariamo e visualizziamo il grafico per i Mittenti
         selected_senders = st.session_state.get("selected_senders", list(ACTIVE_MAPPING.values()))
+        # Supponiamo che prepare_mittenti_count restituisca una Series o un dizionario
         chart_data_mittenti = prepare_mittenti_count(df, selected_senders)
-        st_echarts(options=create_bar_chart(chart_data_mittenti, "Mittente"), height="400px", key="bar_chart_mittenti")
+        doughnut_options_mittenti = create_doughnut_chart(chart_data_mittenti, "Mittente")
+        st_echarts(options=doughnut_options_mittenti, height="400px", key="doughnut_chart_mittenti")
         
-        # Dati e grafico per le Tipologie
+        # Prepariamo e visualizziamo il grafico per le Tipologie
+        # Supponiamo che prepare_tipologie_count restituisca una Series o un dizionario
         chart_data_tipologie = prepare_tipologie_count(df)
-        st_echarts(options=create_bar_chart(chart_data_tipologie, "Tipologia"), height="400px", key="bar_chart_tipologie")
-
+        doughnut_options_tipologie = create_doughnut_chart(chart_data_tipologie, "Tipologia")
+        st_echarts(options=doughnut_options_tipologie, height="400px", key="doughnut_chart_tipologie")
 # -----------------------------------------------------------------
 
 def display_ritardi_tab(container, df: pd.DataFrame):
