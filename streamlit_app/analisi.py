@@ -14,56 +14,71 @@ ACTIVE_MAPPING = {
     "COMUNE DI ACERNO": "Comune di Acerno"
 }
 
-def prepare_time_series_data_by_sender(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
+def prepare_time_series_data_by_sender(df: pd.DataFrame, window: int = 30) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
-    Prepara i dati temporali aggregati per data e mittente.
-    Considera solo i mittenti definiti nel mapping.
-    Filtra dinamicamente mostrando solo gli ultimi 30 giorni.
+    Prepara i dati temporali aggregati per data e mittente,
+    considerando solo i mittenti definiti in ACTIVE_MAPPING.
+    
+    La funzione restituisce due dataset:
+      - daily_dataset: dati giornalieri relativi agli ultimi `window` giorni.
+      - cumulative_dataset: andamento cumulato, che mantiene il valore
+        pregresso aggregato fino al primo giorno della finestra.
     """
-    # Converte la data di pubblicazione e filtra eventuali errori
+    import pandas as pd
+    from datetime import timedelta
+
+    # Copia del dataframe e conversione della data con eventuale scarto degli errori
     df_copy = df.copy()
     df_copy["data_inizio_pubblicazione"] = pd.to_datetime(df_copy["data_inizio_pubblicazione"], errors="coerce")
     df_copy = df_copy.dropna(subset=["data_inizio_pubblicazione"])
+    # Mantiene la data senza l'orario, come tipo date
     df_copy["data"] = df_copy["data_inizio_pubblicazione"].dt.date
 
-    # Filtriamo i dati per includere solo i mittenti definiti
+    # Filtra per includere solo i mittenti definiti in ACTIVE_MAPPING
     df_copy = df_copy[df_copy["mittente"].isin(ACTIVE_MAPPING.keys())]
 
-    # Creiamo una tabella pivot che raggruppa per data e mittente
+    # Costruisce la tabella pivot: righe=giorni, colonne=mittenti, conteggio degli eventi
     pivot = df_copy.pivot_table(index="data", columns="mittente", aggfunc="size", fill_value=0).sort_index()
-
-    # Calcola il totale (TOTALE) per ogni data
+    # Aggiunge la colonna TOTAL = somma per ogni giorno
     pivot["TOTAL"] = pivot.sum(axis=1)
-    pivot = pivot.applymap(int)  # assicura che siano tipi Python (evita numpy.int64)
+    pivot = pivot.applymap(int)  # per avere tipi Python nativi
 
-    # Applichiamo il filtro per gli ultimi 30 giorni:
-    # Determinazione della data massima (l'ultima data presente)
-    last_date = max(pivot.index)
-    # Selezione dei dati dalla data di inizio (last_date - 29 giorni) fino a last_date
-    from datetime import timedelta
-    start_date = last_date - timedelta(days=29)
-    pivot = pivot.loc[[d for d in pivot.index if d >= start_date]]
-
-    # Creiamo il dizionario per il rename delle colonne, 
-    # rinominando "TOTAL" in "TOTALE" e ogni mittente in base ad ACTIVE_MAPPING
+    # Creazione del dizionario per il rename
     rename_dict = {"TOTAL": "TOTALE"}
     for sender in ACTIVE_MAPPING:
         rename_dict[sender] = ACTIVE_MAPPING[sender]
 
-    # Specifica l'ordine finale delle colonne
+    # Ordine finale delle colonne
     final_order = ["data"] + [ACTIVE_MAPPING[s] for s in ACTIVE_MAPPING] + ["TOTALE"]
 
-    # Reset dell'indice e rinominazione colonne
-    daily_dataset = pivot.reset_index().rename(columns=rename_dict)
-    # Formattazione della data in formato stringa (gg-mm-aaaa)
-    daily_dataset["data"] = daily_dataset["data"].apply(lambda d: d.strftime("%d-%m-%Y"))
-    daily_dataset = daily_dataset[final_order]
+    # Calcola il cumulato su tutto il dataset (l'andamento cumulato include dati pregressi)
+    cumulative_pivot = pivot.cumsum()
 
-    # Creazione del dataset cumulativo: somma progressiva per ogni colonna (tranne "data")
-    cumulative_dataset = daily_dataset.copy()
-    for col in final_order:
-        if col != "data":
-            cumulative_dataset[col] = cumulative_dataset[col].cumsum()
+    # Definisce l'intervallo degli ultimi 'window' giorni
+    # Se non ci sono dati sufficienti, verranno mostrati quelli disponibili
+    if pivot.empty:
+        return pd.DataFrame(), pd.DataFrame()
+    
+    # Trova l'ultimo giorno disponibile nel dataset
+    last_date = pivot.index.max()
+    # Calcola la soglia: includiamo window giorni compreso l'ultimo
+    threshold_date = last_date - timedelta(days=window - 1)
+
+    # Filtra sia i dati giornalieri che quelli cumulativi in base alla finestra
+    pivot_filtered = pivot.loc[threshold_date:last_date].reset_index()
+    cumulative_filtered = cumulative_pivot.loc[threshold_date:last_date].reset_index()
+
+    # Rinomina le colonne
+    daily_dataset = pivot_filtered.rename(columns=rename_dict)
+    cumulative_dataset = cumulative_filtered.rename(columns=rename_dict)
+
+    # Format della colonna data in stringa con formato "dd-mm-yyyy"
+    daily_dataset["data"] = daily_dataset["data"].apply(lambda d: d.strftime("%d-%m-%Y"))
+    cumulative_dataset["data"] = cumulative_dataset["data"].apply(lambda d: d.strftime("%d-%m-%Y"))
+
+    # Riordina le colonne come da final_order
+    daily_dataset = daily_dataset[final_order]
+    cumulative_dataset = cumulative_dataset[final_order]
 
     return daily_dataset, cumulative_dataset
 
