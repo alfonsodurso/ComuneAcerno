@@ -18,6 +18,7 @@ def prepare_time_series_data_by_sender(df: pd.DataFrame) -> tuple[pd.DataFrame, 
     """
     Prepara i dati temporali aggregati per data e mittente.
     Considera solo i mittenti definiti nel mapping.
+    Filtra dinamicamente mostrando solo gli ultimi 30 giorni.
     """
     # Converte la data di pubblicazione e filtra eventuali errori
     df_copy = df.copy()
@@ -28,24 +29,37 @@ def prepare_time_series_data_by_sender(df: pd.DataFrame) -> tuple[pd.DataFrame, 
     # Filtriamo i dati per includere solo i mittenti definiti
     df_copy = df_copy[df_copy["mittente"].isin(ACTIVE_MAPPING.keys())]
 
-    # Crea una tabella pivot che raggruppa per data e mittente
+    # Creiamo una tabella pivot che raggruppa per data e mittente
     pivot = df_copy.pivot_table(index="data", columns="mittente", aggfunc="size", fill_value=0).sort_index()
 
     # Calcola il totale (TOTALE) per ogni data
     pivot["TOTAL"] = pivot.sum(axis=1)
     pivot = pivot.applymap(int)  # assicura che siano tipi Python (evita numpy.int64)
 
+    # Applichiamo il filtro per gli ultimi 30 giorni:
+    # Determinazione della data massima (l'ultima data presente)
+    last_date = max(pivot.index)
+    # Selezione dei dati dalla data di inizio (last_date - 29 giorni) fino a last_date
+    from datetime import timedelta
+    start_date = last_date - timedelta(days=29)
+    pivot = pivot.loc[[d for d in pivot.index if d >= start_date]]
+
+    # Creiamo il dizionario per il rename delle colonne, 
+    # rinominando "TOTAL" in "TOTALE" e ogni mittente in base ad ACTIVE_MAPPING
     rename_dict = {"TOTAL": "TOTALE"}
     for sender in ACTIVE_MAPPING:
         rename_dict[sender] = ACTIVE_MAPPING[sender]
 
-    # Ordina i dati come specificato
+    # Specifica l'ordine finale delle colonne
     final_order = ["data"] + [ACTIVE_MAPPING[s] for s in ACTIVE_MAPPING] + ["TOTALE"]
 
+    # Reset dell'indice e rinominazione colonne
     daily_dataset = pivot.reset_index().rename(columns=rename_dict)
+    # Formattazione della data in formato stringa (gg-mm-aaaa)
     daily_dataset["data"] = daily_dataset["data"].apply(lambda d: d.strftime("%d-%m-%Y"))
     daily_dataset = daily_dataset[final_order]
 
+    # Creazione del dataset cumulativo: somma progressiva per ogni colonna (tranne "data")
     cumulative_dataset = daily_dataset.copy()
     for col in final_order:
         if col != "data":
