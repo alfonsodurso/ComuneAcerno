@@ -7,7 +7,7 @@ def escape_markdown(text):
         text = str(text)
     
     # Lista minima dei caratteri da scappare
-    minimal_chars = ['_', '*', '[', ']', '(', ')']
+    minimal_chars = ['_', '*']
     for ch in minimal_chars:
         text = text.replace(ch, f"\\{ch}")
     
