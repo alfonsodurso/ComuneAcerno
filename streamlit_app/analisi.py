@@ -18,7 +18,6 @@ def prepare_time_series_data_by_sender(df: pd.DataFrame) -> tuple[pd.DataFrame, 
     """
     Prepara i dati temporali aggregati per data e mittente.
     Considera solo i mittenti definiti nel mapping.
-    Filtra dinamicamente mostrando solo gli ultimi 30 giorni.
     """
     # Converte la data di pubblicazione e filtra eventuali errori
     df_copy = df.copy()
@@ -29,37 +28,24 @@ def prepare_time_series_data_by_sender(df: pd.DataFrame) -> tuple[pd.DataFrame, 
     # Filtriamo i dati per includere solo i mittenti definiti
     df_copy = df_copy[df_copy["mittente"].isin(ACTIVE_MAPPING.keys())]
 
-    # Creiamo una tabella pivot che raggruppa per data e mittente
+    # Crea una tabella pivot che raggruppa per data e mittente
     pivot = df_copy.pivot_table(index="data", columns="mittente", aggfunc="size", fill_value=0).sort_index()
 
     # Calcola il totale (TOTALE) per ogni data
     pivot["TOTAL"] = pivot.sum(axis=1)
     pivot = pivot.applymap(int)  # assicura che siano tipi Python (evita numpy.int64)
 
-    # Applichiamo il filtro per gli ultimi 30 giorni:
-    # Determinazione della data massima (l'ultima data presente)
-    last_date = max(pivot.index)
-    # Selezione dei dati dalla data di inizio (last_date - 29 giorni) fino a last_date
-    from datetime import timedelta
-    start_date = last_date - timedelta(days=29)
-    pivot = pivot.loc[[d for d in pivot.index if d >= start_date]]
-
-    # Creiamo il dizionario per il rename delle colonne, 
-    # rinominando "TOTAL" in "TOTALE" e ogni mittente in base ad ACTIVE_MAPPING
     rename_dict = {"TOTAL": "TOTALE"}
     for sender in ACTIVE_MAPPING:
         rename_dict[sender] = ACTIVE_MAPPING[sender]
 
-    # Specifica l'ordine finale delle colonne
+    # Ordina i dati come specificato
     final_order = ["data"] + [ACTIVE_MAPPING[s] for s in ACTIVE_MAPPING] + ["TOTALE"]
 
-    # Reset dell'indice e rinominazione colonne
     daily_dataset = pivot.reset_index().rename(columns=rename_dict)
-    # Formattazione della data in formato stringa (gg-mm-aaaa)
     daily_dataset["data"] = daily_dataset["data"].apply(lambda d: d.strftime("%d-%m-%Y"))
     daily_dataset = daily_dataset[final_order]
 
-    # Creazione del dataset cumulativo: somma progressiva per ogni colonna (tranne "data")
     cumulative_dataset = daily_dataset.copy()
     for col in final_order:
         if col != "data":
@@ -176,62 +162,57 @@ def crea_config_chart(title: str, dataset: pd.DataFrame, selected_cols: list) ->
 
 # ------------------------Tipologie & Mittenti----------------------------
 
-def create_doughnut_chart(chart_data, chart_title: str) -> dict:
+def create_bar_chart(data_df: pd.DataFrame, chart_title: str) -> dict:
     """
-    Crea la configurazione per un grafico a "doughnut" (anello) per ECharts.
-    Ci si aspetta che chart_data sia un DataFrame con colonne "label" e "value",
-    oppure una Series o un dizionario.
+    Crea una configurazione per un grafico a barre in cui:
+    - Ogni barra ha un colore differente.
+    - Il tooltip mostra solo il nome della barra e il numero (formato "{b}: {c}").
     """
-    # Se i dati sono in formato DataFrame, trasformali in lista di dizionari
-    if isinstance(chart_data, pd.DataFrame):
-        data_list = chart_data.apply(
-            lambda row: {"name": str(row["label"]), "value": int(row["value"])}, axis=1
-        ).tolist()
-    elif hasattr(chart_data, "to_dict"):
-        # Se si tratta di una Series, convertila in dizionario
-        data_dict = chart_data.to_dict()
-        data_list = [{"name": str(k), "value": int(v)} for k, v in data_dict.items()]
-    elif isinstance(chart_data, dict):
-        data_list = [{"name": str(k), "value": int(v)} for k, v in chart_data.items()]
-    else:
-        raise ValueError("Formato dati non supportato, fornire un DataFrame, una Series o un dizionario.")
-        
+    categories = data_df["label"].tolist()
+    values = data_df["value"].tolist()
+    
+    # Palette di colori per le barre
+    palette = ["#5470c6", "#91cc75", "#fac858", "#ee6666", "#73c0de", "#3ba272", "#fc8452", "#9a60b4", "#ea7ccc"]
+    
+    # Costruisce i dati assegnando ad ogni barra un colore specifico
+    data = []
+    for i, value in enumerate(values):
+        data.append({
+            "value": value,
+            "itemStyle": {"color": palette[i % len(palette)]}
+        })
+    
     option = {
         "tooltip": {
-            "trigger": "item"
+            "trigger": "item",
+            "formatter": ("Pubblicazioni<br/>",
+                          "{b}: <b>{c}</b>")
         },
-        "legend": {
-            "top": "5%",
-            "left": "center"
+        
+        "grid": {
+            "left": "3%",
+            "right": "4%",
+            "bottom": "3%",
+            "containLabel": True
         },
-        "series": [
-            {
-                "name": chart_title,
-                "type": "pie",
-                "radius": ["40%", "70%"],
-                "avoidLabelOverlap": False,
-                "itemStyle": {
-                    "borderRadius": 10,
-                    "borderColor": "#fff",
-                    "borderWidth": 2
-                },
-                "label": {
-                    "show": False,
-                    "position": "center"
-                },
-                "emphasis": {
-                    "label": {
-                        "show": True,
-                        "fontSize": 40,
-                        "fontWeight": "bold"
-                    }
-                },
-                "labelLine": {
-                    "show": False
-                },
-                "data": data_list
-            }
-        ]
+        "xAxis": [{
+            "type": "category",
+            "data": categories,
+            "axisTick": {"alignWithLabel": True}
+        }],
+        "yAxis": [{
+            "type": "value"
+        }],
+        "series": [{
+            "name": chart_title,
+            "type": "bar",
+            "showBackground": True,
+            "backgroundStyle": {
+                "color": "rgba(180, 180, 180, 0.2)"
+            },
+            "barWidth": "60%",
+            "data": data
+        }]
     }
     return option
     
@@ -321,20 +302,21 @@ def display_temporal_tab(container, df: pd.DataFrame):
 
 def display_tipologie_tab(container, df: pd.DataFrame):
     """
-    Visualizza la tab "Tipologie & Mittenti" mostrando due grafici a "doughnut" incolonnati:
-    uno per "Mittenti" e uno per "Tipologie".
+    Visualizza la tab "Tipologie & Mittenti" mostrando un grafico a barre.
+    L'utente può scegliere se visualizzare i dati per "Mittenti" o per "Tipologie".
     """
     with st.container():
-        # Grafico per i Mittenti
-        selected_senders = st.session_state.get("selected_senders", list(ACTIVE_MAPPING.values()))
-        chart_data_mittenti = prepare_mittenti_count(df, selected_senders)
-        doughnut_options_mittenti = create_doughnut_chart(chart_data_mittenti, "Mittente")
-        st_echarts(options=doughnut_options_mittenti, height="400px", key="doughnut_chart_mittenti")
+        view_option = st.radio("Visualizza per:", ["Mittenti", "Tipologie"], horizontal=True)
         
-        # Grafico per le Tipologie
-        chart_data_tipologie = prepare_tipologie_count(df)
-        doughnut_options_tipologie = create_doughnut_chart(chart_data_tipologie, "Tipologia")
-        st_echarts(options=doughnut_options_tipologie, height="400px", key="doughnut_chart_tipologie")
+        if view_option == "Mittenti":
+            selected_senders = st.session_state.get("selected_senders", list(ACTIVE_MAPPING.values()))
+            chart_data = prepare_mittenti_count(df, selected_senders)
+            chart_title = "Mittente"
+        else:
+            chart_data = prepare_tipologie_count(df)
+            chart_title = "Tipologia"
+        
+        st_echarts(options=create_bar_chart(chart_data, chart_title), height="400px", key=f"bar_chart_{view_option}")
 
 # -----------------------------------------------------------------
 
