@@ -179,7 +179,7 @@ def crea_config_chart(title: str, dataset: pd.DataFrame, selected_cols: list) ->
 def create_doughnut_chart(chart_data, chart_title: str) -> dict:
     """
     Crea la configurazione per un grafico a "doughnut" (anello) in base ai dati forniti.
-    Ci si aspetta che chart_data sia un dizionario o una Series con chiave=etichetta e valore=conteggio.
+    Si aspetta che chart_data sia un dizionario o una Series con chiave=etichetta e valore=conteggio.
     """
     # Se chart_data è una Series, convertiamo in dizionario
     if hasattr(chart_data, "to_dict"):
@@ -189,8 +189,16 @@ def create_doughnut_chart(chart_data, chart_title: str) -> dict:
     else:
         raise ValueError("Formato dati non supportato, fornire un dizionario o una Series.")
     
-    data_list = [{"value": int(v), "name": str(k)} for k, v in data_dict.items()]
-
+    # Costruiamo la lista per il grafico, gestendo eventuali errori di conversione
+    data_list = []
+    for k, v in data_dict.items():
+        try:
+            val = int(v)
+        except (ValueError, TypeError):
+            # Se non riesce a convertire in int, impostiamo un default (ad esempio 0) oppure saltiamo il valore
+            val = 0
+        data_list.append({"value": val, "name": str(k)})
+    
     option = {
         "tooltip": {
             "trigger": "item"
