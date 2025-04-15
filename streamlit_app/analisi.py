@@ -178,27 +178,24 @@ def crea_config_chart(title: str, dataset: pd.DataFrame, selected_cols: list) ->
 
 def create_doughnut_chart(chart_data, chart_title: str) -> dict:
     """
-    Crea la configurazione per un grafico a "doughnut" (anello) in base ai dati forniti.
-    Si aspetta che chart_data sia un dizionario o una Series con chiave=etichetta e valore=conteggio.
+    Crea la configurazione per un grafico a "doughnut" (anello) per ECharts.
+    Ci si aspetta che chart_data sia un DataFrame con colonne "label" e "value",
+    oppure una Series o un dizionario.
     """
-    # Se chart_data è una Series, convertiamo in dizionario
-    if hasattr(chart_data, "to_dict"):
+    # Se i dati sono in formato DataFrame, trasformali in lista di dizionari
+    if isinstance(chart_data, pd.DataFrame):
+        data_list = chart_data.apply(
+            lambda row: {"name": str(row["label"]), "value": int(row["value"])}, axis=1
+        ).tolist()
+    elif hasattr(chart_data, "to_dict"):
+        # Se si tratta di una Series, convertila in dizionario
         data_dict = chart_data.to_dict()
+        data_list = [{"name": str(k), "value": int(v)} for k, v in data_dict.items()]
     elif isinstance(chart_data, dict):
-        data_dict = chart_data
+        data_list = [{"name": str(k), "value": int(v)} for k, v in chart_data.items()]
     else:
-        raise ValueError("Formato dati non supportato, fornire un dizionario o una Series.")
-    
-    # Costruiamo la lista per il grafico, gestendo eventuali errori di conversione
-    data_list = []
-    for k, v in data_dict.items():
-        try:
-            val = int(v)
-        except (ValueError, TypeError):
-            # Se non riesce a convertire in int, impostiamo un default (ad esempio 0) oppure saltiamo il valore
-            val = 0
-        data_list.append({"value": val, "name": str(k)})
-    
+        raise ValueError("Formato dati non supportato, fornire un DataFrame, una Series o un dizionario.")
+        
     option = {
         "tooltip": {
             "trigger": "item"
@@ -328,18 +325,17 @@ def display_tipologie_tab(container, df: pd.DataFrame):
     uno per "Mittenti" e uno per "Tipologie".
     """
     with st.container():
-        # Prepariamo e visualizziamo il grafico per i Mittenti
+        # Grafico per i Mittenti
         selected_senders = st.session_state.get("selected_senders", list(ACTIVE_MAPPING.values()))
-        # Supponiamo che prepare_mittenti_count restituisca una Series o un dizionario
         chart_data_mittenti = prepare_mittenti_count(df, selected_senders)
         doughnut_options_mittenti = create_doughnut_chart(chart_data_mittenti, "Mittente")
         st_echarts(options=doughnut_options_mittenti, height="400px", key="doughnut_chart_mittenti")
         
-        # Prepariamo e visualizziamo il grafico per le Tipologie
-        # Supponiamo che prepare_tipologie_count restituisca una Series o un dizionario
+        # Grafico per le Tipologie
         chart_data_tipologie = prepare_tipologie_count(df)
         doughnut_options_tipologie = create_doughnut_chart(chart_data_tipologie, "Tipologia")
         st_echarts(options=doughnut_options_tipologie, height="400px", key="doughnut_chart_tipologie")
+
 # -----------------------------------------------------------------
 
 def display_ritardi_tab(container, df: pd.DataFrame):
